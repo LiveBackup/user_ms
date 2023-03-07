@@ -1,9 +1,10 @@
-import {inject, Getter} from '@loopback/core';
-import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
+import {Getter, inject} from '@loopback/core';
+import {BelongsToAccessor, DefaultCrudRepository, repository} from '@loopback/repository';
 import {UserDbDataSource} from '../datasources';
-import {AccountCredentials, AccountCredentialsRelations, Account} from '../models';
+import {Account, AccountCredentials, AccountCredentialsRelations} from '../models';
 import {AccountRepository} from './account.repository';
 
+/* eslint-disable @typescript-eslint/naming-convention */
 export class AccountCredentialsRepository extends DefaultCrudRepository<
   AccountCredentials,
   typeof AccountCredentials.prototype.id,

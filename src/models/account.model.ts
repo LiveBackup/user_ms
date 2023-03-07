@@ -1,6 +1,7 @@
-import {Entity, model, property, hasOne} from '@loopback/repository';
+import {Entity, hasOne, model, property} from '@loopback/repository';
 import {AccountCredentials} from './account-credentials.model';
 
+/* eslint-disable @typescript-eslint/naming-convention */
 @model()
 export class Account extends Entity {
   @property({
@@ -15,13 +16,19 @@ export class Account extends Entity {
     type: 'string',
     required: true,
   })
+  username: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
   email: string;
 
   @property({
     type: 'boolean',
-    default: true,
+    default: false,
   })
-  is_email_verified?: boolean;
+  is_email_verified: boolean;
 
   @hasOne(() => AccountCredentials, {keyTo: 'account_id'})
   account_credentials: AccountCredentials;
