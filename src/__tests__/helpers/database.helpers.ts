@@ -4,6 +4,13 @@ import {AccountCredentialsRepository, AccountRepository} from '../../repositorie
 
 // Clear the testing database
 export const givenEmptyDatabase = async function () {
+  const {accountRepository, accountCredentialsRepository} = givenRepositories();
+
+  await accountRepository.deleteAll();
+  await accountCredentialsRepository.deleteAll();
+}
+
+export const givenRepositories = function () {
   /* eslint-disable prefer-const */
   let accountRepository: AccountRepository;
   let accountCredentialsRepository: AccountCredentialsRepository;
@@ -19,8 +26,10 @@ export const givenEmptyDatabase = async function () {
   );
   /* eslint-enable prefer-const */
 
-  await accountRepository.deleteAll();
-  await accountCredentialsRepository.deleteAll();
+  return {
+    accountRepository,
+    accountCredentialsRepository,
+  };
 }
 
 // Return and Account Object using the given data
