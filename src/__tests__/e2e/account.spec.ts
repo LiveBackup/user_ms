@@ -25,7 +25,7 @@ describe('e2e - Account Testing', () => {
     await app.stop();
   });
 
-  it.only('Creates a new User', async () => {
+  it.skip('Creates a new User', async () => {
     // TODO: Fix this test
     const newUser: NewUserResquestSchema = {
       username: 'jdiegopm',

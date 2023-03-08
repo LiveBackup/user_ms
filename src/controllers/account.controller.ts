@@ -2,11 +2,10 @@ import {inject} from '@loopback/core';
 import {getModelSchemaRef, post, requestBody, response} from '@loopback/rest';
 import {Account} from '../models';
 import {NewUserResquestSchema} from '../schemas';
-import {AccountCredentialsService, AccountService} from '../services';
+import {AccountService} from '../services';
 
 export class AccountController {
   constructor(
-    @inject('services.AccountCredentialsService') protected accountCredentialsService: AccountCredentialsService,
     @inject('services.AccountService') protected accountService: AccountService,
   ) { }
 
