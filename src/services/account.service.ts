@@ -1,21 +1,16 @@
 import {BindingScope, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {compare, genSalt, hash} from 'bcryptjs';
-import {AccountCredentialsRepository, AccountRepository} from '../repositories';
+import {Account} from '../models';
+import {AccountRepository} from '../repositories';
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class AccountService {
   constructor(
     @repository(AccountRepository) protected accountRepository: AccountRepository,
-    @repository(AccountCredentialsRepository) protected accountCredentialsRepository: AccountCredentialsRepository,
   ) { }
 
-  async hashPassword(password: string): Promise<string> {
-    return hash(password, await genSalt());
-  }
-
-  async verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-    return compare(password, hashedPassword);
+  async create(newAccount: Account): Promise<Account> {
+    return this.accountRepository.create(newAccount);
   }
 
   async existByEmailOrUsername(email: string, username: string): Promise<boolean> {
