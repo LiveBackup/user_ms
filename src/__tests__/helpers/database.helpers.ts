@@ -2,7 +2,7 @@ import {testdb} from '../../datasources';
 import {Account, AccountCredentials} from '../../models';
 import {AccountCredentialsRepository, AccountRepository} from '../../repositories';
 
-console.log('Importing database helpers');
+// TODO: Change e2e folder name to acceptance
 
 // Clear the testing database
 export const givenEmptyDatabase = async function () {

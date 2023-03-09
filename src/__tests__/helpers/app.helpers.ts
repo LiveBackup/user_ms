@@ -3,6 +3,8 @@ import {UserMsApplication} from '../../application';
 import {testdb} from '../../datasources';
 
 export const givenRunningApp = async function (): Promise<UserMsApplication> {
+  // FIXME: The app is running against the real db
+  // FIXME: The real db must be accessible to the app to start even in test mode
   const app: UserMsApplication = new UserMsApplication({});
   await app.boot();
 

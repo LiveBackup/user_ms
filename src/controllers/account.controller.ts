@@ -1,11 +1,12 @@
 import {inject} from '@loopback/core';
-import {getModelSchemaRef, HttpErrors, post, requestBody, response} from '@loopback/rest';
+import {getModelSchemaRef, HttpErrors, post, requestBody, Response, response, RestBindings} from '@loopback/rest';
 import {Account, AccountCredentials} from '../models';
 import {NewUserResquestSchemaDescription, NewUserResquestSchemaObject} from '../schemas';
 import {AccountCredentialsService, AccountService} from '../services';
 
 export class AccountController {
   constructor(
+    @inject(RestBindings.Http.RESPONSE) protected response: Response,
     @inject('services.AccountService') protected accountService: AccountService,
     @inject('services.AccountCredentialsService') protected accountCredentialsService: AccountCredentialsService,
   ) { }
@@ -57,6 +58,7 @@ export class AccountController {
       },
     ));
 
+    this.response.status(201);
     return newAccount;
   };
 }

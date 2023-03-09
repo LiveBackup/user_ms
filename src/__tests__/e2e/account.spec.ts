@@ -39,7 +39,9 @@ describe('e2e - Account Testing', () => {
       is_email_verified: false, // eslint-disable-line
     });
 
-    const createdAccount = (await client.post('/sign-up')).body;
+    const response = await client.post('/sign-up').expect(201).send(newUser);
+    console.log(response);
+    const createdAccount = response.body;
     const createdCredentials = await accountCredentialsRepository
       .findOne({where: {account_id: createdAccount.id}});
 
