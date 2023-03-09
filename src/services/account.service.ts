@@ -26,4 +26,12 @@ export class AccountService {
 
     return account !== null;
   }
+
+  async findByEmail(email: string): Promise<Account | null> {
+    return this.accountRepository.findOne({where: {email}});
+  }
+
+  async findByUsername(username: string): Promise<Account | null> {
+    return this.accountRepository.findOne({where: {username}});
+  }
 }

@@ -5,7 +5,7 @@ import {AccountCredentials} from '../models';
 import {AccountCredentialsRepository} from '../repositories';
 
 @injectable({scope: BindingScope.TRANSIENT})
-export class AccountService {
+export class AccountCredentialsService {
   constructor(
     @repository(AccountCredentialsRepository) protected accountCredentialsRepository: AccountCredentialsRepository,
   ) { }
