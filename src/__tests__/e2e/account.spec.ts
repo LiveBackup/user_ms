@@ -1,7 +1,7 @@
 import {Client, expect} from '@loopback/testlab';
 import {UserMsApplication} from '../../application';
 import {AccountCredentialsRepository, AccountRepository} from '../../repositories';
-import {NewUserResquestSchema} from '../../schemas';
+import {NewUserResquestSchemaObject} from '../../schemas';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {givenAccount, givenEmptyDatabase, givenRepositories} from '../helpers/database.helpers';
 
@@ -25,9 +25,9 @@ describe('e2e - Account Testing', () => {
     await app.stop();
   });
 
-  it.skip('Creates a new User', async () => {
-    // TODO: Fix this test
-    const newUser: NewUserResquestSchema = {
+  it.only('Creates a new User', async () => {
+    // FIXME: Fix this test
+    const newUser: NewUserResquestSchemaObject = {
       username: 'jdiegopm',
       email: 'jdiegopm@livebackup.com',
       password: 'strong_password',
