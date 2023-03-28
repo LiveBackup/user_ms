@@ -11,7 +11,8 @@
   ],
   "reporter": [
     "text",
-    "html"
+    "html",
+    "lcov"
   ],
   "exclude-after-remap": false
 }
