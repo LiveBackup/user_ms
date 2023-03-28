@@ -38,8 +38,7 @@
     "clean": "lb-clean dist *.tsbuildinfo .eslintcache",
     "rebuild": "npm run clean && npm run build",
     "precoverage": "npm test",
-    "coverage": "open coverage/index.html",
-    "coverage:ci": "lb-nyc report --reporter=text-lcov | coveralls"
+    "coverage": "open coverage/index.html"
   },
   "repository": {
     "type": "git",
