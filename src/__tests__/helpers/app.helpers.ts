@@ -13,6 +13,8 @@ export const givenRunningApp = async function (): Promise<UserMsApplication> {
   return app;
 };
 
-export const givenClient = async function (app: UserMsApplication): Promise<Client> {
+export const givenClient = async function (
+  app: UserMsApplication,
+): Promise<Client> {
   return createRestAppClient(app);
 };

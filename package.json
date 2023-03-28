@@ -24,7 +24,7 @@
     "eslint:fix": "npm run eslint -- --fix",
     "pretest": "npm run rebuild",
     "test": "lb-nyc npm run mocha",
-    "posttest": "echo \"No post-test\"",
+    "posttest": "npm run lint",
     "mocha": "lb-mocha --allow-console-logs \"dist/__tests__\"",
     "mocha:dev": "lb-mocha --allow-console-logs dist/__tests__/**/*.js && npm run posttest",
     "docker:build": "docker build -t user_ms .",

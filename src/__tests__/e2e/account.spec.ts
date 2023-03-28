@@ -1,9 +1,16 @@
 import {Client, expect} from '@loopback/testlab';
 import {UserMsApplication} from '../../application';
-import {AccountCredentialsRepository, AccountRepository} from '../../repositories';
+import {
+  AccountCredentialsRepository,
+  AccountRepository,
+} from '../../repositories';
 import {NewUserResquestSchemaObject} from '../../schemas';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
-import {givenAccount, givenEmptyDatabase, givenRepositories} from '../helpers/database.helpers';
+import {
+  givenAccount,
+  givenEmptyDatabase,
+  givenRepositories,
+} from '../helpers/database.helpers';
 
 describe('e2e - Account Testing', () => {
   let app: UserMsApplication;
@@ -46,13 +53,16 @@ describe('e2e - Account Testing', () => {
     const createdAccount = response.body;
 
     /* eslint-disable @typescript-eslint/naming-convention */
-    const createdCredentials = await accountCredentialsRepository
-      .findOne({where: {account_id: createdAccount.id}});
+    const createdCredentials = await accountCredentialsRepository.findOne({
+      where: {account_id: createdAccount.id},
+    });
     /* eslint-enable @typescript-eslint/naming-convention */
 
     expect(createdAccount.username).to.be.equal(expectedAccount.username);
     expect(createdAccount.email).to.be.equal(expectedAccount.email);
-    expect(createdAccount.is_email_verified).to.be.equal(expectedAccount.is_email_verified);
+    expect(createdAccount.is_email_verified).to.be.equal(
+      expectedAccount.is_email_verified,
+    );
     expect(createdCredentials).not.to.be.null();
   });
 
@@ -68,8 +78,9 @@ describe('e2e - Account Testing', () => {
 
     const response = await client.post('/sign-up').send(newUser);
     expect(response.status).to.be.equal(400);
-    expect(response.body.error.message).to.be
-      .equal('There already exists an Account with the given email');
+    expect(response.body.error.message).to.be.equal(
+      'There already exists an Account with the given email',
+    );
   });
 
   it('Reject when a user already exists with a given username', async () => {
@@ -84,7 +95,8 @@ describe('e2e - Account Testing', () => {
 
     const response = await client.post('/sign-up').send(newUser);
     expect(response.status).to.be.equal(400);
-    expect(response.body.error.message).to.be
-      .equal('There already exists an Account with the given username');
+    expect(response.body.error.message).to.be.equal(
+      'There already exists an Account with the given username',
+    );
   });
 });

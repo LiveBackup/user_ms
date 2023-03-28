@@ -30,4 +30,5 @@ export interface AccountCredentialsRelations {
   // describe navigational properties here
 }
 
-export type AccountCredentialsWithRelations = AccountCredentials & AccountCredentialsRelations;
+export type AccountCredentialsWithRelations = AccountCredentials &
+  AccountCredentialsRelations;

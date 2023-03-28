@@ -6,20 +6,21 @@ import {AccountRepository} from '../repositories';
 @injectable({scope: BindingScope.TRANSIENT})
 export class AccountService {
   constructor(
-    @repository(AccountRepository) protected accountRepository: AccountRepository,
-  ) { }
+    @repository(AccountRepository)
+    protected accountRepository: AccountRepository,
+  ) {}
 
   async create(newAccount: Account): Promise<Account> {
     return this.accountRepository.create(newAccount);
   }
 
-  async existByEmailOrUsername(email: string, username: string): Promise<boolean> {
+  async existByEmailOrUsername(
+    email: string,
+    username: string,
+  ): Promise<boolean> {
     const account = await this.accountRepository.findOne({
       where: {
-        or: [
-          {email},
-          {username},
-        ],
+        or: [{email}, {username}],
       },
       fields: {id: true},
     });

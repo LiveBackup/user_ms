@@ -17,7 +17,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.17.1
-      - run: node --version && npm --version
       - run: npm ci
       - run: npm test
       - name: SonarClod Scan

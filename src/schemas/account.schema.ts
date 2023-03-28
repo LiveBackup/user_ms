@@ -4,19 +4,22 @@ import {SchemaObject} from '@loopback/rest';
 export class NewUserResquestSchemaObject {
   @property({
     type: 'string',
-    required: true
-  }) username: string;
+    required: true,
+  })
+  username: string;
 
   @property({
     type: 'string',
-    required: true
-  }) email: string;
+    required: true,
+  })
+  email: string;
 
   @property({
     type: 'string',
-    required: true
-  }) password: string;
-};
+    required: true,
+  })
+  password: string;
+}
 
 export const NewUserResquestSchemaDescription: SchemaObject = {
   type: 'object',
