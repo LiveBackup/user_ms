@@ -5,7 +5,7 @@ import {AccountCredentialsService} from '../../../services';
 import {givenAccountCredentials} from '../../helpers/database.helpers';
 import {givenServices} from '../../helpers/services.helpers';
 
-describe('Unit testing - AccountCredentials Model', () => {
+describe('Unit testing - AccountCredentials service', () => {
 
   let accountCredentialsService: AccountCredentialsService;
 

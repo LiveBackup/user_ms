@@ -8,8 +8,8 @@ import {AccountCredentialsRepository, AccountRepository} from '../../repositorie
 export const givenEmptyDatabase = async function () {
   const {accountRepository, accountCredentialsRepository} = givenRepositories();
 
-  await accountRepository.deleteAll();
   await accountCredentialsRepository.deleteAll();
+  await accountRepository.deleteAll();
 }
 
 export const givenRepositories = function () {

@@ -12,8 +12,8 @@ describe('e2e - Account Testing', () => {
   let client: Client;
 
   before(async () => {
-    app = await givenRunningApp();
     ({accountRepository, accountCredentialsRepository} = givenRepositories());
+    app = await givenRunningApp();
     client = await givenClient(app);
   });
 
@@ -25,29 +25,66 @@ describe('e2e - Account Testing', () => {
     await app.stop();
   });
 
-  it.only('Creates a new User', async () => {
-    // FIXME: Fix this test
+  it('Creates a new User', async () => {
     const newUser: NewUserResquestSchemaObject = {
       username: 'jdiegopm',
       email: 'jdiegopm@livebackup.com',
       password: 'strong_password',
     };
 
+    /* eslint-disable @typescript-eslint/naming-convention */
     const expectedAccount = givenAccount({
       username: newUser.username,
       email: newUser.email,
-      is_email_verified: false, // eslint-disable-line
+      is_email_verified: false,
     });
+    /* eslint-enable @typescript-eslint/naming-convention */
 
-    const response = await client.post('/sign-up').expect(201).send(newUser);
-    console.log(response);
+    const response = await client.post('/sign-up').send(newUser);
+    expect(response.statusCode).to.be.equal(201, response.body.error?.message);
+
     const createdAccount = response.body;
+
+    /* eslint-disable @typescript-eslint/naming-convention */
     const createdCredentials = await accountCredentialsRepository
       .findOne({where: {account_id: createdAccount.id}});
+    /* eslint-enable @typescript-eslint/naming-convention */
 
     expect(createdAccount.username).to.be.equal(expectedAccount.username);
     expect(createdAccount.email).to.be.equal(expectedAccount.email);
     expect(createdAccount.is_email_verified).to.be.equal(expectedAccount.is_email_verified);
     expect(createdCredentials).not.to.be.null();
+  });
+
+  it('Reject when a user already exists with a given email', async () => {
+    const user = givenAccount({email: 'jdiegopm12@livebackup.com'});
+    await accountRepository.create(user);
+
+    const newUser: NewUserResquestSchemaObject = {
+      username: 'jdiegopm12',
+      email: 'jdiegopm12@livebackup.com',
+      password: 'strong_password',
+    };
+
+    const response = await client.post('/sign-up').send(newUser);
+    expect(response.status).to.be.equal(400);
+    expect(response.body.error.message).to.be
+      .equal('There already exists an Account with the given email');
+  });
+
+  it('Reject when a user already exists with a given username', async () => {
+    const user = givenAccount({username: 'jdiegopm12'});
+    await accountRepository.create(user);
+
+    const newUser: NewUserResquestSchemaObject = {
+      username: 'jdiegopm12',
+      email: 'jdiegopm12@livebackup.com',
+      password: 'strong_password',
+    };
+
+    const response = await client.post('/sign-up').send(newUser);
+    expect(response.status).to.be.equal(400);
+    expect(response.body.error.message).to.be
+      .equal('There already exists an Account with the given username');
   });
 });

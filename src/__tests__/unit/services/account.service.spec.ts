@@ -7,7 +7,7 @@ import {AccountService} from '../../../services';
 import {givenAccount, givenEmptyDatabase, givenRepositories} from '../../helpers/database.helpers';
 import {givenServices} from '../../helpers/services.helpers';
 
-describe('Unit testing - AccountCredentials Model', () => {
+describe('Unit testing - Account Service', () => {
 
   let accountRepository: AccountRepository;
   let accountService: AccountService;
@@ -18,7 +18,7 @@ describe('Unit testing - AccountCredentials Model', () => {
   });
 
   beforeEach(async () => {
-    givenEmptyDatabase();
+    await givenEmptyDatabase();
   });
 
   it('Creates a new Account', async () => {
@@ -64,7 +64,7 @@ describe('Unit testing - AccountCredentials Model', () => {
     }));
 
     // The accounts have different usernames and emails
-    let exists = await accountService
+    const exists = await accountService
       .existByEmailOrUsername(account2.email, account2.username);
 
     expect(exists).to.be.false();

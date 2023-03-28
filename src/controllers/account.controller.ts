@@ -6,7 +6,7 @@ import {AccountCredentialsService, AccountService} from '../services';
 
 export class AccountController {
   constructor(
-    @inject(RestBindings.Http.RESPONSE) protected response: Response,
+    @inject(RestBindings.Http.RESPONSE) protected httpResponse: Response,
     @inject('services.AccountService') protected accountService: AccountService,
     @inject('services.AccountCredentialsService') protected accountCredentialsService: AccountCredentialsService,
   ) { }
@@ -53,12 +53,12 @@ export class AccountController {
     // Creates the user credentials into the database
     await this.accountCredentialsService.create(new AccountCredentials(
       {
-        account_id: newAccount.id,
+        account_id: newAccount.id, /* eslint-disable-line */
         password: await this.accountCredentialsService.hashPassword(password),
       },
     ));
 
-    this.response.status(201);
+    this.httpResponse.status(201);
     return newAccount;
   };
 }
