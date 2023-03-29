@@ -27,7 +27,8 @@ export class AccountCredentials extends Entity {
 }
 
 export interface AccountCredentialsRelations {
-  // describe navigational properties here
+  username: string;
+  email: string;
 }
 
 export type AccountCredentialsWithRelations = AccountCredentials &

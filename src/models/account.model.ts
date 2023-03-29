@@ -39,7 +39,7 @@ export class Account extends Entity {
 }
 
 export interface AccountRelations {
-  // describe navigational properties here
+  password: string;
 }
 
 export type AccountWithRelations = Account & AccountRelations;

@@ -3,7 +3,9 @@
     "dist"
   ],
   "exclude": [
-    "dist/__tests__/"
+    "dist/__tests__/",
+    "dist/datasources/",
+    "dist/*.js"
   ],
   "extension": [
     ".js",

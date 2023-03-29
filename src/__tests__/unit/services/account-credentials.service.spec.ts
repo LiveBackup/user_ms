@@ -1,13 +1,23 @@
 import {expect} from '@loopback/testlab';
-import {AccountCredentialsService} from '../../../services';
-import {givenAccountCredentials} from '../../helpers/database.helpers';
+import {Account, AccountCredentials} from '../../../models';
+import {AccountCredentialsService, AccountService} from '../../../services';
+import {
+  givenAccount,
+  givenAccountCredentials,
+  givenEmptyDatabase,
+} from '../../helpers/database.helpers';
 import {givenServices} from '../../helpers/services.helpers';
 
 describe('Unit testing - AccountCredentials service', () => {
+  let accountService: AccountService;
   let accountCredentialsService: AccountCredentialsService;
 
   before(async () => {
-    ({accountCredentialsService} = givenServices());
+    ({accountService, accountCredentialsService} = givenServices());
+  });
+
+  beforeEach(async () => {
+    await givenEmptyDatabase();
   });
 
   describe('Passwords hashing and verification', () => {
@@ -52,8 +62,29 @@ describe('Unit testing - AccountCredentials service', () => {
       expect(validPassword).to.be.false();
     });
 
-    it.skip('Creates the Account Credentials', async () => {
-      // TODO: Implement this test
+    it('Creates the Account Credentials', async () => {
+      // Create the Account
+      let account = givenAccount();
+      account = await accountService.create(new Account(account));
+
+      // Create the account creadential partial object
+      /* eslint-disable @typescript-eslint/naming-convention */
+      const accountCredentials = givenAccountCredentials({
+        account_id: account.id,
+      });
+      /* eslint-enable @typescript-eslint/naming-convention */
+
+      // Store the account credentials in DB
+      const dbAccountCredentials = await accountCredentialsService.create(
+        new AccountCredentials(accountCredentials),
+      );
+
+      // Check the results
+      expect(dbAccountCredentials).not.to.be.null();
+      expect(dbAccountCredentials.id).not.to.be.empty();
+      expect(dbAccountCredentials.password).to.be.equal(
+        accountCredentials.password,
+      );
     });
   });
 });

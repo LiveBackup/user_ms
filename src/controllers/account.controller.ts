@@ -52,19 +52,13 @@ export class AccountController {
       );
 
     if (existAccountByEmailOrUsername) {
-      const [accountByEmail, accountByUsername] = await Promise.all([
-        this.accountService.findByEmail(email),
-        this.accountService.findByUsername(username),
-      ]);
+      const accountByEmail = await this.accountService.findByEmail(email);
 
-      if (accountByEmail !== null)
-        throw new HttpErrors[400](
-          'There already exists an Account with the given email',
-        );
-      else if (accountByUsername !== null)
-        throw new HttpErrors[400](
-          'There already exists an Account with the given username',
-        );
+      const errorMessage =
+        accountByEmail !== null
+          ? 'There already exists an Account with the given email'
+          : 'There already exists an Account with the given username';
+      throw new HttpErrors[400](errorMessage);
     }
 
     // Creates the account into the database
