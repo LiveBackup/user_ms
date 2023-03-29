@@ -30,6 +30,12 @@ export class Account extends Entity {
   })
   is_email_verified: boolean;
 
+  @property({
+    type: 'date',
+    required: true,
+  })
+  registered_at: Date;
+
   @hasOne(() => AccountCredentials, {keyTo: 'account_id'})
   account_credentials: AccountCredentials;
 

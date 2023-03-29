@@ -5,8 +5,6 @@ import {
   AccountRepository,
 } from '../../repositories';
 
-// TODO: Change e2e folder name to acceptance
-
 // Clear the testing database
 export const givenEmptyDatabase = async function () {
   const {accountRepository, accountCredentialsRepository} = givenRepositories();
@@ -38,19 +36,23 @@ export const givenRepositories = function () {
 };
 
 // Return and Account Object using the given data
+/* eslint-disable @typescript-eslint/naming-convention */
 export const givenAccount = function (data?: Partial<Account>) {
   return Object.assign(
     {
       id: '1',
       username: 'jdiegopm',
       email: 'jdiego@livebackup.com',
-      is_email_verified: true /* eslint-disable-line */,
+      is_email_verified: true,
+      registered_at: new Date(),
     },
     data,
   );
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 // Return and AccountCredentials Object using the given data
+/* eslint-disable @typescript-eslint/naming-convention */
 export const givenAccountCredentials = function (
   data?: Partial<AccountCredentials>,
 ) {
@@ -58,8 +60,9 @@ export const givenAccountCredentials = function (
     {
       id: '1',
       password: 'hashed_password',
-      account_id: '1' /* eslint-disable-line */,
+      account_id: '1',
     },
     data,
   );
 };
+/* eslint-enable @typescript-eslint/naming-convention */

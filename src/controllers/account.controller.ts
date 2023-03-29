@@ -62,9 +62,15 @@ export class AccountController {
     }
 
     // Creates the account into the database
+    /* eslint-disable @typescript-eslint/naming-convention */
     const newAccount = await this.accountService.create(
-      new Account({email, username}),
+      new Account({
+        email,
+        username,
+        registered_at: new Date(),
+      }),
     );
+    /* eslint-enable @typescript-eslint/naming-convention */
 
     // Creates the user credentials into the database
     await this.accountCredentialsService.create(
