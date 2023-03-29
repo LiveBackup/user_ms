@@ -1,10 +1,11 @@
 {
-  "name": "user_ms",
+  "name": "livebackup_user_ms",
   "version": "0.0.1",
   "description": "",
   "keywords": [
-    "loopback-application",
-    "loopback"
+    "Livebackup",
+    "User",
+    "Microservice"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,9 +23,10 @@
     "eslint": "lb-eslint --report-unused-disable-directives .",
     "eslint:fix": "npm run eslint -- --fix",
     "pretest": "npm run rebuild",
-    "test": "lb-mocha --allow-console-logs \"dist/__tests__\"",
+    "test": "lb-nyc npm run mocha",
     "posttest": "npm run lint",
-    "test:dev": "lb-mocha --allow-console-logs dist/__tests__/**/*.js && npm run posttest",
+    "mocha": "lb-mocha --allow-console-logs \"dist/__tests__\"",
+    "mocha:dev": "lb-mocha --allow-console-logs dist/__tests__/**/*.js && npm run posttest",
     "docker:build": "docker build -t user_ms .",
     "docker:run": "docker run -p 3000:3000 -d user_ms",
     "premigrate": "npm run build",
@@ -34,7 +36,9 @@
     "prestart": "npm run rebuild",
     "start": "node -r source-map-support/register .",
     "clean": "lb-clean dist *.tsbuildinfo .eslintcache",
-    "rebuild": "npm run clean && npm run build"
+    "rebuild": "npm run clean && npm run build",
+    "precoverage": "npm test",
+    "coverage": "open coverage/index.html"
   },
   "repository": {
     "type": "git",
@@ -49,23 +53,27 @@
     "!*/__tests__"
   ],
   "dependencies": {
-    "@loopback/boot": "^4.1.1",
-    "@loopback/core": "^3.1.1",
-    "@loopback/repository": "^4.1.1",
-    "@loopback/rest": "^11.1.1",
-    "@loopback/rest-explorer": "^4.1.1",
-    "@loopback/service-proxy": "^4.1.1",
+    "@loopback/boot": "^5.0.4",
+    "@loopback/core": "^4.0.4",
+    "@loopback/repository": "^5.0.4",
+    "@loopback/rest": "^12.0.4",
+    "@loopback/rest-explorer": "^5.0.4",
+    "@loopback/security": "^0.8.8",
+    "@loopback/service-proxy": "^5.0.4",
+    "@types/bcryptjs": "^2.4.2",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.0.2",
     "loopback-connector-postgresql": "^5.5.1",
     "tslib": "^2.0.0"
   },
   "devDependencies": {
-    "@loopback/build": "^8.1.1",
+    "@loopback/build": "^9.0.4",
+    "@loopback/eslint-config": "^13.0.4",
+    "@loopback/testlab": "^5.0.4",
+    "@types/node": "^14.18.32",
+    "eslint": "^8.25.0",
+    "mocha": "^10.0.0",
     "source-map-support": "^0.5.21",
-    "@loopback/testlab": "^4.1.1",
-    "@types/node": "^12.20.46",
-    "@loopback/eslint-config": "^12.0.3",
-    "eslint": "^8.10.0",
-    "typescript": "~4.5.5"
+    "typescript": "~4.8.4"
   }
 }
