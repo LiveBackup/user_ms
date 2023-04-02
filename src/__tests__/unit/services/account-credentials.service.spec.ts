@@ -61,30 +61,65 @@ describe('Unit testing - AccountCredentials service', () => {
       );
       expect(validPassword).to.be.false();
     });
+  });
 
-    it('Creates the Account Credentials', async () => {
-      // Create the Account
-      let account = givenAccount();
-      account = await accountService.create(new Account(account));
+  it('Creates the Account Credentials', async () => {
+    // Create the Account
+    let account = givenAccount();
+    account = await accountService.create(new Account(account));
 
-      // Create the account creadential partial object
-      /* eslint-disable @typescript-eslint/naming-convention */
-      const accountCredentials = givenAccountCredentials({
-        account_id: account.id,
-      });
-      /* eslint-enable @typescript-eslint/naming-convention */
-
-      // Store the account credentials in DB
-      const dbAccountCredentials = await accountCredentialsService.create(
-        new AccountCredentials(accountCredentials),
-      );
-
-      // Check the results
-      expect(dbAccountCredentials).not.to.be.null();
-      expect(dbAccountCredentials.id).not.to.be.empty();
-      expect(dbAccountCredentials.password).to.be.equal(
-        accountCredentials.password,
-      );
+    // Create the account creadential partial object
+    /* eslint-disable @typescript-eslint/naming-convention */
+    const accountCredentials = givenAccountCredentials({
+      account_id: account.id,
     });
+    /* eslint-enable @typescript-eslint/naming-convention */
+
+    // Store the account credentials in DB
+    const dbAccountCredentials = await accountCredentialsService.create(
+      new AccountCredentials(accountCredentials),
+    );
+
+    // Check the results
+    expect(dbAccountCredentials).not.to.be.null();
+    expect(dbAccountCredentials.id).not.to.be.empty();
+    expect(dbAccountCredentials.password).to.be.equal(
+      accountCredentials.password,
+    );
+  });
+
+  it('Get the account credentials by the account id', async () => {
+    let account = givenAccount();
+    account = await accountService.create(new Account(account));
+
+    const accountCredentialsToCreate = givenAccountCredentials({
+      account_id: account.id, // eslint-disable-line
+    });
+    await accountCredentialsService.create(
+      new AccountCredentials(accountCredentialsToCreate),
+    );
+
+    const createdAccountCredentials =
+      await accountCredentialsService.getCredentialsByAccountId(account.id);
+
+    expect(createdAccountCredentials).not.to.be.null();
+    expect(createdAccountCredentials?.password).not.to.be.empty();
+  });
+
+  it('Account credentials as null when account id does not exist', async () => {
+    let account = givenAccount();
+    account = await accountService.create(new Account(account));
+
+    const accountCredentialsToCreate = givenAccountCredentials({
+      account_id: 'account.id', // eslint-disable-line
+    });
+    await accountCredentialsService.create(
+      new AccountCredentials(accountCredentialsToCreate),
+    );
+
+    const createdAccountCredentials =
+      await accountCredentialsService.getCredentialsByAccountId(account.id);
+
+    expect(createdAccountCredentials).to.be.null();
   });
 });

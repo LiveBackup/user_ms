@@ -1,11 +1,16 @@
+import {AuthenticationComponent} from '@loopback/authentication';
+import {
+  JWTAuthenticationComponent,
+  TokenServiceBindings,
+} from '@loopback/authentication-jwt';
 import {BootMixin} from '@loopback/boot';
 import {ApplicationConfig} from '@loopback/core';
+import {RepositoryMixin} from '@loopback/repository';
+import {RestApplication} from '@loopback/rest';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
-import {RepositoryMixin} from '@loopback/repository';
-import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {MySequence} from './sequence';
@@ -40,5 +45,22 @@ export class UserMsApplication extends BootMixin(
         nested: true,
       },
     };
+
+    // Mount authentication system
+    this.component(AuthenticationComponent);
+
+    // Mount jwt component
+    this.component(JWTAuthenticationComponent);
+
+    // For jwt access token
+    this.bind(TokenServiceBindings.TOKEN_SECRET).to(
+      process.env.USER_MS_ACCESS_TOKEN_SECRET ?? 'access_secret',
+    );
+    this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(
+      process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? '3600',
+    );
+
+    // Bind datasource
+    // this.dataSource(UserDbDataSource, UserServiceBindings.DATASOURCE_NAME);
   }
 }
