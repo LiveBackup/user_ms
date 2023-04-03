@@ -1,3 +1,5 @@
+import {TokenService} from '@loopback/authentication';
+import {TokenServiceBindings} from '@loopback/authentication-jwt';
 import {inject} from '@loopback/core';
 import {
   getModelSchemaRef,
@@ -10,17 +12,24 @@ import {
 } from '@loopback/rest';
 import {Account, AccountCredentials} from '../models';
 import {
+  LoginResquestSchemaDescription,
+  LoginResquestSchemaObject,
   NewUserResquestSchemaDescription,
   NewUserResquestSchemaObject,
+  TokenResponseSchemaObject,
 } from '../schemas';
 import {AccountCredentialsService, AccountService} from '../services';
 
 export class AccountController {
   constructor(
-    @inject(RestBindings.Http.RESPONSE) protected httpResponse: Response,
-    @inject('services.AccountService') protected accountService: AccountService,
+    @inject(RestBindings.Http.RESPONSE)
+    protected httpResponse: Response,
+    @inject('services.AccountService')
+    protected accountService: AccountService,
     @inject('services.AccountCredentialsService')
     protected accountCredentialsService: AccountCredentialsService,
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    protected jwtService: TokenService,
   ) {}
 
   @post('/sign-up')
@@ -82,5 +91,59 @@ export class AccountController {
 
     this.httpResponse.status(201);
     return newAccount;
+  }
+
+  @post('/login')
+  @response(200, {
+    description: 'Request a JWT by given tha account credentials',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(TokenResponseSchemaObject),
+      },
+    },
+  })
+  async login(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: LoginResquestSchemaDescription,
+        },
+      },
+    })
+    loginRequest: LoginResquestSchemaObject,
+  ): Promise<TokenResponseSchemaObject> {
+    const wrongCredentialsError = new HttpErrors[400](
+      'Incorrect username or password',
+    );
+
+    const {username, password} = loginRequest;
+    const account = await this.accountService.findByUsername(username);
+
+    if (account === null) {
+      throw wrongCredentialsError;
+    } else if (!account.is_email_verified) {
+      throw new HttpErrors[401]('Emails has not been verified');
+    }
+
+    const accountCredentials =
+      await this.accountCredentialsService.getCredentialsByAccountId(
+        account.id,
+      );
+    if (accountCredentials === null) {
+      throw new HttpErrors[404]('User credential not found');
+    }
+
+    const isValidPassowrd = await this.accountCredentialsService.verifyPassword(
+      password,
+      accountCredentials.password,
+    );
+
+    if (!isValidPassowrd) {
+      throw wrongCredentialsError;
+    }
+
+    const userProfile = this.accountService.convertToUserProfile(account);
+    const token = await this.jwtService.generateToken(userProfile);
+    return {token};
   }
 }

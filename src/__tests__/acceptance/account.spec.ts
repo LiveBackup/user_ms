@@ -4,7 +4,10 @@ import {
   AccountCredentialsRepository,
   AccountRepository,
 } from '../../repositories';
-import {NewUserResquestSchemaObject} from '../../schemas';
+import {
+  LoginResquestSchemaObject,
+  NewUserResquestSchemaObject,
+} from '../../schemas';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {
   givenAccount,
@@ -106,6 +109,135 @@ describe('e2e - Account Testing', () => {
       expect(response.status).to.be.equal(400);
       expect(response.body.error.message).to.be.equal(
         'There already exists an Account with the given username',
+      );
+    });
+  });
+
+  describe('User login - /login Endpoint', () => {
+    it('Get a valid token', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+      const registerResponse = await client.post('/sign-up').send(newUser);
+      await accountRepository.updateById(
+        registerResponse.body.id,
+        {is_email_verified: true}, // eslint-disable-line
+      );
+
+      const loginRequest: LoginResquestSchemaObject = {
+        username: newUser.username,
+        password: newUser.password,
+      };
+
+      const response = await client.post('/login').send(loginRequest);
+      expect(response.statusCode).to.be.equal(
+        200,
+        response.body.error?.message,
+      );
+
+      const token = response.body;
+      expect(token).not.to.be.null();
+      expect(token.token).not.to.be.empty();
+    });
+
+    it('Reject the query when the account credentials are not found', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+      const registerResponse = await client.post('/sign-up').send(newUser);
+      await accountRepository.updateById(
+        registerResponse.body.id,
+        {is_email_verified: true}, // eslint-disable-line
+      );
+
+      const createdAccount = await accountRepository.findOne({
+        where: {
+          username: newUser.username,
+        },
+      });
+      const accountCredentialsCreated =
+        await accountCredentialsRepository.findOne({
+          where: {
+            account_id: createdAccount?.id, // eslint-disable-line
+          },
+        });
+      await accountCredentialsRepository.deleteById(
+        accountCredentialsCreated?.id ?? '',
+      );
+
+      const loginRequest: LoginResquestSchemaObject = {
+        username: newUser.username,
+        password: newUser.password,
+      };
+
+      await client.post('/login').expect(404).send(loginRequest);
+    });
+
+    it('Reject the query when user not found', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+      await client.post('/sign-up').send(newUser);
+
+      const loginRequest: LoginResquestSchemaObject = {
+        username: 'newUser.username',
+        password: 'newUser.password',
+      };
+
+      const response = await client.post('/login').send(loginRequest);
+      expect(response.statusCode).to.be.equal(400);
+      expect(response.body.error.message).to.be.equal(
+        'Incorrect username or password',
+      );
+    });
+
+    it('Reject the query when the password is wrong', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+      const registerResponse = await client.post('/sign-up').send(newUser);
+      await accountRepository.updateById(
+        registerResponse.body.id,
+        {is_email_verified: true}, // eslint-disable-line
+      );
+
+      const loginRequest: LoginResquestSchemaObject = {
+        username: newUser.username,
+        password: 'weak_password',
+      };
+
+      const response = await client.post('/login').send(loginRequest);
+      expect(response.statusCode).to.be.equal(400);
+      expect(response.body.error.message).to.be.equal(
+        'Incorrect username or password',
+      );
+    });
+
+    it('Reject the query when user has not verifies the email', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+      await client.post('/sign-up').send(newUser);
+
+      const loginRequest: LoginResquestSchemaObject = {
+        username: newUser.username,
+        password: newUser.password,
+      };
+
+      const response = await client.post('/login').send(loginRequest);
+      expect(response.statusCode).to.be.equal(401);
+      expect(response.body.error.message).to.be.equal(
+        'Emails has not been verified',
       );
     });
   });

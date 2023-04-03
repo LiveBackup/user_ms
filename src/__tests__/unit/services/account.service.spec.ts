@@ -1,3 +1,4 @@
+import {securityId} from '@loopback/security';
 import {expect} from '@loopback/testlab';
 import {Account} from '../../../models';
 import {AccountRepository} from '../../../repositories';
@@ -101,5 +102,16 @@ describe('Unit testing - Account Service', () => {
     expect(savedAccount).not.to.be.null();
     expect(savedAccount?.email).to.be.equal(account.email);
     expect(savedAccount?.username).to.be.equal(account.username);
+  });
+
+  it('Converts an account to a UserProfile', () => {
+    const accountMock = givenAccount();
+    const account = new Account(accountMock);
+
+    const userProfile = accountService.convertToUserProfile(account);
+
+    expect(userProfile[securityId]).to.be.equal(account.id);
+    expect(userProfile.username).to.be.equal(account.username);
+    expect(userProfile.email).to.be.equal(account.email);
   });
 });

@@ -1,5 +1,6 @@
 import {BindingScope, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
+import {UserProfile, securityId} from '@loopback/security';
 import {Account} from '../models';
 import {AccountRepository} from '../repositories';
 
@@ -9,6 +10,14 @@ export class AccountService {
     @repository(AccountRepository)
     protected accountRepository: AccountRepository,
   ) {}
+
+  convertToUserProfile(account: Account): UserProfile {
+    return {
+      [securityId]: account.id,
+      username: account.username,
+      email: account.email,
+    };
+  }
 
   async create(newAccount: Account): Promise<Account> {
     return this.accountRepository.create(newAccount);

@@ -27,4 +27,14 @@ export class AccountCredentialsService {
   ): Promise<AccountCredentials> {
     return this.accountCredentialsRepository.create(newCrendentials);
   }
+
+  async getCredentialsByAccountId(
+    accountId: string,
+  ): Promise<AccountCredentials | null> {
+    return this.accountCredentialsRepository.findOne({
+      where: {
+        account_id: accountId, // eslint-disable-line
+      },
+    });
+  }
 }
