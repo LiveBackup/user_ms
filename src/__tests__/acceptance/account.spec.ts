@@ -1,5 +1,6 @@
 import {Client, expect} from '@loopback/testlab';
 import {UserMsApplication} from '../../application';
+import {Account} from '../../models';
 import {
   AccountCredentialsRepository,
   AccountRepository,
@@ -239,6 +240,92 @@ describe('e2e - Account Testing', () => {
       expect(response.body.error.message).to.be.equal(
         'Emails has not been verified',
       );
+    });
+  });
+
+  describe('User token validation - /who-am-i Endpoint', () => {
+    it('Get the account info by providing a valid token', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+
+      let response = await client.post('/sign-up').send(newUser);
+      /* eslint-disable @typescript-eslint/naming-convention */
+      await accountRepository.updateById(response.body.id, {
+        is_email_verified: true,
+      });
+      /* eslint-enable @typescript-eslint/naming-convention */
+
+      const credentials: LoginResquestSchemaObject = {
+        username: newUser.username,
+        password: newUser.password,
+      };
+      response = await client.post('/login').send(credentials);
+
+      const {token} = response.body;
+      response = await client
+        .get('/who-am-i')
+        .set('Authorization', `Bearer: ${token}`)
+        .send();
+      expect(response.statusCode).to.be.equal(
+        200,
+        response.body.error?.message,
+      );
+      const account = response.body as Account;
+
+      expect(account.id).not.to.be.empty();
+      expect(account.email).to.be.equal(newUser.email);
+      expect(account.username).to.be.equal(newUser.username);
+    });
+
+    it('No account found for the provided token', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+
+      let response = await client.post('/sign-up').send(newUser);
+      const accountId = response.body.id;
+      /* eslint-disable @typescript-eslint/naming-convention */
+      await accountRepository.updateById(accountId, {is_email_verified: true});
+      /* eslint-enable @typescript-eslint/naming-convention */
+
+      const credentials: LoginResquestSchemaObject = {
+        username: newUser.username,
+        password: newUser.password,
+      };
+      response = await client.post('/login').send(credentials);
+      await accountRepository.deleteById(accountId);
+
+      const {token} = response.body;
+      response = await client
+        .get('/who-am-i')
+        .set('Authorization', `Bearer: ${token}`)
+        .send();
+      expect(response.statusCode).to.be.equal(
+        404,
+        response.body.error?.message,
+      );
+    });
+
+    it('Fails to get account info by providing a non-valid token', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+
+      await client.post('/sign-up').send(newUser);
+
+      const token = 'non-valid-token';
+      const response = await client
+        .get('/who-am-i')
+        .set('Authorization', `Bearer: ${token}`)
+        .send();
+      expect(response.statusCode).to.be.equal(401);
     });
   });
 });

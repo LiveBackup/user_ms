@@ -37,6 +37,14 @@ export class AccountService {
     return account !== null;
   }
 
+  async findById(id: string): Promise<Account | null> {
+    try {
+      return await this.accountRepository.findById(id);
+    } catch (_) {
+      return null;
+    }
+  }
+
   async findByEmail(email: string): Promise<Account | null> {
     return this.accountRepository.findOne({where: {email}});
   }

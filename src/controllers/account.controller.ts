@@ -1,7 +1,8 @@
-import {TokenService} from '@loopback/authentication';
+import {authenticate, TokenService} from '@loopback/authentication';
 import {TokenServiceBindings} from '@loopback/authentication-jwt';
 import {inject} from '@loopback/core';
 import {
+  get,
   getModelSchemaRef,
   HttpErrors,
   post,
@@ -10,6 +11,7 @@ import {
   response,
   RestBindings,
 } from '@loopback/rest';
+import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {Account, AccountCredentials} from '../models';
 import {
   LoginResquestSchemaDescription,
@@ -145,5 +147,26 @@ export class AccountController {
     const userProfile = this.accountService.convertToUserProfile(account);
     const token = await this.jwtService.generateToken(userProfile);
     return {token};
+  }
+
+  @authenticate('jwt')
+  @get('/who-am-i')
+  @response(200, {
+    description: 'Return the account information',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(TokenResponseSchemaObject),
+      },
+    },
+  })
+  async whoAmI(
+    @inject(SecurityBindings.USER) currentUser: UserProfile,
+  ): Promise<Account> {
+    const account = await this.accountService.findById(currentUser[securityId]);
+    if (account === null) {
+      throw new HttpErrors[404]('No account was found');
+    }
+
+    return account;
   }
 }

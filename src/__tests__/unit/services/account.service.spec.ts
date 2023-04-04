@@ -64,7 +64,45 @@ describe('Unit testing - Account Service', () => {
     expect(exists).to.be.true();
   });
 
-  it('Verify when does not exist an account with some given email or username', async () => {
+  it('Find an user by its account id', async () => {
+    const account1 = new Account(givenAccount());
+    const createdAccount = await accountService.create(account1);
+
+    const searchedAccount1 = await accountService.findById(createdAccount.id);
+    expect(searchedAccount1).not.to.be.null();
+    expect(searchedAccount1?.email).to.be.equal(createdAccount.email);
+    expect(searchedAccount1?.username).to.be.equal(createdAccount.username);
+
+    const searchedAccount2 = await accountService.findById('createdAccount.id');
+    expect(searchedAccount2).to.be.null();
+  });
+
+  it('Verify if exist an account by either email or username', async () => {
+    const account1 = new Account(givenAccount());
+    await accountService.create(account1);
+
+    const account2 = new Account(
+      givenAccount({
+        username: 'jdiegopm12',
+        email: 'jpreciado@livebackup.com',
+      }),
+    );
+
+    // The accounts have different usernames and emails
+    let exists = await accountService.existByEmailOrUsername(
+      account1.email,
+      account2.username,
+    );
+    expect(exists).to.be.true();
+
+    exists = await accountService.existByEmailOrUsername(
+      account2.email,
+      account1.username,
+    );
+    expect(exists).to.be.true();
+  });
+
+  it('Verify if does not exist an account by either email or username', async () => {
     const account1 = new Account(givenAccount());
     await accountService.create(account1);
 
