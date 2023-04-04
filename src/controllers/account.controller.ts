@@ -32,7 +32,7 @@ export class AccountController {
     protected accountCredentialsService: AccountCredentialsService,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected jwtService: TokenService,
-  ) {}
+  ) { }
 
   @post('/sign-up')
   @response(201, {
@@ -95,6 +95,7 @@ export class AccountController {
     return newAccount;
   }
 
+  // FIXME: The response documentation is not rigth in the swagger
   @post('/login')
   @response(200, {
     description: 'Request a JWT by given tha account credentials',
@@ -149,6 +150,7 @@ export class AccountController {
     return {token};
   }
 
+  // FIXME: The response documentation is not rigth in the swagger
   @authenticate('jwt')
   @get('/who-am-i')
   @response(200, {
