@@ -1,4 +1,5 @@
 import {property} from '@loopback/repository';
+import {SchemaObject} from '@loopback/rest';
 
 export class TokenResponseSchemaObject {
   @property({
@@ -6,3 +7,12 @@ export class TokenResponseSchemaObject {
   })
   token: string;
 }
+
+export const TokenResponseSchemaDescription: SchemaObject = {
+  type: 'object',
+  properties: {
+    token: {
+      type: 'string',
+    },
+  },
+};
