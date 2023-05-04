@@ -1,8 +1,9 @@
 import {AuthenticationComponent} from '@loopback/authentication';
+import {JWTAuthenticationComponent} from '@loopback/authentication-jwt';
 import {
-  JWTAuthenticationComponent,
-  TokenServiceBindings,
-} from '@loopback/authentication-jwt';
+  AuthorizationComponent,
+  AuthorizationTags,
+} from '@loopback/authorization';
 import {BootMixin} from '@loopback/boot';
 import {ApplicationConfig} from '@loopback/core';
 import {RepositoryMixin} from '@loopback/repository';
@@ -13,7 +14,9 @@ import {
 } from '@loopback/rest-explorer';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
+import {AuthorizationProvider} from './providers';
 import {MySequence} from './sequence';
+import {CustomTokenService, CustomTokenServiceBindings} from './services';
 
 export {ApplicationConfig};
 
@@ -52,15 +55,29 @@ export class UserMsApplication extends BootMixin(
     // Mount jwt component
     this.component(JWTAuthenticationComponent);
 
-    // For jwt access token
-    this.bind(TokenServiceBindings.TOKEN_SECRET).to(
-      process.env.USER_MS_ACCESS_TOKEN_SECRET ?? 'access_secret',
-    );
-    this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(
-      process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? '3600',
+    // Bind the cusatom token service
+    this.bind(CustomTokenServiceBindings.TOKEN_SERVICE).toClass(
+      CustomTokenService,
     );
 
-    // Bind datasource
-    // this.dataSource(UserDbDataSource, UserServiceBindings.DATASOURCE_NAME);
+    // Bind variables for jwt access token
+    this.bind(CustomTokenServiceBindings.TOKEN_SECRET).to(
+      process.env.USER_MS_ACCESS_TOKEN_SECRET ?? 'access_secret',
+    );
+    this.bind(CustomTokenServiceBindings.TOKEN_REGULAR_EXPIRES_IN).to(
+      process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? '3600000',
+    );
+    this.bind(CustomTokenServiceBindings.TOKEN_UPDATE_PASSWORD_EXPIRES_IN).to(
+      process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? '3600000',
+    );
+    this.bind(CustomTokenServiceBindings.TOKEN_VERIFICATE_EMAIL_EXPIRES_IN).to(
+      process.env.USER_MS_VERIFICATE_EMAIL_TOKEN_EXPIRATION_TIME ?? '3600000',
+    );
+
+    // Mount Authorization Component
+    this.component(AuthorizationComponent);
+    this.bind('authorizationProviders.authorization-provider')
+      .toProvider(AuthorizationProvider)
+      .tag(AuthorizationTags.AUTHORIZER);
   }
 }

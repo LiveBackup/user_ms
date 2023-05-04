@@ -1,5 +1,5 @@
-import {authenticate, TokenService} from '@loopback/authentication';
-import {TokenServiceBindings} from '@loopback/authentication-jwt';
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
 import {inject} from '@loopback/core';
 import {
   get,
@@ -21,7 +21,14 @@ import {
   TokenResponseSchemaDescription,
   TokenResponseSchemaObject,
 } from '../schemas';
-import {AccountCredentialsService, AccountService} from '../services';
+import {
+  AccountCredentialsService,
+  AccountService,
+  CustomTokenService,
+  CustomTokenServiceBindings,
+  Permissions,
+  TasksQueuesService,
+} from '../services';
 
 export class AccountController {
   constructor(
@@ -31,8 +38,10 @@ export class AccountController {
     protected accountService: AccountService,
     @inject('services.AccountCredentialsService')
     protected accountCredentialsService: AccountCredentialsService,
-    @inject(TokenServiceBindings.TOKEN_SERVICE)
-    protected jwtService: TokenService,
+    @inject('services.TasksQueuesService')
+    protected tasksQueuesService: TasksQueuesService,
+    @inject(CustomTokenServiceBindings.TOKEN_SERVICE)
+    protected jwtService: CustomTokenService,
   ) {}
 
   @post('/sign-up')
@@ -98,7 +107,7 @@ export class AccountController {
 
   @post('/login')
   @response(200, {
-    description: 'Request a JWT by given tha account credentials',
+    description: 'Request a JWT by giving the account credentials',
     content: {
       'application/json': {
         schema: TokenResponseSchemaDescription,
@@ -124,8 +133,6 @@ export class AccountController {
 
     if (account === null) {
       throw wrongCredentialsError;
-    } else if (!account.is_email_verified) {
-      throw new HttpErrors[401]('Emails has not been verified');
     }
 
     const accountCredentials =
@@ -145,7 +152,13 @@ export class AccountController {
       throw wrongCredentialsError;
     }
 
-    const userProfile = this.accountService.convertToUserProfile(account);
+    const permission = account.is_email_verified
+      ? Permissions.REGULAR
+      : Permissions.REQUEST_EMAIL_VERIFICATION;
+    const userProfile = this.accountService.convertToUserProfile(
+      account,
+      permission,
+    );
     const token = await this.jwtService.generateToken(userProfile);
     return {token};
   }
@@ -169,5 +182,37 @@ export class AccountController {
     }
 
     return account;
+  }
+
+  @authenticate('jwt')
+  @authorize({allowedRoles: [Permissions.REQUEST_EMAIL_VERIFICATION]})
+  @post('/verify-email')
+  @response(204)
+  async verifyEmail(@inject(SecurityBindings.USER) currentUser: UserProfile) {
+    const account = await this.accountService.findById(currentUser[securityId]);
+    if (account === null) {
+      throw new HttpErrors[404]('No account was found');
+    } else if (account.is_email_verified) {
+      throw new HttpErrors[400]('Emails has already been verified');
+    }
+
+    const userProfile = this.accountService.convertToUserProfile(
+      account,
+      Permissions.VERIFY_EMAIL,
+    );
+    const emailVerificationToken = await this.jwtService.generateToken(
+      userProfile,
+    );
+
+    // Enqueue the verification email delivery
+    const tasksStatus = await this.tasksQueuesService.enqueueVerificationEmail(
+      account.username,
+      account.email,
+      emailVerificationToken,
+    );
+
+    if (!tasksStatus) {
+      throw new HttpErrors[500]('Could not add the tasks to the queue');
+    }
   }
 }

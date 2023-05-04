@@ -1,4 +1,5 @@
 import {Client, expect} from '@loopback/testlab';
+import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
 import {Account} from '../../models';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../helpers/database.helpers';
 
 describe('e2e - Account Testing', () => {
+  const sandbox = sinon.createSandbox();
   let app: UserMsApplication;
   let accountRepository: AccountRepository;
   let accountCredentialsRepository: AccountCredentialsRepository;
@@ -34,6 +36,10 @@ describe('e2e - Account Testing', () => {
 
   after(async () => {
     await app.stop();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
   });
 
   describe('User creation - /sign-up Endpoint', () => {
@@ -222,7 +228,7 @@ describe('e2e - Account Testing', () => {
       );
     });
 
-    it('Reject the query when user has not verifies the email', async () => {
+    it('Get the token when user has not verified the email', async () => {
       const newUser: NewUserResquestSchemaObject = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
@@ -236,10 +242,8 @@ describe('e2e - Account Testing', () => {
       };
 
       const response = await client.post('/login').send(loginRequest);
-      expect(response.statusCode).to.be.equal(401);
-      expect(response.body.error.message).to.be.equal(
-        'Emails has not been verified',
-      );
+      expect(response.statusCode).to.be.equal(200);
+      expect(response.body.token).not.to.be.Null();
     });
   });
 
@@ -280,7 +284,7 @@ describe('e2e - Account Testing', () => {
       expect(account.username).to.be.equal(newUser.username);
     });
 
-    it('No account found for the provided token', async () => {
+    it('Does not find the account for the provided token', async () => {
       const newUser: NewUserResquestSchemaObject = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
@@ -326,6 +330,112 @@ describe('e2e - Account Testing', () => {
         .set('Authorization', `Bearer: ${token}`)
         .send();
       expect(response.statusCode).to.be.equal(401);
+    });
+  });
+
+  describe('Email query creation - /verify-email Endpoint', () => {
+    it('Creates the email verification request', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+      await client.post('/sign-up').send(newUser);
+
+      const credentials: LoginResquestSchemaObject = {
+        username: newUser.username,
+        password: newUser.password,
+      };
+      const response = await client.post('/login').send(credentials);
+
+      const {token} = response.body;
+      await client
+        .post('/verify-email')
+        .set('Authorization', `Bearer: ${token}`)
+        .expect(204)
+        .send();
+    });
+
+    it('Reject when the permission does not match', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+
+      let response = await client.post('/sign-up').send(newUser);
+      const accountId = response.body.id;
+      /* eslint-disable @typescript-eslint/naming-convention */
+      await accountRepository.updateById(accountId, {
+        is_email_verified: true,
+      });
+      /* eslint-enable @typescript-eslint/naming-convention */
+
+      const credentials: LoginResquestSchemaObject = {
+        username: newUser.username,
+        password: newUser.password,
+      };
+      response = await client.post('/login').send(credentials);
+
+      const {token} = response.body;
+      await client
+        .post('/verify-email')
+        .set('Authorization', `Bearer: ${token}`)
+        .expect(403)
+        .send();
+    });
+
+    it('Reject when the user email it has already been verified', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+
+      let response = await client.post('/sign-up').send(newUser);
+      const accountId = response.body.id;
+
+      const credentials: LoginResquestSchemaObject = {
+        username: newUser.username,
+        password: newUser.password,
+      };
+      response = await client.post('/login').send(credentials);
+      /* eslint-disable @typescript-eslint/naming-convention */
+      await accountRepository.updateById(accountId, {
+        is_email_verified: true,
+      });
+      /* eslint-enable @typescript-eslint/naming-convention */
+
+      const {token} = response.body;
+      await client
+        .post('/verify-email')
+        .set('Authorization', `Bearer: ${token}`)
+        .expect(400)
+        .send();
+    });
+
+    it('Does not find the account to verify the email', async () => {
+      const newUser: NewUserResquestSchemaObject = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+      let response = await client.post('/sign-up').send(newUser);
+      const accountId = response.body.id;
+
+      const credentials: LoginResquestSchemaObject = {
+        username: newUser.username,
+        password: newUser.password,
+      };
+      response = await client.post('/login').send(credentials);
+      await accountRepository.deleteById(accountId);
+
+      const {token} = response.body;
+      await client
+        .post('/verify-email')
+        .set('Authorization', `Bearer: ${token}`)
+        .expect(404)
+        .send();
     });
   });
 });
