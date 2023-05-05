@@ -3,7 +3,7 @@ import sinon from 'sinon';
 import {TasksQueuesService} from '../../../services';
 import {givenServices} from '../../helpers/services.helpers';
 
-describe.skip('Unit testing - Tasks Queues Service', () => {
+describe('Unit testing - Tasks Queues Service', () => {
   let tasksQueuesService: TasksQueuesService;
   const sandbox = sinon.createSandbox();
 
@@ -46,6 +46,7 @@ describe.skip('Unit testing - Tasks Queues Service', () => {
       email,
       token,
     );
+    console.log(emailEnqueued);
     expect(emailEnqueued).to.be.False();
     expect(emailQueueStub.calledOnce).to.be.True();
   });

@@ -58,10 +58,6 @@ export class CustomTokenService implements TokenService {
   }
 
   async generateToken(userProfile: ExtendedUserProfile): Promise<string> {
-    if (!userProfile) {
-      throw new Error('Error generating Token: userProfile is null');
-    }
-
     const tokenInfo = {
       id: userProfile[securityId],
       name: userProfile.username,

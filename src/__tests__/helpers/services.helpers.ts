@@ -1,6 +1,9 @@
+import {securityId} from '@loopback/security';
 import {
   AccountCredentialsService,
   AccountService,
+  ExtendedUserProfile,
+  Permissions,
   TasksQueuesService,
 } from '../../services';
 import {tasksQueuesTestdb} from '../fixtures/datasources';
@@ -21,4 +24,15 @@ export const givenServices = async function () {
     accountCredentialsService,
     tasksQueuesService,
   };
+};
+
+export const givenExtendedUserProfile = function (data?: Partial<ExtendedUserProfile>) {
+  return Object.assign(
+    {
+      [securityId]: '1',
+      username: 'user',
+      permission: Permissions.REGULAR,
+    },
+    data,
+  );
 };

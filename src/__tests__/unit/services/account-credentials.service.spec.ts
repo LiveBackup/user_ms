@@ -8,7 +8,7 @@ import {
 } from '../../helpers/database.helpers';
 import {givenServices} from '../../helpers/services.helpers';
 
-describe.skip('Unit testing - AccountCredentials service', () => {
+describe('Unit testing - AccountCredentials service', () => {
   let accountService: AccountService;
   let accountCredentialsService: AccountCredentialsService;
 
