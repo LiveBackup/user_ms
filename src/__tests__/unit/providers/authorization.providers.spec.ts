@@ -1,4 +1,8 @@
-import {AuthorizationContext, AuthorizationDecision, AuthorizationMetadata} from '@loopback/authorization';
+import {
+  AuthorizationContext,
+  AuthorizationDecision,
+  AuthorizationMetadata,
+} from '@loopback/authorization';
 import {InvocationContext} from '@loopback/core';
 import {expect} from '@loopback/testlab';
 import {AuthorizationProvider} from '../../../providers';
@@ -6,8 +10,7 @@ import {ExtendedUserProfile, Permissions} from '../../../services';
 import {givenExtendedUserProfile} from '../../helpers/services.helpers';
 
 describe('Unit Testing - Authorization provider', () => {
-
-  const authorizationProvider = new AuthorizationProvider;
+  const authorizationProvider = new AuthorizationProvider();
   let authorizationContext: AuthorizationContext;
   let metadata: AuthorizationMetadata;
   let principal: ExtendedUserProfile;
@@ -59,7 +62,9 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when its role are not included in denied roles', async () => {
-    principal = givenExtendedUserProfile({permission: Permissions.UPDATE_PASSWORD});
+    principal = givenExtendedUserProfile({
+      permission: Permissions.RECOVER_PASSWORD,
+    });
     authorizationContext.principals = [principal];
     metadata = {
       deniedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],
@@ -73,7 +78,9 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role are not included in allowed roles', async () => {
-    principal = givenExtendedUserProfile({permission: Permissions.UPDATE_PASSWORD});
+    principal = givenExtendedUserProfile({
+      permission: Permissions.RECOVER_PASSWORD,
+    });
     authorizationContext.principals = [principal];
     metadata = {
       allowedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],
@@ -105,7 +112,10 @@ describe('Unit Testing - Authorization provider', () => {
     authorizationContext.principals = [principal];
     metadata = {
       allowedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],
-      deniedRoles: [Permissions.REQUEST_EMAIL_VERIFICATION, Permissions.UPDATE_PASSWORD],
+      deniedRoles: [
+        Permissions.REQUEST_EMAIL_VERIFICATION,
+        Permissions.RECOVER_PASSWORD,
+      ],
     };
 
     const authorizationDecision = await authorizationProvider.authorize(
@@ -116,11 +126,16 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role are included in denied roles but not in allowed roles', async () => {
-    principal = givenExtendedUserProfile({permission: Permissions.UPDATE_PASSWORD});
+    principal = givenExtendedUserProfile({
+      permission: Permissions.RECOVER_PASSWORD,
+    });
     authorizationContext.principals = [principal];
     metadata = {
       allowedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],
-      deniedRoles: [Permissions.REQUEST_EMAIL_VERIFICATION, Permissions.UPDATE_PASSWORD],
+      deniedRoles: [
+        Permissions.REQUEST_EMAIL_VERIFICATION,
+        Permissions.RECOVER_PASSWORD,
+      ],
     };
 
     const authorizationDecision = await authorizationProvider.authorize(
@@ -131,7 +146,9 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role is not included in neither allowed nor denied roles', async () => {
-    principal = givenExtendedUserProfile({permission: Permissions.UPDATE_PASSWORD});
+    principal = givenExtendedUserProfile({
+      permission: Permissions.RECOVER_PASSWORD,
+    });
     authorizationContext.principals = [principal];
     metadata = {
       allowedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],

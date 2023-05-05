@@ -46,7 +46,6 @@ describe('Unit testing - Tasks Queues Service', () => {
       email,
       token,
     );
-    console.log(emailEnqueued);
     expect(emailEnqueued).to.be.False();
     expect(emailQueueStub.calledOnce).to.be.True();
   });

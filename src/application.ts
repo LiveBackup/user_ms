@@ -13,10 +13,13 @@ import {
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
 import {ServiceMixin} from '@loopback/service-proxy';
+import dotenv from 'dotenv';
 import path from 'path';
 import {AuthorizationProvider} from './providers';
 import {MySequence} from './sequence';
 import {CustomTokenService, CustomTokenServiceBindings} from './services';
+
+dotenv.config();
 
 export {ApplicationConfig};
 
@@ -67,11 +70,11 @@ export class UserMsApplication extends BootMixin(
     this.bind(CustomTokenServiceBindings.TOKEN_REGULAR_EXPIRES_IN).to(
       process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? '3600000',
     );
-    this.bind(CustomTokenServiceBindings.TOKEN_UPDATE_PASSWORD_EXPIRES_IN).to(
-      process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? '3600000',
-    );
     this.bind(CustomTokenServiceBindings.TOKEN_VERIFICATE_EMAIL_EXPIRES_IN).to(
       process.env.USER_MS_VERIFICATE_EMAIL_TOKEN_EXPIRATION_TIME ?? '3600000',
+    );
+    this.bind(CustomTokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN).to(
+      process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? '3600000',
     );
 
     // Mount Authorization Component

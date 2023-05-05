@@ -26,7 +26,9 @@ export const givenServices = async function () {
   };
 };
 
-export const givenExtendedUserProfile = function (data?: Partial<ExtendedUserProfile>) {
+export const givenExtendedUserProfile = function (
+  data?: Partial<ExtendedUserProfile>,
+) {
   return Object.assign(
     {
       [securityId]: '1',
