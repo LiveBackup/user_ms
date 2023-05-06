@@ -1,3 +1,4 @@
+import {SequenceActions} from '@loopback/rest';
 import {Client, createRestAppClient} from '@loopback/testlab';
 import {UserMsApplication} from '../../application';
 import {tasksQueuesTestdb, userTestdb} from '../fixtures/datasources';
@@ -5,6 +6,9 @@ import {tasksQueuesTestdb, userTestdb} from '../fixtures/datasources';
 export const givenRunningApp = async function (): Promise<UserMsApplication> {
   const app = new UserMsApplication({});
   await app.boot();
+
+  // Diasble logging for testing
+  app.bind(SequenceActions.LOG_ERROR).to(() => { });
 
   // Setup the app database and starts it
   app.bind('datasources.user_db').to(userTestdb);
