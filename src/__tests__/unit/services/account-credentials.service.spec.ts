@@ -13,7 +13,7 @@ describe('Unit testing - AccountCredentials service', () => {
   let accountCredentialsService: AccountCredentialsService;
 
   before(async () => {
-    ({accountService, accountCredentialsService} = givenServices());
+    ({accountService, accountCredentialsService} = await givenServices());
   });
 
   beforeEach(async () => {

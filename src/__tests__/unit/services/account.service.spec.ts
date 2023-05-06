@@ -2,7 +2,7 @@ import {securityId} from '@loopback/security';
 import {expect} from '@loopback/testlab';
 import {Account} from '../../../models';
 import {AccountRepository} from '../../../repositories';
-import {AccountService} from '../../../services';
+import {AccountService, Permissions} from '../../../services';
 import {
   givenAccount,
   givenEmptyDatabase,
@@ -16,7 +16,7 @@ describe('Unit testing - Account Service', () => {
 
   before(async () => {
     ({accountRepository} = givenRepositories());
-    ({accountService} = givenServices());
+    ({accountService} = await givenServices());
   });
 
   beforeEach(async () => {
@@ -146,7 +146,9 @@ describe('Unit testing - Account Service', () => {
     const accountMock = givenAccount();
     const account = new Account(accountMock);
 
-    const userProfile = accountService.convertToUserProfile(account);
+    const userProfile = accountService.convertToUserProfile(account, [
+      Permissions.REGULAR,
+    ]);
 
     expect(userProfile[securityId]).to.be.equal(account.id);
     expect(userProfile.username).to.be.equal(account.username);

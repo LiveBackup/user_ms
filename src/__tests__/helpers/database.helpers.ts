@@ -1,9 +1,9 @@
-import {testdb} from '../../datasources';
 import {Account, AccountCredentials} from '../../models';
 import {
   AccountCredentialsRepository,
   AccountRepository,
 } from '../../repositories';
+import {userTestdb} from '../fixtures/datasources';
 
 // Clear the testing database
 export const givenEmptyDatabase = async function () {
@@ -19,12 +19,12 @@ export const givenRepositories = function () {
   let accountCredentialsRepository: AccountCredentialsRepository;
 
   accountRepository = new AccountRepository(
-    testdb,
+    userTestdb,
     async () => accountCredentialsRepository,
   );
 
   accountCredentialsRepository = new AccountCredentialsRepository(
-    testdb,
+    userTestdb,
     async () => accountRepository,
   );
   /* eslint-enable prefer-const */
