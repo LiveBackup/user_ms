@@ -8,7 +8,7 @@ export const givenRunningApp = async function (): Promise<UserMsApplication> {
   await app.boot();
 
   // Diasble logging for testing
-  app.bind(SequenceActions.LOG_ERROR).to(() => { });
+  app.bind(SequenceActions.LOG_ERROR).to(() => {});
 
   // Setup the app database and starts it
   app.bind('datasources.user_db').to(userTestdb);
