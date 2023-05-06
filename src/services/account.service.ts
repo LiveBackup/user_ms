@@ -14,13 +14,13 @@ export class AccountService {
 
   convertToUserProfile(
     account: Account,
-    permission: Permissions,
+    permissions: Permissions[],
   ): ExtendedUserProfile {
     return {
       [securityId]: account.id,
       username: account.username,
       email: account.email,
-      permission,
+      permissions,
     };
   }
 

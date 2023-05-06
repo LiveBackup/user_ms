@@ -3,7 +3,7 @@ import {UserMsApplication} from '../../application';
 import {tasksQueuesTestdb, userTestdb} from '../fixtures/datasources';
 
 export const givenRunningApp = async function (): Promise<UserMsApplication> {
-  const app: UserMsApplication = new UserMsApplication({});
+  const app = new UserMsApplication({});
   await app.boot();
 
   // Setup the app database and starts it

@@ -20,11 +20,100 @@ describe('Unit Testing - CustomToken Service', () => {
     );
   });
 
-  it('Generates a token', async () => {
-    const token = await customTokenService.generateToken(
-      givenExtendedUserProfile(),
+  it('Fails to generate a token when no array permissions is given', async () => {
+    const userProfile = givenExtendedUserProfile({
+      permissions: undefined,
+    });
+
+    let expectedError;
+    try {
+      await customTokenService.generateToken(userProfile);
+    } catch (error) {
+      expectedError = error;
+    }
+
+    expect(expectedError).not.to.be.Undefined();
+    expect(expectedError.message).to.be.equal(
+      'Permissions array must be provided',
     );
+  });
+
+  it('Fails to generate a token when array permissions is empty', async () => {
+    const userProfile = givenExtendedUserProfile({
+      permissions: [],
+    });
+
+    let expectedError;
+    try {
+      await customTokenService.generateToken(userProfile);
+    } catch (error) {
+      expectedError = error;
+    }
+
+    expect(expectedError).not.to.be.Undefined();
+    expect(expectedError.message).to.be.equal(
+      'Permissions array must contain at least 1 permission',
+    );
+  });
+
+  it('Fails to generate a token when more than 2 permissions were provided', async () => {
+    const userProfile = givenExtendedUserProfile({
+      permissions: [
+        Permissions.REGULAR,
+        Permissions.RECOVER_PASSWORD,
+        Permissions.VERIFY_EMAIL,
+      ],
+    });
+
+    let expectedError;
+    try {
+      await customTokenService.generateToken(userProfile);
+    } catch (error) {
+      expectedError = error;
+    }
+
+    expect(expectedError).not.to.be.Undefined();
+    expect(expectedError.message).to.be.equal(
+      'Permissions array can not contain at more than 2 permissions',
+    );
+  });
+
+  it('Generates a token with a single permission', async () => {
+    const userProfile = givenExtendedUserProfile();
+    const token = await customTokenService.generateToken(userProfile);
     expect(token).not.to.be.null();
+    expect(token.length).to.be.greaterThan(0);
+  });
+
+  it('Fails to generate a token when combination is not allowed', async () => {
+    const userProfile = givenExtendedUserProfile({
+      permissions: [Permissions.REGULAR, Permissions.RECOVER_PASSWORD],
+    });
+
+    let expectedError;
+    try {
+      await customTokenService.generateToken(userProfile);
+    } catch (error) {
+      expectedError = error;
+    }
+
+    expect(expectedError).not.to.be.Undefined();
+    expect(expectedError.message).to.be.equal(
+      'Combination of permissions are not allowed: REGULAR,RECOVER_PASSWORD',
+    );
+  });
+
+  it('Generate a token when combination is allowed', async () => {
+    const userProfile = givenExtendedUserProfile({
+      permissions: [
+        Permissions.REGULAR,
+        Permissions.REQUEST_EMAIL_VERIFICATION,
+      ],
+    });
+
+    const token = await customTokenService.generateToken(userProfile);
+    expect(token).not.to.be.null();
+    expect(token.length).to.be.greaterThan(0);
   });
 
   it('Verify a token', async () => {
@@ -32,7 +121,7 @@ describe('Unit Testing - CustomToken Service', () => {
       [securityId]: '1',
       email: 'testing@email.com',
       username: 'testing',
-      permission: Permissions.REGULAR,
+      permissions: [Permissions.REGULAR],
     };
 
     const token = await customTokenService.generateToken(
@@ -44,7 +133,9 @@ describe('Unit Testing - CustomToken Service', () => {
     expect(userProfile[securityId]).to.be.equal(partialUserProfile[securityId]);
     expect(userProfile.email).to.be.equal(partialUserProfile.email);
     expect(userProfile.username).to.be.equal(partialUserProfile.username);
-    expect(userProfile.permission).to.be.equal(partialUserProfile.permission);
+    expect(userProfile.permissions).to.containDeep(
+      partialUserProfile.permissions,
+    );
   });
 
   it('Throw a 401 error when no token is provided', async () => {
@@ -55,7 +146,7 @@ describe('Unit Testing - CustomToken Service', () => {
       expectedError = error;
     }
 
-    expect(expectedError).not.to.be.Null();
+    expect(expectedError).not.to.be.Undefined();
     expect(expectedError.statusCode).to.be.equal(401);
     expect(expectedError.message).not.to.be.equal(expiredTokenMessage);
   });
@@ -74,7 +165,7 @@ describe('Unit Testing - CustomToken Service', () => {
       expectedError = error;
     }
 
-    expect(expectedError).not.to.be.Null();
+    expect(expectedError).not.to.be.Undefined();
     expect(expectedError.statusCode).to.be.equal(401);
     expect(expectedError.message).to.be.equal(expiredTokenMessage);
   });
@@ -88,7 +179,7 @@ describe('Unit Testing - CustomToken Service', () => {
       '300000',
     );
     const userProfile = givenExtendedUserProfile({
-      permission: Permissions.REGULAR,
+      permissions: [Permissions.REGULAR],
     });
     const token = await customTokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
@@ -100,7 +191,7 @@ describe('Unit Testing - CustomToken Service', () => {
       expectedError = error;
     }
 
-    expect(expectedError).not.to.be.Null();
+    expect(expectedError).not.to.be.Undefined();
     expect(expectedError.statusCode).to.be.equal(401);
     expect(expectedError.message).to.be.equal(expiredTokenMessage);
   });
@@ -114,7 +205,7 @@ describe('Unit Testing - CustomToken Service', () => {
       '300000',
     );
     const userProfile = givenExtendedUserProfile({
-      permission: Permissions.REQUEST_EMAIL_VERIFICATION,
+      permissions: [Permissions.REQUEST_EMAIL_VERIFICATION],
     });
     const token = await customTokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
@@ -126,7 +217,7 @@ describe('Unit Testing - CustomToken Service', () => {
       expectedError = error;
     }
 
-    expect(expectedError).not.to.be.Null();
+    expect(expectedError).not.to.be.Undefined();
     expect(expectedError.statusCode).to.be.equal(401);
     expect(expectedError.message).to.be.equal(expiredTokenMessage);
   });
@@ -140,7 +231,7 @@ describe('Unit Testing - CustomToken Service', () => {
       '300000',
     );
     const userProfile = givenExtendedUserProfile({
-      permission: Permissions.VERIFY_EMAIL,
+      permissions: [Permissions.VERIFY_EMAIL],
     });
     const token = await customTokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
@@ -152,7 +243,7 @@ describe('Unit Testing - CustomToken Service', () => {
       expectedError = error;
     }
 
-    expect(expectedError).not.to.be.Null();
+    expect(expectedError).not.to.be.Undefined();
     expect(expectedError.statusCode).to.be.equal(401);
     expect(expectedError.message).to.be.equal(expiredTokenMessage);
   });
@@ -166,7 +257,7 @@ describe('Unit Testing - CustomToken Service', () => {
       '1',
     );
     const userProfile = givenExtendedUserProfile({
-      permission: Permissions.RECOVER_PASSWORD,
+      permissions: [Permissions.RECOVER_PASSWORD],
     });
     const token = await customTokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
@@ -178,7 +269,7 @@ describe('Unit Testing - CustomToken Service', () => {
       expectedError = error;
     }
 
-    expect(expectedError).not.to.be.Null();
+    expect(expectedError).not.to.be.Undefined();
     expect(expectedError.statusCode).to.be.equal(401);
     expect(expectedError.message).to.be.equal(expiredTokenMessage);
   });

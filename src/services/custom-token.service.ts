@@ -12,7 +12,7 @@ export enum Permissions {
 }
 
 export type ExtendedUserProfile = UserProfile & {
-  permission: Permissions;
+  permissions: Permissions[];
   username: string;
 };
 
@@ -29,7 +29,7 @@ export namespace CustomTokenServiceBindings {
   export const TOKEN_RECOVERY_PASSWORD_EXPIRES_IN = BindingKey.create<string>(
     'authentication.jwt.recovery-password.expires.in.seconds',
   );
-  export const TOKEN_SERVICE = BindingKey.create<TokenService>(
+  export const TOKEN_SERVICE = BindingKey.create<CustomTokenService>(
     'services.authentication.jwt.tokenservice',
   );
 }
@@ -57,16 +57,40 @@ export class CustomTokenService implements TokenService {
     }
   }
 
+  private validatePermissions(permissions: Permissions[]): void {
+    if (permissions === undefined) {
+      throw new Error('Permissions array must be provided');
+    } else if (permissions.length < 1) {
+      throw new Error('Permissions array must contain at least 1 permission');
+    } else if (permissions.length > 2) {
+      throw new Error(
+        'Permissions array can not contain at more than 2 permissions',
+      );
+    } else if (permissions.length === 2) {
+      if (
+        !(
+          permissions.includes(Permissions.REGULAR) &&
+          permissions.includes(Permissions.REQUEST_EMAIL_VERIFICATION)
+        )
+      ) {
+        throw new Error(
+          `Combination of permissions are not allowed: ${permissions}`,
+        );
+      }
+    }
+  }
+
   async generateToken(userProfile: ExtendedUserProfile): Promise<string> {
+    this.validatePermissions(userProfile.permissions);
     const tokenInfo = {
       id: userProfile[securityId],
       email: userProfile.email,
       name: userProfile.username,
-      permission: userProfile.permission,
+      permissions: userProfile.permissions,
     };
 
     const token: string = jwt.sign(tokenInfo, this.secret, {
-      expiresIn: this.getExpirationTime(userProfile.permission),
+      expiresIn: this.getExpirationTime(userProfile.permissions[0]),
     });
     return token;
   }
@@ -89,7 +113,7 @@ export class CustomTokenService implements TokenService {
           [securityId]: decodedToken.id,
           username: decodedToken.name,
           email: decodedToken.email,
-          permission: decodedToken.permission,
+          permissions: decodedToken.permissions,
         },
       );
     } catch (error) {

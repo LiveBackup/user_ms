@@ -20,14 +20,17 @@ export class AuthorizationProvider implements Provider<Authorizer> {
 
     if (!account) {
       return AuthorizationDecision.DENY;
-    } else if (metadata.deniedRoles?.includes(account.permission)) {
-      return AuthorizationDecision.DENY;
-    } else if (!metadata.allowedRoles) {
-      return AuthorizationDecision.ALLOW;
-    } else if (metadata.allowedRoles.includes(account.permission)) {
-      return AuthorizationDecision.ALLOW;
     } else {
-      return AuthorizationDecision.DENY;
+      const permissions = account.permissions as string[];
+      if (metadata.deniedRoles?.some(dr => permissions.includes(dr))) {
+        return AuthorizationDecision.DENY;
+      } else if (!metadata.allowedRoles) {
+        return AuthorizationDecision.ALLOW;
+      } else if (metadata.allowedRoles.some(ar => permissions.includes(ar))) {
+        return AuthorizationDecision.ALLOW;
+      } else {
+        return AuthorizationDecision.DENY;
+      }
     }
   }
 }

@@ -33,7 +33,7 @@ export const givenExtendedUserProfile = function (
     {
       [securityId]: '1',
       username: 'user',
-      permission: Permissions.REGULAR,
+      permissions: [Permissions.REGULAR],
     },
     data,
   );

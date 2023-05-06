@@ -48,7 +48,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when its role are included in allowed roles', async () => {
-    principal = givenExtendedUserProfile({permission: Permissions.REGULAR});
+    principal = givenExtendedUserProfile({permissions: [Permissions.REGULAR]});
     authorizationContext.principals = [principal];
     metadata = {
       allowedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],
@@ -63,7 +63,7 @@ describe('Unit Testing - Authorization provider', () => {
 
   it('Allow user when its role are not included in denied roles', async () => {
     principal = givenExtendedUserProfile({
-      permission: Permissions.RECOVER_PASSWORD,
+      permissions: [Permissions.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];
     metadata = {
@@ -79,7 +79,7 @@ describe('Unit Testing - Authorization provider', () => {
 
   it('Deny user when its role are not included in allowed roles', async () => {
     principal = givenExtendedUserProfile({
-      permission: Permissions.RECOVER_PASSWORD,
+      permissions: [Permissions.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];
     metadata = {
@@ -94,7 +94,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role are included in denied roles', async () => {
-    principal = givenExtendedUserProfile({permission: Permissions.REGULAR});
+    principal = givenExtendedUserProfile({permissions: [Permissions.REGULAR]});
     authorizationContext.principals = [principal];
     metadata = {
       deniedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],
@@ -108,7 +108,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when its role are included in allowed roles but not in denied roles', async () => {
-    principal = givenExtendedUserProfile({permission: Permissions.REGULAR});
+    principal = givenExtendedUserProfile({permissions: [Permissions.REGULAR]});
     authorizationContext.principals = [principal];
     metadata = {
       allowedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],
@@ -127,7 +127,7 @@ describe('Unit Testing - Authorization provider', () => {
 
   it('Deny user when its role are included in denied roles but not in allowed roles', async () => {
     principal = givenExtendedUserProfile({
-      permission: Permissions.RECOVER_PASSWORD,
+      permissions: [Permissions.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];
     metadata = {
@@ -147,7 +147,7 @@ describe('Unit Testing - Authorization provider', () => {
 
   it('Deny user when its role is not included in neither allowed nor denied roles', async () => {
     principal = givenExtendedUserProfile({
-      permission: Permissions.RECOVER_PASSWORD,
+      permissions: [Permissions.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];
     metadata = {
