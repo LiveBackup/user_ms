@@ -1,10 +1,20 @@
+import dotenv from 'dotenv';
 import {ApplicationConfig, UserMsApplication} from './application';
+import {
+  TasksQueuesBindings,
+  UserDbDataSource,
+  tasksQueuesConfig,
+} from './datasources';
+
+dotenv.config();
 
 export * from './application';
 
 export async function main(options: ApplicationConfig = {}) {
   const app = new UserMsApplication(options);
   await app.boot();
+  app.bind('datasources.user_db').to(new UserDbDataSource());
+  app.bind(TasksQueuesBindings.TASKS_QUEUES_CONFIG).to(tasksQueuesConfig);
   await app.start();
 
   const url = app.restServer.url;

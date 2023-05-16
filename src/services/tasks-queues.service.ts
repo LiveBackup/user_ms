@@ -1,7 +1,7 @@
 import {BindingScope, inject, injectable} from '@loopback/core';
 import {Queue, QueueOptions} from 'bullmq';
 import dotenv from 'dotenv';
-import {TasksQueuesDataSource} from '../datasources';
+import {TasksQueuesConfig} from '../datasources';
 
 dotenv.config();
 
@@ -11,17 +11,17 @@ export class TasksQueuesService {
   static verificationEmailQueue: Queue;
 
   constructor(
-    @inject('datasources.tasks_queues')
-    protected tasksQueuesDataSource: TasksQueuesDataSource,
+    @inject('datasources.config.tasks_queues')
+    tasksQueuesDataSource: TasksQueuesConfig,
   ) {
     if (TasksQueuesService.initialized) return;
 
     const bullMQSettings: QueueOptions = {
       connection: {
-        host: this.tasksQueuesDataSource.settings.host,
-        port: this.tasksQueuesDataSource.settings.port,
-        db: this.tasksQueuesDataSource.settings.db,
-        password: this.tasksQueuesDataSource.settings.password,
+        host: tasksQueuesDataSource.host,
+        port: tasksQueuesDataSource.port,
+        db: tasksQueuesDataSource.db,
+        password: tasksQueuesDataSource.password,
       },
     };
 

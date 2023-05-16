@@ -1,6 +1,7 @@
 import {SequenceActions} from '@loopback/rest';
 import {Client, createRestAppClient} from '@loopback/testlab';
 import {UserMsApplication} from '../../application';
+import {TasksQueuesBindings} from '../../datasources';
 import {tasksQueuesTestdb, userTestdb} from '../fixtures/datasources';
 
 export const givenRunningApp = async function (): Promise<UserMsApplication> {
@@ -12,7 +13,7 @@ export const givenRunningApp = async function (): Promise<UserMsApplication> {
 
   // Setup the app database and starts it
   app.bind('datasources.user_db').to(userTestdb);
-  app.bind('datasources.tasks_queues').to(await tasksQueuesTestdb);
+  app.bind(TasksQueuesBindings.TASKS_QUEUES_CONFIG).to(await tasksQueuesTestdb);
   await app.start();
 
   return app;

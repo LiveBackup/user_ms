@@ -1,23 +1,22 @@
 import {ValueOrPromise} from '@loopback/core';
-import {juggler} from '@loopback/repository';
 import {RedisMemoryServer} from 'redis-memory-server';
+import {TasksQueuesConfig} from '../../../datasources';
 
 const testRedisDB = new RedisMemoryServer();
 
-const config = {
-  name: 'tasks_queues_testdb',
-  connector: 'memory',
+const config: TasksQueuesConfig = {
   host: '',
   port: -1,
 };
 
-export const tasksQueuesTestdb: ValueOrPromise<juggler.DataSource> =
-  new Promise(res => {
+export const tasksQueuesTestdb: ValueOrPromise<TasksQueuesConfig> = new Promise(
+  res => {
     Promise.all([testRedisDB.getHost(), testRedisDB.getPort()])
       .then(([host, port]) => {
         config.host = host;
         config.port = port;
-        res(new juggler.DataSource(config));
+        res(config);
       })
       .catch(() => {});
-  });
+  },
+);

@@ -1,4 +1,5 @@
 import {UserMsApplication} from './application';
+import {UserDbDataSource} from './datasources';
 
 export async function migrate(args: string[]) {
   const existingSchema = args.includes('--rebuild') ? 'drop' : 'alter';
@@ -6,6 +7,7 @@ export async function migrate(args: string[]) {
 
   const app = new UserMsApplication();
   await app.boot();
+  app.bind('datasources.user_db').to(new UserDbDataSource());
   await app.migrateSchema({existingSchema});
 
   // Connectors usually keep a pool of opened connections,
