@@ -2,10 +2,7 @@ import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
 import {AccountRepository} from '../../repositories';
-import {
-  LoginResquestSchemaObject,
-  NewUserResquestSchemaObject,
-} from '../../schemas';
+import {Credentials, NewAccount} from '../../schemas';
 import {TasksQueuesService} from '../../services';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {
@@ -40,14 +37,14 @@ describe('e2e - Account Controller', () => {
 
   describe('Email query creation - /verify-email Endpoint', () => {
     it('Creates the email verification request', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
       await client.post('/sign-up').send(newUser);
 
-      const credentials: LoginResquestSchemaObject = {
+      const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -62,7 +59,7 @@ describe('e2e - Account Controller', () => {
     });
 
     it('Reject when does not has request email verification permission', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -76,7 +73,7 @@ describe('e2e - Account Controller', () => {
       });
       /* eslint-enable @typescript-eslint/naming-convention */
 
-      const credentials: LoginResquestSchemaObject = {
+      const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -91,7 +88,7 @@ describe('e2e - Account Controller', () => {
     });
 
     it('Reject when the user email it has already been verified', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -100,7 +97,7 @@ describe('e2e - Account Controller', () => {
       let response = await client.post('/sign-up').send(newUser);
       const accountId = response.body.id;
 
-      const credentials: LoginResquestSchemaObject = {
+      const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -120,7 +117,7 @@ describe('e2e - Account Controller', () => {
     });
 
     it('Does not find the account to verify the email', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -128,7 +125,7 @@ describe('e2e - Account Controller', () => {
       let response = await client.post('/sign-up').send(newUser);
       const accountId = response.body.id;
 
-      const credentials: LoginResquestSchemaObject = {
+      const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -148,14 +145,14 @@ describe('e2e - Account Controller', () => {
         .stub(TasksQueuesService.verificationEmailQueue, 'add')
         .throws('Some error');
 
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
       await client.post('/sign-up').send(newUser);
 
-      const credentials: LoginResquestSchemaObject = {
+      const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
