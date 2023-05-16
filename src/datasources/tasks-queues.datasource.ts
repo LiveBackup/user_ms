@@ -9,8 +9,8 @@ const config = {
   connector: 'kv-redis',
   host: process.env.TASKS_QUEUE_HOST ?? 'localhost',
   port: Number(process.env.TASKS_QUEUE_PORT ?? 6379),
-  db: process.env.USER_DB_DATABASE,
-  user: process.env.USER_DB_USER,
+  db: Number(process.env.TASKS_QUEUE_DATABASE),
+  user: process.env.TASKS_QUEUE_USER,
   password: process.env.TASKS_QUEUE_PASSWORD,
 };
 
