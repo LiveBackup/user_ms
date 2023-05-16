@@ -13,14 +13,7 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
 import {Account, AccountCredentials} from '../models';
-import {
-  LoginResquestSchemaDescription,
-  LoginResquestSchemaObject,
-  NewUserResquestSchemaDescription,
-  NewUserResquestSchemaObject,
-  TokenResponseSchemaDescription,
-  TokenResponseSchemaObject,
-} from '../schemas';
+import {Credentials, NewAccount, TokenResponse} from '../schemas';
 import {
   AccountCredentialsService,
   AccountService,
@@ -54,11 +47,11 @@ export class AuthController {
     @requestBody({
       content: {
         'application/json': {
-          schema: NewUserResquestSchemaDescription,
+          schema: getModelSchemaRef(NewAccount),
         },
       },
     })
-    newAccountRequest: NewUserResquestSchemaObject,
+    newAccountRequest: NewAccount,
   ): Promise<Account> {
     const {email, username, password} = newAccountRequest;
 
@@ -107,7 +100,7 @@ export class AuthController {
     description: 'Request a JWT by giving the account credentials',
     content: {
       'application/json': {
-        schema: TokenResponseSchemaDescription,
+        schema: getModelSchemaRef(TokenResponse),
       },
     },
   })
@@ -115,19 +108,19 @@ export class AuthController {
     @requestBody({
       content: {
         'application/json': {
-          schema: LoginResquestSchemaDescription,
+          schema: getModelSchemaRef(Credentials),
         },
       },
     })
-    loginRequest: LoginResquestSchemaObject,
-  ): Promise<TokenResponseSchemaObject> {
+    credentials: Credentials,
+  ): Promise<TokenResponse> {
     // Create the error when email or password do not match
     const wrongCredentialsError = new HttpErrors[400](
       'Incorrect username or password',
     );
 
     // Find the account using the given username
-    const {username, password} = loginRequest;
+    const {username, password} = credentials;
     const account = await this.accountService.findByUsername(username);
 
     // Throw the error if no account was found

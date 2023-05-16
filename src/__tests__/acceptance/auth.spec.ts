@@ -7,10 +7,7 @@ import {
   AccountCredentialsRepository,
   AccountRepository,
 } from '../../repositories';
-import {
-  LoginResquestSchemaObject,
-  NewUserResquestSchemaObject,
-} from '../../schemas';
+import {Credentials, NewAccount} from '../../schemas';
 import {
   CustomTokenService,
   CustomTokenServiceBindings,
@@ -53,7 +50,7 @@ describe('e2e - Auth Controller', () => {
 
   describe('User creation - /sign-up Endpoint', () => {
     it('Creates a new User', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -98,7 +95,7 @@ describe('e2e - Auth Controller', () => {
       const user = givenAccount({email: 'jdiegopm12@livebackup.com'});
       await accountRepository.create(user);
 
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm12',
         email: 'jdiegopm12@livebackup.com',
         password: 'strong_password',
@@ -115,7 +112,7 @@ describe('e2e - Auth Controller', () => {
       const user = givenAccount({username: 'jdiegopm12'});
       await accountRepository.create(user);
 
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm12',
         email: 'jdiegopm12@livebackup.com',
         password: 'strong_password',
@@ -131,7 +128,7 @@ describe('e2e - Auth Controller', () => {
 
   describe('User login - /login Endpoint', () => {
     it('Get a valid token', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -142,7 +139,7 @@ describe('e2e - Auth Controller', () => {
         {is_email_verified: true}, // eslint-disable-line
       );
 
-      const loginRequest: LoginResquestSchemaObject = {
+      const loginRequest: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -159,7 +156,7 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Reject the query when the account credentials are not found', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -185,7 +182,7 @@ describe('e2e - Auth Controller', () => {
         accountCredentialsCreated?.id ?? '',
       );
 
-      const loginRequest: LoginResquestSchemaObject = {
+      const loginRequest: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -194,14 +191,14 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Reject the query when user not found', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
       await client.post('/sign-up').send(newUser);
 
-      const loginRequest: LoginResquestSchemaObject = {
+      const loginRequest: Credentials = {
         username: 'newUser.username',
         password: 'newUser.password',
       };
@@ -214,7 +211,7 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Reject the query when the password is wrong', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -225,7 +222,7 @@ describe('e2e - Auth Controller', () => {
         {is_email_verified: true}, // eslint-disable-line
       );
 
-      const loginRequest: LoginResquestSchemaObject = {
+      const loginRequest: Credentials = {
         username: newUser.username,
         password: 'weak_password',
       };
@@ -238,14 +235,14 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Get the token even when user has not verified the email', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
       await client.post('/sign-up').send(newUser);
 
-      const loginRequest: LoginResquestSchemaObject = {
+      const loginRequest: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -258,7 +255,7 @@ describe('e2e - Auth Controller', () => {
 
   describe('User token validation - /who-am-i Endpoint', () => {
     it('Get the account info by providing a valid token', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -271,7 +268,7 @@ describe('e2e - Auth Controller', () => {
       });
       /* eslint-enable @typescript-eslint/naming-convention */
 
-      const credentials: LoginResquestSchemaObject = {
+      const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -294,7 +291,7 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Does not find the account for the provided token', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -306,7 +303,7 @@ describe('e2e - Auth Controller', () => {
       await accountRepository.updateById(accountId, {is_email_verified: true});
       /* eslint-enable @typescript-eslint/naming-convention */
 
-      const credentials: LoginResquestSchemaObject = {
+      const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -325,7 +322,7 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Fails to get account info by providing a non-valid token', async () => {
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -343,7 +340,7 @@ describe('e2e - Auth Controller', () => {
 
     it('Reject with 403 when the provided token contains Recover Password or Verify email permissions', async () => {
       let token;
-      const newUser: NewUserResquestSchemaObject = {
+      const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',

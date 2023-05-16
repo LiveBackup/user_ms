@@ -21,6 +21,9 @@ export class Account extends Entity {
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {
+      format: 'email',
+    },
   })
   email: string;
 

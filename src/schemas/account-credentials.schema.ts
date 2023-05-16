@@ -1,7 +1,7 @@
-import {property} from '@loopback/repository';
-import {SchemaObject} from '@loopback/rest';
+import {model, property} from '@loopback/repository';
 
-export class LoginResquestSchemaObject {
+@model()
+export class Credentials {
   @property({
     type: 'string',
     required: true,
@@ -11,20 +11,10 @@ export class LoginResquestSchemaObject {
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {
+      format: 'password',
+      minLength: 8,
+    },
   })
   password: string;
 }
-
-export const LoginResquestSchemaDescription: SchemaObject = {
-  type: 'object',
-  required: ['username', 'password'],
-  properties: {
-    username: {
-      type: 'string',
-    },
-    password: {
-      type: 'string',
-      minLength: 8,
-    },
-  },
-};

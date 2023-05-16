@@ -1,18 +1,9 @@
-import {property} from '@loopback/repository';
-import {SchemaObject} from '@loopback/rest';
+import {model, property} from '@loopback/repository';
 
-export class TokenResponseSchemaObject {
+@model()
+export class TokenResponse {
   @property({
     type: 'string',
   })
   token: string;
 }
-
-export const TokenResponseSchemaDescription: SchemaObject = {
-  type: 'object',
-  properties: {
-    token: {
-      type: 'string',
-    },
-  },
-};

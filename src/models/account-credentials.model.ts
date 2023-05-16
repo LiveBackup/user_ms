@@ -15,6 +15,10 @@ export class AccountCredentials extends Entity {
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {
+      minLength: 8,
+      format: 'password',
+    },
   })
   password: string;
 
