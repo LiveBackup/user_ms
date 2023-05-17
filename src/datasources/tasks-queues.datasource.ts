@@ -10,7 +10,7 @@ const config = {
   host: process.env.TASKS_QUEUE_HOST ?? 'localhost',
   port: Number(process.env.TASKS_QUEUE_PORT ?? 6379),
   db: Number(process.env.TASKS_QUEUE_DATABASE),
-  user: process.env.TASKS_QUEUE_USER,
+  username: process.env.TASKS_QUEUE_USER,
   password: process.env.TASKS_QUEUE_PASSWORD,
 };
 
@@ -21,8 +21,7 @@ const config = {
 @lifeCycleObserver('datasource')
 export class TasksQueuesDataSource
   extends juggler.DataSource
-  implements LifeCycleObserver
-{
+  implements LifeCycleObserver {
   static dataSourceName = 'tasks_queues';
   static readonly defaultConfig = config;
 
@@ -30,6 +29,7 @@ export class TasksQueuesDataSource
     @inject('datasources.config.tasks_queues', {optional: true})
     dsConfig: object = config,
   ) {
+    console.log(dsConfig);
     super(dsConfig);
   }
 }

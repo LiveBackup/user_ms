@@ -12,16 +12,17 @@ export class TasksQueuesService {
 
   constructor(
     @inject('datasources.tasks_queues')
-    protected tasksQueuesDataSource: TasksQueuesDataSource,
+    tasksQueuesDataSource: TasksQueuesDataSource,
   ) {
     if (TasksQueuesService.initialized) return;
 
     const bullMQSettings: QueueOptions = {
       connection: {
-        host: this.tasksQueuesDataSource.settings.host,
-        port: this.tasksQueuesDataSource.settings.port,
-        db: this.tasksQueuesDataSource.settings.db,
-        password: this.tasksQueuesDataSource.settings.password,
+        host: tasksQueuesDataSource.settings.host,
+        port: tasksQueuesDataSource.settings.port,
+        db: tasksQueuesDataSource.settings.db,
+        username: tasksQueuesDataSource.settings.user,
+        password: tasksQueuesDataSource.settings.password,
       },
     };
 
