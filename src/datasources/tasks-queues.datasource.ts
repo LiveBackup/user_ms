@@ -21,8 +21,7 @@ const config = {
 @lifeCycleObserver('datasource')
 export class TasksQueuesDataSource
   extends juggler.DataSource
-  implements LifeCycleObserver
-{
+  implements LifeCycleObserver {
   static dataSourceName = 'tasks_queues';
   static readonly defaultConfig = config;
 
@@ -30,7 +29,6 @@ export class TasksQueuesDataSource
     @inject('datasources.config.tasks_queues', {optional: true})
     dsConfig: object = config,
   ) {
-    console.log(dsConfig);
     super(dsConfig);
   }
 }
