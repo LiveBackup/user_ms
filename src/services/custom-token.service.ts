@@ -104,9 +104,8 @@ export class CustomTokenService implements TokenService {
 
     let userProfile: ExtendedUserProfile;
     try {
-      /* eslint-disable @typescript-eslint/no-explicit-any */
+      // eslint-disable-next-line
       const decodedToken = jwt.verify(token, this.secret) as any;
-      /* eslint-enable @typescript-eslint/no-explicit-any */
       userProfile = Object.assign(
         {[securityId]: '', email: ''},
         {

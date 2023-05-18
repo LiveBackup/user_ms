@@ -67,11 +67,10 @@ describe('e2e - Account Controller', () => {
 
       let response = await client.post('/sign-up').send(newUser);
       const accountId = response.body.id;
-      /* eslint-disable @typescript-eslint/naming-convention */
+
       await accountRepository.updateById(accountId, {
-        is_email_verified: true,
+        isEmailVerified: true,
       });
-      /* eslint-enable @typescript-eslint/naming-convention */
 
       const credentials: Credentials = {
         username: newUser.username,
@@ -102,11 +101,10 @@ describe('e2e - Account Controller', () => {
         password: newUser.password,
       };
       response = await client.post('/login').send(credentials);
-      /* eslint-disable @typescript-eslint/naming-convention */
+
       await accountRepository.updateById(accountId, {
-        is_email_verified: true,
+        isEmailVerified: true,
       });
-      /* eslint-enable @typescript-eslint/naming-convention */
 
       const {token} = response.body;
       await client

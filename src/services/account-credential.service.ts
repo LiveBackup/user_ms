@@ -33,7 +33,7 @@ export class AccountCredentialsService {
   ): Promise<AccountCredentials | null> {
     return this.accountCredentialsRepository.findOne({
       where: {
-        account_id: accountId, // eslint-disable-line
+        accountId: accountId,
       },
     });
   }

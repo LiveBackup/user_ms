@@ -73,20 +73,19 @@ export class AuthController {
     }
 
     // Creates the account into the database
-    /* eslint-disable @typescript-eslint/naming-convention */
+
     const newAccount = await this.accountService.create(
       new Account({
         email,
         username,
-        registered_at: new Date(),
+        registeredAt: new Date(),
       }),
     );
-    /* eslint-enable @typescript-eslint/naming-convention */
 
     // Creates the user credentials into the database
     await this.accountCredentialsService.create(
       new AccountCredentials({
-        account_id: newAccount.id /* eslint-disable-line */,
+        accountId: newAccount.id,
         password: await this.accountCredentialsService.hashPassword(password),
       }),
     );
@@ -151,7 +150,7 @@ export class AuthController {
     const permissions: Permissions[] = [Permissions.REGULAR];
     // If hte email has not been verified then add the permission
     // to request the verification
-    if (!account.is_email_verified) {
+    if (!account.isEmailVerified) {
       permissions.push(Permissions.REQUEST_EMAIL_VERIFICATION);
     }
     // Generate the user profile

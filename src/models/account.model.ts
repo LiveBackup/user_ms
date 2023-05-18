@@ -1,13 +1,16 @@
 import {Entity, hasOne, model, property} from '@loopback/repository';
 import {AccountCredentials} from './account-credentials.model';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-@model()
+@model({
+  settings: {
+    idInjection: false,
+    postgresql: {schema: 'public', table: 'account'},
+  },
+})
 export class Account extends Entity {
   @property({
     type: 'string',
     id: true,
-    generated: false,
     defaultFn: 'uuidv4',
   })
   id: string;
@@ -30,17 +33,24 @@ export class Account extends Entity {
   @property({
     type: 'boolean',
     default: false,
+    postgresql: {
+      columnName: 'is_email_verified',
+    },
   })
-  is_email_verified: boolean;
+  isEmailVerified: boolean;
 
   @property({
     type: 'date',
     required: true,
+    postgresql: {
+      columnName: 'registered_at',
+      dataType: 'timestamptz',
+    },
   })
-  registered_at: Date;
+  registeredAt: Date;
 
-  @hasOne(() => AccountCredentials, {keyTo: 'account_id'})
-  account_credentials: AccountCredentials;
+  @hasOne(() => AccountCredentials, {keyTo: 'account_id', keyFrom: 'id'})
+  accountCredentials: AccountCredentials;
 
   constructor(data?: Partial<Account>) {
     super(data);

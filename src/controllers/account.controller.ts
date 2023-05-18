@@ -39,7 +39,7 @@ export class AccountController {
     const account = await this.accountService.findById(currentUser[securityId]);
     if (account === null) {
       throw new HttpErrors[404]('No account was found');
-    } else if (account.is_email_verified) {
+    } else if (account.isEmailVerified) {
       throw new HttpErrors[400]('Emails has already been verified');
     }
 
