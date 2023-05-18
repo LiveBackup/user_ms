@@ -56,13 +56,11 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
 
-      /* eslint-disable @typescript-eslint/naming-convention */
       const expectedAccount = givenAccount({
         username: newUser.username,
         email: newUser.email,
-        is_email_verified: false,
+        isEmailVerified: false,
       });
-      /* eslint-enable @typescript-eslint/naming-convention */
 
       const response = await client.post('/sign-up').send(newUser);
       expect(response.statusCode).to.be.equal(
@@ -73,13 +71,13 @@ describe('e2e - Auth Controller', () => {
       const createdAccount = response.body;
       expect(createdAccount.username).to.be.equal(expectedAccount.username);
       expect(createdAccount.email).to.be.equal(expectedAccount.email);
-      expect(createdAccount.is_email_verified).to.be.equal(
-        expectedAccount.is_email_verified,
+      expect(createdAccount.isEmailVerified).to.be.equal(
+        expectedAccount.isEmailVerified,
       );
-      expect(
-        new Date(createdAccount.registered_at).valueOf(),
-      ).to.be.greaterThan(expectedAccount.registered_at.valueOf());
-      expect(new Date(createdAccount.registered_at).valueOf()).to.be.lessThan(
+      expect(new Date(createdAccount.registeredAt).valueOf()).to.be.greaterThan(
+        expectedAccount.registeredAt.valueOf(),
+      );
+      expect(new Date(createdAccount.registeredAt).valueOf()).to.be.lessThan(
         new Date().valueOf(),
       );
 
@@ -134,10 +132,9 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
       const registerResponse = await client.post('/sign-up').send(newUser);
-      await accountRepository.updateById(
-        registerResponse.body.id,
-        {is_email_verified: true}, // eslint-disable-line
-      );
+      await accountRepository.updateById(registerResponse.body.id, {
+        isEmailVerified: true,
+      });
 
       const loginRequest: Credentials = {
         username: newUser.username,
@@ -162,10 +159,9 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
       const registerResponse = await client.post('/sign-up').send(newUser);
-      await accountRepository.updateById(
-        registerResponse.body.id,
-        {is_email_verified: true}, // eslint-disable-line
-      );
+      await accountRepository.updateById(registerResponse.body.id, {
+        isEmailVerified: true,
+      });
 
       const createdAccount = await accountRepository.findOne({
         where: {
@@ -217,10 +213,9 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
       const registerResponse = await client.post('/sign-up').send(newUser);
-      await accountRepository.updateById(
-        registerResponse.body.id,
-        {is_email_verified: true}, // eslint-disable-line
-      );
+      await accountRepository.updateById(registerResponse.body.id, {
+        isEmailVerified: true,
+      });
 
       const loginRequest: Credentials = {
         username: newUser.username,
@@ -262,11 +257,10 @@ describe('e2e - Auth Controller', () => {
       };
 
       let response = await client.post('/sign-up').send(newUser);
-      /* eslint-disable @typescript-eslint/naming-convention */
+
       await accountRepository.updateById(response.body.id, {
-        is_email_verified: true,
+        isEmailVerified: true,
       });
-      /* eslint-enable @typescript-eslint/naming-convention */
 
       const credentials: Credentials = {
         username: newUser.username,
@@ -299,9 +293,8 @@ describe('e2e - Auth Controller', () => {
 
       let response = await client.post('/sign-up').send(newUser);
       const accountId = response.body.id;
-      /* eslint-disable @typescript-eslint/naming-convention */
-      await accountRepository.updateById(accountId, {is_email_verified: true});
-      /* eslint-enable @typescript-eslint/naming-convention */
+
+      await accountRepository.updateById(accountId, {isEmailVerified: true});
 
       const credentials: Credentials = {
         username: newUser.username,

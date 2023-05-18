@@ -30,14 +30,21 @@ export class Account extends Entity {
   @property({
     type: 'boolean',
     default: false,
+    postgresql: {
+      columnName: 'is_email_verified',
+    },
   })
-  is_email_verified: boolean;
+  isEmailVerified: boolean;
 
   @property({
     type: 'date',
     required: true,
+    postgresql: {
+      columnName: 'registered_at',
+      dataType: 'timestamptz',
+    },
   })
-  registered_at: Date;
+  registeredAt: Date;
 
   @hasOne(() => AccountCredentials, {keyTo: 'account_id'})
   account_credentials: AccountCredentials;

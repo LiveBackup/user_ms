@@ -36,20 +36,19 @@ export const givenRepositories = function () {
 };
 
 // Return and Account Object using the given data
-/* eslint-disable @typescript-eslint/naming-convention */
+
 export const givenAccount = function (data?: Partial<Account>) {
   return Object.assign(
     {
       id: '1',
       username: 'jdiegopm',
       email: 'jdiego@livebackup.com',
-      is_email_verified: true,
-      registered_at: new Date(),
+      isEmailVerified: true,
+      registeredAt: new Date(),
     },
     data,
   );
 };
-/* eslint-enable @typescript-eslint/naming-convention */
 
 // Return and AccountCredentials Object using the given data
 /* eslint-disable @typescript-eslint/naming-convention */
