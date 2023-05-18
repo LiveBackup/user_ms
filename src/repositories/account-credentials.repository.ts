@@ -12,13 +12,12 @@ import {
 } from '../models';
 import {AccountRepository} from './account.repository';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 export class AccountCredentialsRepository extends DefaultCrudRepository<
   AccountCredentials,
   typeof AccountCredentials.prototype.id,
   AccountCredentialsRelations
 > {
-  public readonly account_credentials: BelongsToAccessor<
+  public readonly accountCredentials: BelongsToAccessor<
     Account,
     typeof AccountCredentials.prototype.id
   >;
@@ -29,13 +28,13 @@ export class AccountCredentialsRepository extends DefaultCrudRepository<
     protected accountRepositoryGetter: Getter<AccountRepository>,
   ) {
     super(AccountCredentials, dataSource);
-    this.account_credentials = this.createBelongsToAccessorFor(
-      'account_credentials',
+    this.accountCredentials = this.createBelongsToAccessorFor(
+      'accountCredentials',
       accountRepositoryGetter,
     );
     this.registerInclusionResolver(
-      'account_credentials',
-      this.account_credentials.inclusionResolver,
+      'accountCredentials',
+      this.accountCredentials.inclusionResolver,
     );
   }
 }

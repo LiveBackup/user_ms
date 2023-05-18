@@ -8,13 +8,12 @@ import {UserDbDataSource} from '../datasources';
 import {Account, AccountCredentials, AccountRelations} from '../models';
 import {AccountCredentialsRepository} from './account-credentials.repository';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 export class AccountRepository extends DefaultCrudRepository<
   Account,
   typeof Account.prototype.id,
   AccountRelations
 > {
-  public readonly account_credentials: HasOneRepositoryFactory<
+  public readonly accountCredentials: HasOneRepositoryFactory<
     AccountCredentials,
     typeof Account.prototype.id
   >;
@@ -25,8 +24,8 @@ export class AccountRepository extends DefaultCrudRepository<
     protected accountCredentialsRepositoryGetter: Getter<AccountCredentialsRepository>,
   ) {
     super(Account, dataSource);
-    this.account_credentials = this.createHasOneRepositoryFactoryFor(
-      'account_credentials',
+    this.accountCredentials = this.createHasOneRepositoryFactoryFor(
+      'accountCredentials',
       accountCredentialsRepositoryGetter,
     );
   }

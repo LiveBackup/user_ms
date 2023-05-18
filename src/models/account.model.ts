@@ -1,7 +1,6 @@
 import {Entity, hasOne, model, property} from '@loopback/repository';
 import {AccountCredentials} from './account-credentials.model';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 @model({
   settings: {
     idInjection: false,
@@ -50,8 +49,8 @@ export class Account extends Entity {
   })
   registeredAt: Date;
 
-  @hasOne(() => AccountCredentials, {keyTo: 'accountId', keyFrom: 'id'})
-  account_credentials: AccountCredentials;
+  @hasOne(() => AccountCredentials, {keyTo: 'account_id', keyFrom: 'id'})
+  accountCredentials: AccountCredentials;
 
   constructor(data?: Partial<Account>) {
     super(data);
