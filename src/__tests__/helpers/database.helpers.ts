@@ -51,7 +51,7 @@ export const givenAccount = function (data?: Partial<Account>) {
 };
 
 // Return and AccountCredentials Object using the given data
-/* eslint-disable @typescript-eslint/naming-convention */
+
 export const givenAccountCredentials = function (
   data?: Partial<AccountCredentials>,
 ) {
@@ -59,9 +59,8 @@ export const givenAccountCredentials = function (
     {
       id: '1',
       password: 'hashed_password',
-      account_id: '1',
+      accountId: '1',
     },
     data,
   );
 };
-/* eslint-enable @typescript-eslint/naming-convention */

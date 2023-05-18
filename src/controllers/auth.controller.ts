@@ -85,7 +85,7 @@ export class AuthController {
     // Creates the user credentials into the database
     await this.accountCredentialsService.create(
       new AccountCredentials({
-        account_id: newAccount.id /* eslint-disable-line */,
+        accountId: newAccount.id,
         password: await this.accountCredentialsService.hashPassword(password),
       }),
     );

@@ -81,11 +81,9 @@ describe('e2e - Auth Controller', () => {
         new Date().valueOf(),
       );
 
-      /* eslint-disable @typescript-eslint/naming-convention */
       const createdCredentials = await accountCredentialsRepository.findOne({
-        where: {account_id: createdAccount.id},
+        where: {accountId: createdAccount.id},
       });
-      /* eslint-enable @typescript-eslint/naming-convention */
       expect(createdCredentials).not.to.be.null();
     });
 
@@ -171,7 +169,7 @@ describe('e2e - Auth Controller', () => {
       const accountCredentialsCreated =
         await accountCredentialsRepository.findOne({
           where: {
-            account_id: createdAccount?.id, // eslint-disable-line
+            accountId: createdAccount?.id,
           },
         });
       await accountCredentialsRepository.deleteById(

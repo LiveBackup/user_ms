@@ -1,7 +1,6 @@
 import {belongsTo, Entity, model, property} from '@loopback/repository';
 import {Account} from './account.model';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 @model()
 export class AccountCredentials extends Entity {
   @property({
@@ -22,8 +21,22 @@ export class AccountCredentials extends Entity {
   })
   password: string;
 
-  @belongsTo(() => Account, {name: 'account_credentials'})
-  account_id: string;
+  @belongsTo(
+    () => Account,
+    {
+      name: 'account_credentials',
+      keyFrom: 'account_id',
+      keyTo: 'id',
+    },
+    {
+      type: 'string',
+      required: true,
+      postgresql: {
+        columnName: 'account_id',
+      },
+    },
+  )
+  accountId: string;
 
   constructor(data?: Partial<AccountCredentials>) {
     super(data);

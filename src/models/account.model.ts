@@ -46,7 +46,7 @@ export class Account extends Entity {
   })
   registeredAt: Date;
 
-  @hasOne(() => AccountCredentials, {keyTo: 'account_id'})
+  @hasOne(() => AccountCredentials, {keyTo: 'accountId', keyFrom: 'id'})
   account_credentials: AccountCredentials;
 
   constructor(data?: Partial<Account>) {
