@@ -2,12 +2,16 @@ import {Entity, hasOne, model, property} from '@loopback/repository';
 import {AccountCredentials} from './account-credentials.model';
 
 /* eslint-disable @typescript-eslint/naming-convention */
-@model()
+@model({
+  settings: {
+    idInjection: false,
+    postgresql: {schema: 'public', table: 'account'},
+  },
+})
 export class Account extends Entity {
   @property({
     type: 'string',
     id: true,
-    generated: false,
     defaultFn: 'uuidv4',
   })
   id: string;
