@@ -98,7 +98,7 @@ describe('Unit testing - AccountCredentials service', () => {
     );
 
     const createdAccountCredentials =
-      await accountCredentialsService.getCredentialsByAccountId(account.id);
+      await accountCredentialsService.findCredentialsByAccountId(account.id);
 
     expect(createdAccountCredentials).not.to.be.null();
     expect(createdAccountCredentials?.password).not.to.be.empty();
@@ -116,7 +116,7 @@ describe('Unit testing - AccountCredentials service', () => {
     );
 
     const createdAccountCredentials =
-      await accountCredentialsService.getCredentialsByAccountId(account.id);
+      await accountCredentialsService.findCredentialsByAccountId(account.id);
 
     expect(createdAccountCredentials).to.be.null();
   });

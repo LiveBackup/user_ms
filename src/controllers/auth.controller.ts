@@ -129,7 +129,7 @@ export class AuthController {
 
     // Search the related account credentials and throw and error if not found
     const accountCredentials =
-      await this.accountCredentialsService.getCredentialsByAccountId(
+      await this.accountCredentialsService.findCredentialsByAccountId(
         account.id,
       );
     if (accountCredentials === null) {

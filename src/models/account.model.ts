@@ -18,12 +18,14 @@ export class Account extends Entity {
   @property({
     type: 'string',
     required: true,
+    index: {unique: true},
   })
   username: string;
 
   @property({
     type: 'string',
     required: true,
+    index: {unique: true},
     jsonSchema: {
       format: 'email',
     },

@@ -28,7 +28,7 @@ export class AccountCredentialsService {
     return this.accountCredentialsRepository.create(newCrendentials);
   }
 
-  async getCredentialsByAccountId(
+  async findCredentialsByAccountId(
     accountId: string,
   ): Promise<AccountCredentials | null> {
     return this.accountCredentialsRepository.findOne({
