@@ -13,8 +13,8 @@ import {
 describe('e2e - Account Controller', () => {
   const sandbox = sinon.createSandbox();
   let app: UserMsApplication;
-  let accountRepository: AccountRepository;
   let client: Client;
+  let accountRepository: AccountRepository;
 
   before(async () => {
     ({accountRepository} = givenRepositories());
@@ -35,7 +35,7 @@ describe('e2e - Account Controller', () => {
     sandbox.restore();
   });
 
-  describe('Email query creation - /verify-email Endpoint', () => {
+  describe('Email query creation - /account/request-email-verification Endpoint', () => {
     it('Creates the email verification request', async () => {
       const newUser: NewAccount = {
         username: 'jdiegopm',

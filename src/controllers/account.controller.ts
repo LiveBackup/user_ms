@@ -58,7 +58,7 @@ export class AccountController {
     );
 
     if (!tasksStatus) {
-      throw new HttpErrors[500]('Could not add the tasks to the queue');
+      throw new HttpErrors[500]('Could not add the task to the queue');
     }
   }
 }

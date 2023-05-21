@@ -1,5 +1,5 @@
 import {model, property} from '@loopback/repository';
-import {Credentials} from './account-credentials.schema';
+import {Credentials} from './credentials.schema';
 
 @model()
 export class NewAccount extends Credentials {

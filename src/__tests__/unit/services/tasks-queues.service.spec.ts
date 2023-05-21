@@ -15,38 +15,79 @@ describe('Unit testing - Tasks Queues Service', () => {
     sandbox.restore();
   });
 
-  it('Add a job to email verification queue', async () => {
-    const username = 'testuser123';
-    const email = 'dummy@email.com';
-    const token = 'dummy_token';
-    const emailQueueSpy = sandbox.spy(
-      TasksQueuesService.verificationEmailQueue,
-      'add',
-    );
+  describe('Email Verification Queue', () => {
+    it('Enqueue the email verification job', async () => {
+      const username = 'testuser123';
+      const email = 'dummy@email.com';
+      const token = 'dummy_token';
+      const emailQueueSpy = sandbox.spy(
+        TasksQueuesService.verificationEmailQueue,
+        'add',
+      );
 
-    const emailEnqueued = await tasksQueuesService.enqueueVerificationEmail(
-      username,
-      email,
-      token,
-    );
-    expect(emailEnqueued).to.be.True();
-    expect(emailQueueSpy.calledOnce).to.be.True();
+      const emailEnqueued = await tasksQueuesService.enqueueVerificationEmail(
+        username,
+        email,
+        token,
+      );
+      expect(emailEnqueued).to.be.True();
+      expect(emailQueueSpy.calledOnce).to.be.True();
+    });
+
+    it('Fails to add a job into the email verification queue', async () => {
+      const username = 'testuser123';
+      const email = 'dummy@email.com';
+      const token = 'dummy_token';
+      const emailQueueStub = sandbox
+        .stub(TasksQueuesService.verificationEmailQueue, 'add')
+        .throws('Some error');
+
+      const emailEnqueued = await tasksQueuesService.enqueueVerificationEmail(
+        username,
+        email,
+        token,
+      );
+      expect(emailEnqueued).to.be.False();
+      expect(emailQueueStub.calledOnce).to.be.True();
+    });
   });
 
-  it('Fails to add a job into the email verification queue', async () => {
-    const username = 'testuser123';
-    const email = 'dummy@email.com';
-    const token = 'dummy_token';
-    const emailQueueStub = sandbox
-      .stub(TasksQueuesService.verificationEmailQueue, 'add')
-      .throws('Some error');
+  describe('Recovery Password Queue', () => {
+    it('Enqueue the Recevery password email job', async () => {
+      const username = 'testuser123';
+      const email = 'dummy@email.com';
+      const token = 'dummy_token';
+      const recoveryQueueSpy = sandbox.spy(
+        TasksQueuesService.recoveryPasswordQueue,
+        'add',
+      );
 
-    const emailEnqueued = await tasksQueuesService.enqueueVerificationEmail(
-      username,
-      email,
-      token,
-    );
-    expect(emailEnqueued).to.be.False();
-    expect(emailQueueStub.calledOnce).to.be.True();
+      const recoveryEnqueued =
+        await tasksQueuesService.enqueueRecoveryPasswordEmail(
+          username,
+          email,
+          token,
+        );
+      expect(recoveryEnqueued).to.be.True();
+      expect(recoveryQueueSpy.calledOnce).to.be.True();
+    });
+
+    it('Fails to enqueue the Recevery password email job', async () => {
+      const username = 'testuser123';
+      const email = 'dummy@email.com';
+      const token = 'dummy_token';
+      const recoveryQueueStub = sandbox
+        .stub(TasksQueuesService.recoveryPasswordQueue, 'add')
+        .throws('Some error');
+
+      const recoveryEnqueued =
+        await tasksQueuesService.enqueueRecoveryPasswordEmail(
+          username,
+          email,
+          token,
+        );
+      expect(recoveryEnqueued).to.be.False();
+      expect(recoveryQueueStub.calledOnce).to.be.True();
+    });
   });
 });

@@ -37,7 +37,7 @@ export const givenRepositories = function () {
 
 // Return and Account Object using the given data
 
-export const givenAccount = function (data?: Partial<Account>) {
+export const givenAccount = function (data?: Partial<Account>): Account {
   return Object.assign(
     {
       id: '1',
@@ -47,14 +47,14 @@ export const givenAccount = function (data?: Partial<Account>) {
       registeredAt: new Date(),
     },
     data,
-  );
+  ) as Account;
 };
 
 // Return and AccountCredentials Object using the given data
 
 export const givenAccountCredentials = function (
   data?: Partial<AccountCredentials>,
-) {
+): AccountCredentials {
   return Object.assign(
     {
       id: '1',
@@ -62,5 +62,5 @@ export const givenAccountCredentials = function (
       accountId: '1',
     },
     data,
-  );
+  ) as AccountCredentials;
 };
