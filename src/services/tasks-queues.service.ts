@@ -7,8 +7,11 @@ dotenv.config();
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class TasksQueuesService {
+  // Service status
   static initialized = false;
+  // Available Queues
   static verificationEmailQueue: Queue;
+  static recoveryPasswordQueue: Queue;
 
   constructor(
     @inject('datasources.tasks_queues')
@@ -30,22 +33,47 @@ export class TasksQueuesService {
       'VerificationEmail',
       bullMQSettings,
     );
+    TasksQueuesService.recoveryPasswordQueue = new Queue(
+      'RecoveryPassword',
+      bullMQSettings,
+    );
     TasksQueuesService.initialized = true;
   }
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  private async enqueueTask(
+    queue: Queue,
+    name: string,
+    data: any,
+  ): Promise<boolean> {
+    try {
+      await queue.add(name, data);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   async enqueueVerificationEmail(
     username: string,
     email: string,
     accessToken: string,
   ): Promise<boolean> {
-    try {
-      await TasksQueuesService.verificationEmailQueue.add(
-        `Verification email for ${username}`,
-        {email, accessToken},
-      );
-    } catch (error) {
-      return false;
-    }
-    return true;
+    const queue = TasksQueuesService.verificationEmailQueue;
+    const taskName = `Verification email for ${username}`;
+    const taskData = {email, accessToken};
+    return this.enqueueTask(queue, taskName, taskData);
+  }
+
+  async enqueueRecoveryPasswordEmail(
+    username: string,
+    email: string,
+    recoveryToken: string,
+  ): Promise<boolean> {
+    const queue = TasksQueuesService.recoveryPasswordQueue;
+    const taskName = `Recovery password request for ${username}`;
+    const taskData = {email, recoveryToken};
+    return this.enqueueTask(queue, taskName, taskData);
   }
 }
