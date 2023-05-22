@@ -57,8 +57,8 @@ describe('e2e - Account Credentials Controller', () => {
     sandbox.restore();
   });
 
-  describe(`Request recovery password - ${reqPassRecovery} Endpoint`, () => {
-    it('Cretes the task to send the recovery password email', async () => {
+  describe(`Request password recovery - ${reqPassRecovery} Endpoint`, () => {
+    it('Cretes the task to send the password recovery email', async () => {
       const recoveryRequest = {
         email: account.email,
       };
@@ -80,7 +80,7 @@ describe('e2e - Account Credentials Controller', () => {
 
     it('Fails to enqueue the email sending tasks', async () => {
       const addJobStub = sandbox
-        .stub(TasksQueuesService.recoveryPasswordQueue, 'add')
+        .stub(TasksQueuesService.passwordRecovery, 'add')
         .throws('Failed to add a Job');
 
       const recoveryRequest = {

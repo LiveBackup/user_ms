@@ -11,7 +11,7 @@ export class TasksQueuesService {
   static initialized = false;
   // Available Queues
   static verificationEmailQueue: Queue;
-  static recoveryPasswordQueue: Queue;
+  static passwordRecovery: Queue;
 
   constructor(
     @inject('datasources.tasks_queues')
@@ -33,8 +33,8 @@ export class TasksQueuesService {
       'VerificationEmail',
       bullMQSettings,
     );
-    TasksQueuesService.recoveryPasswordQueue = new Queue(
-      'RecoveryPassword',
+    TasksQueuesService.passwordRecovery = new Queue(
+      'PasswordRecovery',
       bullMQSettings,
     );
     TasksQueuesService.initialized = true;
@@ -66,13 +66,13 @@ export class TasksQueuesService {
     return this.enqueueTask(queue, taskName, taskData);
   }
 
-  async enqueueRecoveryPasswordEmail(
+  async enqueuePasswordRecoveryEmail(
     username: string,
     email: string,
     recoveryToken: string,
   ): Promise<boolean> {
-    const queue = TasksQueuesService.recoveryPasswordQueue;
-    const taskName = `Recovery password request for ${username}`;
+    const queue = TasksQueuesService.passwordRecovery;
+    const taskName = `Password recovery request for ${username}`;
     const taskData = {email, recoveryToken};
     return this.enqueueTask(queue, taskName, taskData);
   }
