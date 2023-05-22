@@ -58,12 +58,12 @@ describe('Unit testing - Tasks Queues Service', () => {
       const email = 'dummy@email.com';
       const token = 'dummy_token';
       const recoveryQueueSpy = sandbox.spy(
-        TasksQueuesService.recoveryPasswordQueue,
+        TasksQueuesService.passwordRecovery,
         'add',
       );
 
       const recoveryEnqueued =
-        await tasksQueuesService.enqueueRecoveryPasswordEmail(
+        await tasksQueuesService.enqueuePasswordRecoveryEmail(
           username,
           email,
           token,
@@ -77,11 +77,11 @@ describe('Unit testing - Tasks Queues Service', () => {
       const email = 'dummy@email.com';
       const token = 'dummy_token';
       const recoveryQueueStub = sandbox
-        .stub(TasksQueuesService.recoveryPasswordQueue, 'add')
+        .stub(TasksQueuesService.passwordRecovery, 'add')
         .throws('Some error');
 
       const recoveryEnqueued =
-        await tasksQueuesService.enqueueRecoveryPasswordEmail(
+        await tasksQueuesService.enqueuePasswordRecoveryEmail(
           username,
           email,
           token,

@@ -62,7 +62,7 @@ export class AccountCredentialsController {
     const recoveryToken = await this.jwtService.generateToken(userProfile);
     // Enqueue the email delivery job
     const tasksStatus =
-      await this.tasksQueuesService.enqueueRecoveryPasswordEmail(
+      await this.tasksQueuesService.enqueuePasswordRecoveryEmail(
         account.username,
         email,
         recoveryToken,
