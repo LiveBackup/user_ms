@@ -209,11 +209,11 @@ describe('e2e - Account Controller', () => {
       const response = await client
         .patch('/account/verify-email')
         .set('Authorization', `Bearer: ${verificationToken}`)
-        .send()
-        .expect(200);
+        .send();
 
       // Check the response
       const updatedAccount = response.body as Account;
+      expect(response.statusCode).to.be.equal(200);
       expect(updatedAccount.id).to.be.equal(account.id);
       expect(updatedAccount.email).to.be.equal(account.email);
       expect(updatedAccount.username).to.be.equal(account.username);
@@ -262,22 +262,31 @@ describe('e2e - Account Controller', () => {
       // Creates a new Dummy account
       const partialAccount = givenAccount();
       const account = await accountRepository.create(partialAccount);
-      // Get the user profile related to the account
-      const userProfile = accountService.convertToUserProfile(account, [
+
+      const permissions = [
         Permissions.RECOVER_PASSWORD,
-      ]);
+        Permissions.REGULAR,
+        Permissions.REQUEST_EMAIL_VERIFICATION,
+      ];
 
-      // Generate the verification token
-      const verificationToken = await customTokenService.generateToken(
-        userProfile,
-      );
+      for (const permission of permissions) {
+        // Get the user profile related to the account
+        const userProfile = accountService.convertToUserProfile(account, [
+          permission,
+        ]);
 
-      // Calls the endpoint to verify the email
-      await client
-        .patch('/account/verify-email')
-        .set('Authorization', `Bearer: ${verificationToken}`)
-        .send()
-        .expect(403);
+        // Generate the verification token
+        const verificationToken = await customTokenService.generateToken(
+          userProfile,
+        );
+
+        // Calls the endpoint to verify the email
+        await client
+          .patch('/account/verify-email')
+          .set('Authorization', `Bearer: ${verificationToken}`)
+          .send()
+          .expect(403);
+      }
     });
   });
 });
