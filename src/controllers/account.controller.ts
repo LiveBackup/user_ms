@@ -2,17 +2,21 @@ import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import {inject} from '@loopback/core';
 import {
+  getModelSchemaRef,
   HttpErrors,
+  patch,
   post,
   Response,
   response,
   RestBindings,
 } from '@loopback/rest';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
+import {Account} from '../models';
 import {
   AccountService,
   CustomTokenService,
   CustomTokenServiceBindings,
+  ExtendedUserProfile,
   Permissions,
   TasksQueuesService,
 } from '../services';
@@ -60,5 +64,29 @@ export class AccountController {
     if (!tasksStatus) {
       throw new HttpErrors[500]('Could not add the task to the queue');
     }
+  }
+
+  @authenticate('jwt')
+  @authorize({allowedRoles: [Permissions.VERIFY_EMAIL]})
+  @patch('/account/verify-email')
+  @response(200, {
+    description: 'Account info with email verified',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(Account),
+      },
+    },
+  })
+  async verifyEmail(
+    @inject(SecurityBindings.USER) requester: ExtendedUserProfile,
+  ): Promise<Account> {
+    const updatedAccount = await this.accountService.updateById(
+      requester[securityId],
+      {isEmailVerified: true},
+    );
+    if (!updatedAccount)
+      throw new HttpErrors[404]('The requester account was not found');
+
+    return updatedAccount;
   }
 }

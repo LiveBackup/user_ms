@@ -154,4 +154,42 @@ describe('Unit testing - Account Service', () => {
     expect(userProfile.username).to.be.equal(account.username);
     expect(userProfile.email).to.be.equal(account.email);
   });
+
+  it('Update the account info by its id', async () => {
+    // Creates the account
+    const accountMock = givenAccount({isEmailVerified: false});
+    const account = await accountService.create(accountMock);
+
+    const newAccountData: Partial<Account> = {
+      email: 'newemail@gmail.com',
+      isEmailVerified: true,
+    };
+
+    // Update the account info
+    const accountUpdated = await accountService.updateById(
+      account.id,
+      newAccountData,
+    );
+    // Check the result
+    expect(accountUpdated).not.be.be.null();
+    expect(accountUpdated?.id).to.be.equal(account.id);
+    expect(accountUpdated?.username).to.be.equal(account.username);
+    expect(accountUpdated?.email).not.to.be.equal(account.email);
+    expect(accountUpdated?.isEmailVerified).not.to.be.equal(
+      account.isEmailVerified,
+    );
+  });
+
+  it('Returns null updating account info if id does not match', async () => {
+    const newAccountData: Partial<Account> = {
+      email: 'newemail@gmail.com',
+      isEmailVerified: true,
+    };
+
+    const updatedAccount = await accountService.updateById(
+      'id',
+      newAccountData,
+    );
+    expect(updatedAccount).to.be.Null();
+  });
 });

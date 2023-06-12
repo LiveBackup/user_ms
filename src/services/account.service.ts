@@ -57,4 +57,16 @@ export class AccountService {
   async findByUsername(username: string): Promise<Account | null> {
     return this.accountRepository.findOne({where: {username}});
   }
+
+  async updateById(
+    id: string,
+    newInfo: Partial<Account>,
+  ): Promise<Account | null> {
+    try {
+      await this.accountRepository.updateById(id, newInfo);
+    } catch (_) {
+      return null;
+    }
+    return this.findById(id);
+  }
 }
