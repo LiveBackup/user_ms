@@ -7,6 +7,7 @@ import {Credentials, NewAccount} from '../../schemas';
 import {
   AccountService,
   CustomTokenService,
+  CustomTokenServiceBindings,
   Permissions,
   TasksQueuesService,
 } from '../../services';
@@ -37,11 +38,8 @@ describe('e2e - Account Controller', () => {
 
     ({accountRepository} = givenRepositories());
     ({accountService} = await givenServices());
-    customTokenService = new CustomTokenService(
-      'secret',
-      '3600000',
-      '3600000',
-      '3600000',
+    customTokenService = await app.get(
+      CustomTokenServiceBindings.TOKEN_SERVICE,
     );
   });
 
