@@ -1,18 +1,25 @@
+import {authenticate} from '@loopback/authentication';
+import {authorize} from '@loopback/authorization';
 import {inject} from '@loopback/core';
 import {
   HttpErrors,
   Response,
   RestBindings,
   getModelSchemaRef,
+  patch,
   post,
   requestBody,
   response,
 } from '@loopback/rest';
-import {Account} from '../models';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {Account, AccountCredentials} from '../models';
+import {Password} from '../schemas';
 import {
+  AccountCredentialsService,
   AccountService,
   CustomTokenService,
   CustomTokenServiceBindings,
+  ExtendedUserProfile,
   Permissions,
   TasksQueuesService,
 } from '../services';
@@ -23,6 +30,8 @@ export class AccountCredentialsController {
     protected httpResponse: Response,
     @inject('services.AccountService')
     protected accountService: AccountService,
+    @inject('services.AccountCredentialsService')
+    protected accountCredentialsService: AccountCredentialsService,
     @inject('services.TasksQueuesService')
     protected tasksQueuesService: TasksQueuesService,
     @inject(CustomTokenServiceBindings.TOKEN_SERVICE)
@@ -72,6 +81,54 @@ export class AccountCredentialsController {
     if (!tasksStatus) {
       throw new HttpErrors[500]('Could not add the task to the queue');
     }
+
+    this.httpResponse.status(204);
+  }
+
+  @authenticate('jwt')
+  @authorize({
+    allowedRoles: [Permissions.REGULAR, Permissions.RECOVER_PASSWORD],
+  })
+  @patch('/credentials/update-password')
+  @response(204)
+  async updatePassword(
+    @inject(SecurityBindings.USER) requester: ExtendedUserProfile,
+    @requestBody({
+      description: 'New password',
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Password),
+        },
+      },
+    })
+    newPassword: Password,
+  ): Promise<void> {
+    const {password} = newPassword;
+    // Search the credentials using the account id
+    const credentials = await this.accountCredentialsService.findByAccountId(
+      requester[securityId],
+    );
+    if (!credentials)
+      throw new HttpErrors[404]('The account credentials were not found');
+
+    // Check if the new password match with the current one
+    const passwordMatch = await this.accountCredentialsService.verifyPassword(
+      password,
+      credentials.password,
+    );
+    if (passwordMatch)
+      throw new HttpErrors[400](
+        'The new password can not be equal to current password',
+      );
+
+    // Update and return the new account credentials
+    const newCredentials: Partial<AccountCredentials> = {
+      password: await this.accountCredentialsService.hashPassword(password),
+    };
+    await this.accountCredentialsService.updateById(
+      credentials.id,
+      newCredentials,
+    );
 
     this.httpResponse.status(204);
   }

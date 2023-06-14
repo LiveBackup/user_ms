@@ -130,7 +130,7 @@ describe('Unit testing - AccountCredentials service', () => {
       );
 
       const createdAccountCredentials =
-        await accountCredentialsService.findCredentialsByAccountId(account.id);
+        await accountCredentialsService.findByAccountId(account.id);
 
       expect(createdAccountCredentials).not.to.be.null();
       expect(createdAccountCredentials?.password).not.to.be.empty();
@@ -148,7 +148,7 @@ describe('Unit testing - AccountCredentials service', () => {
       );
 
       const createdAccountCredentials =
-        await accountCredentialsService.findCredentialsByAccountId(account.id);
+        await accountCredentialsService.findByAccountId(account.id);
 
       expect(createdAccountCredentials).to.be.null();
     });
@@ -165,6 +165,9 @@ describe('Unit testing - AccountCredentials service', () => {
       const mockCredentials = givenAccountCredentials({
         accountId: mockAccount.id,
       });
+      mockCredentials.password = await accountCredentialsService.hashPassword(
+        mockCredentials.password,
+      );
       defaultCredentials = await accountCredentialsService.create(
         mockCredentials,
       );

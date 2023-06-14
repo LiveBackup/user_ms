@@ -36,9 +36,7 @@ export class AccountCredentialsService {
     }
   }
 
-  async findCredentialsByAccountId(
-    accountId: string,
-  ): Promise<AccountCredentials | null> {
+  async findByAccountId(accountId: string): Promise<AccountCredentials | null> {
     return this.accountCredentialsRepository.findOne({
       where: {
         accountId: accountId,
