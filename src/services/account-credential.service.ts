@@ -28,6 +28,14 @@ export class AccountCredentialsService {
     return this.accountCredentialsRepository.create(newCrendentials);
   }
 
+  async findById(credentialsId: string): Promise<AccountCredentials | null> {
+    try {
+      return await this.accountCredentialsRepository.findById(credentialsId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   async findCredentialsByAccountId(
     accountId: string,
   ): Promise<AccountCredentials | null> {
@@ -36,5 +44,16 @@ export class AccountCredentialsService {
         accountId: accountId,
       },
     });
+  }
+
+  async updateById(
+    credentialsId: string,
+    newData: Partial<AccountCredentials>,
+  ): Promise<AccountCredentials | null> {
+    const credentials = await this.findById(credentialsId);
+    if (!credentials) return null;
+
+    await this.accountCredentialsRepository.updateById(credentialsId, newData);
+    return this.findById(credentialsId);
   }
 }
