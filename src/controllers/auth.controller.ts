@@ -34,7 +34,7 @@ export class AuthController {
     protected jwtService: CustomTokenService,
   ) {}
 
-  @post('/sign-up')
+  @post('/auth/sign-up')
   @response(201, {
     description: 'Register a new user',
     content: {
@@ -94,7 +94,7 @@ export class AuthController {
     return newAccount;
   }
 
-  @post('/login')
+  @post('/auth/login')
   @response(200, {
     description: 'Request a JWT by giving the account credentials',
     content: {
@@ -166,7 +166,7 @@ export class AuthController {
   @authorize({
     deniedRoles: [Permissions.RECOVER_PASSWORD, Permissions.VERIFY_EMAIL],
   })
-  @get('/who-am-i')
+  @get('/auth/who-am-i')
   @response(200, {
     description: 'Return the account information',
     content: {

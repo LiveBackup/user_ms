@@ -22,12 +22,20 @@ import {
 import {givenExtendedUserProfile} from '../helpers/services.helpers';
 
 describe('e2e - Auth Controller', () => {
+  // Sandbox
   const sandbox = sinon.createSandbox();
+  // App utilities
   let app: UserMsApplication;
+  let client: Client;
+  // Repositories
   let accountRepository: AccountRepository;
   let accountCredentialsRepository: AccountCredentialsRepository;
+  // Services
   let tokenService: CustomTokenService;
-  let client: Client;
+  // Endpoints to test
+  const signup = '/auth/sign-up';
+  const login = '/auth/login';
+  const whoAmI = '/auth/who-am-i';
 
   before(async () => {
     ({accountRepository, accountCredentialsRepository} = givenRepositories());
@@ -48,7 +56,7 @@ describe('e2e - Auth Controller', () => {
     sandbox.restore();
   });
 
-  describe('User creation - /sign-up Endpoint', () => {
+  describe(`User creation - ${signup} Endpoint`, () => {
     it('Creates a new User', async () => {
       const newUser: NewAccount = {
         username: 'jdiegopm',
@@ -62,7 +70,7 @@ describe('e2e - Auth Controller', () => {
         isEmailVerified: false,
       });
 
-      const response = await client.post('/sign-up').send(newUser);
+      const response = await client.post(signup).send(newUser);
       expect(response.statusCode).to.be.equal(
         201,
         response.body.error?.message,
@@ -97,7 +105,7 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
 
-      const response = await client.post('/sign-up').send(newUser);
+      const response = await client.post(signup).send(newUser);
       expect(response.status).to.be.equal(400);
       expect(response.body.error.message).to.be.equal(
         'There already exists an Account with the given email',
@@ -114,7 +122,7 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
 
-      const response = await client.post('/sign-up').send(newUser);
+      const response = await client.post(signup).send(newUser);
       expect(response.status).to.be.equal(400);
       expect(response.body.error.message).to.be.equal(
         'There already exists an Account with the given username',
@@ -122,14 +130,14 @@ describe('e2e - Auth Controller', () => {
     });
   });
 
-  describe('User login - /login Endpoint', () => {
+  describe(`User login - ${login} Endpoint`, () => {
     it('Get a valid token', async () => {
       const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      const registerResponse = await client.post('/sign-up').send(newUser);
+      const registerResponse = await client.post(signup).send(newUser);
       await accountRepository.updateById(registerResponse.body.id, {
         isEmailVerified: true,
       });
@@ -139,7 +147,7 @@ describe('e2e - Auth Controller', () => {
         password: newUser.password,
       };
 
-      const response = await client.post('/login').send(loginRequest);
+      const response = await client.post(login).send(loginRequest);
       expect(response.statusCode).to.be.equal(
         200,
         response.body.error?.message,
@@ -156,7 +164,7 @@ describe('e2e - Auth Controller', () => {
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      const registerResponse = await client.post('/sign-up').send(newUser);
+      const registerResponse = await client.post(signup).send(newUser);
       await accountRepository.updateById(registerResponse.body.id, {
         isEmailVerified: true,
       });
@@ -181,7 +189,7 @@ describe('e2e - Auth Controller', () => {
         password: newUser.password,
       };
 
-      await client.post('/login').expect(404).send(loginRequest);
+      await client.post(login).expect(404).send(loginRequest);
     });
 
     it('Reject the query when user not found', async () => {
@@ -190,14 +198,14 @@ describe('e2e - Auth Controller', () => {
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      await client.post('/sign-up').send(newUser);
+      await client.post(signup).send(newUser);
 
       const loginRequest: Credentials = {
         username: 'newUser.username',
         password: 'newUser.password',
       };
 
-      const response = await client.post('/login').send(loginRequest);
+      const response = await client.post(login).send(loginRequest);
       expect(response.statusCode).to.be.equal(400);
       expect(response.body.error.message).to.be.equal(
         'Incorrect username or password',
@@ -210,7 +218,7 @@ describe('e2e - Auth Controller', () => {
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      const registerResponse = await client.post('/sign-up').send(newUser);
+      const registerResponse = await client.post(signup).send(newUser);
       await accountRepository.updateById(registerResponse.body.id, {
         isEmailVerified: true,
       });
@@ -220,7 +228,7 @@ describe('e2e - Auth Controller', () => {
         password: 'weak_password',
       };
 
-      const response = await client.post('/login').send(loginRequest);
+      const response = await client.post(login).send(loginRequest);
       expect(response.statusCode).to.be.equal(400);
       expect(response.body.error.message).to.be.equal(
         'Incorrect username or password',
@@ -233,20 +241,20 @@ describe('e2e - Auth Controller', () => {
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      await client.post('/sign-up').send(newUser);
+      await client.post(signup).send(newUser);
 
       const loginRequest: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
 
-      const response = await client.post('/login').send(loginRequest);
+      const response = await client.post(login).send(loginRequest);
       expect(response.statusCode).to.be.equal(200);
       expect(response.body.token).not.to.be.Null();
     });
   });
 
-  describe('User token validation - /who-am-i Endpoint', () => {
+  describe(`User token validation - ${whoAmI} Endpoint`, () => {
     it('Get the account info by providing a valid token', async () => {
       const newUser: NewAccount = {
         username: 'jdiegopm',
@@ -254,7 +262,7 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
 
-      let response = await client.post('/sign-up').send(newUser);
+      let response = await client.post(signup).send(newUser);
 
       await accountRepository.updateById(response.body.id, {
         isEmailVerified: true,
@@ -264,11 +272,11 @@ describe('e2e - Auth Controller', () => {
         username: newUser.username,
         password: newUser.password,
       };
-      response = await client.post('/login').send(credentials);
+      response = await client.post(login).send(credentials);
 
       const {token} = response.body;
       response = await client
-        .get('/who-am-i')
+        .get(whoAmI)
         .set('Authorization', `Bearer: ${token}`)
         .send();
       expect(response.statusCode).to.be.equal(
@@ -289,7 +297,7 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
 
-      let response = await client.post('/sign-up').send(newUser);
+      let response = await client.post(signup).send(newUser);
       const accountId = response.body.id;
 
       await accountRepository.updateById(accountId, {isEmailVerified: true});
@@ -298,12 +306,12 @@ describe('e2e - Auth Controller', () => {
         username: newUser.username,
         password: newUser.password,
       };
-      response = await client.post('/login').send(credentials);
+      response = await client.post(login).send(credentials);
       await accountRepository.deleteById(accountId);
 
       const {token} = response.body;
       response = await client
-        .get('/who-am-i')
+        .get(whoAmI)
         .set('Authorization', `Bearer: ${token}`)
         .send();
       expect(response.statusCode).to.be.equal(
@@ -319,11 +327,11 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
 
-      await client.post('/sign-up').send(newUser);
+      await client.post(signup).send(newUser);
 
       const token = 'non-valid-token';
       const response = await client
-        .get('/who-am-i')
+        .get(whoAmI)
         .set('Authorization', `Bearer: ${token}`)
         .send();
       expect(response.statusCode).to.be.equal(401);
@@ -336,14 +344,14 @@ describe('e2e - Auth Controller', () => {
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      const response = await client.post('/sign-up').send(newUser);
+      const response = await client.post(signup).send(newUser);
       const userProfile = givenExtendedUserProfile(response.body);
       userProfile[securityId] = response.body.id;
 
       userProfile.permissions = [Permissions.RECOVER_PASSWORD];
       token = await tokenService.generateToken(userProfile);
       await client
-        .get('/who-am-i')
+        .get(whoAmI)
         .set('Authorization', `Bearer: ${token}`)
         .expect(403)
         .send();
@@ -351,7 +359,7 @@ describe('e2e - Auth Controller', () => {
       userProfile.permissions = [Permissions.VERIFY_EMAIL];
       token = await tokenService.generateToken(userProfile);
       await client
-        .get('/who-am-i')
+        .get(whoAmI)
         .set('Authorization', `Bearer: ${token}`)
         .expect(403)
         .send();
