@@ -30,6 +30,12 @@ describe('e2e - Account Controller', () => {
   // Services
   let accountService: AccountService;
   let customTokenService: CustomTokenService;
+  // Auth endpoints
+  const signup = '/auth/sign-up';
+  const login = '/auth/login';
+  // Endpoints to test
+  const reqEmailVerification = '/account/request-email-verification';
+  const verifyEmail = '/account/verify-email';
 
   before(async () => {
     app = await givenRunningApp();
@@ -55,24 +61,24 @@ describe('e2e - Account Controller', () => {
     sandbox.restore();
   });
 
-  describe('Email query creation - /account/request-email-verification Endpoint', () => {
+  describe(`Email query creation - ${reqEmailVerification} Endpoint`, () => {
     it('Creates the email verification request', async () => {
       const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      await client.post('/sign-up').send(newUser);
+      await client.post(signup).send(newUser);
 
       const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
-      const response = await client.post('/login').send(credentials);
+      const response = await client.post(login).send(credentials);
 
       const {token} = response.body;
       await client
-        .post('/account/request-email-verification')
+        .post(reqEmailVerification)
         .set('Authorization', `Bearer: ${token}`)
         .expect(204)
         .send();
@@ -85,7 +91,7 @@ describe('e2e - Account Controller', () => {
         password: 'strong_password',
       };
 
-      let response = await client.post('/sign-up').send(newUser);
+      let response = await client.post(signup).send(newUser);
       const accountId = response.body.id;
 
       await accountRepository.updateById(accountId, {
@@ -96,11 +102,11 @@ describe('e2e - Account Controller', () => {
         username: newUser.username,
         password: newUser.password,
       };
-      response = await client.post('/login').send(credentials);
+      response = await client.post(login).send(credentials);
 
       const {token} = response.body;
       await client
-        .post('/account/request-email-verification')
+        .post(reqEmailVerification)
         .set('Authorization', `Bearer: ${token}`)
         .expect(403)
         .send();
@@ -113,14 +119,14 @@ describe('e2e - Account Controller', () => {
         password: 'strong_password',
       };
 
-      let response = await client.post('/sign-up').send(newUser);
+      let response = await client.post(signup).send(newUser);
       const accountId = response.body.id;
 
       const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
-      response = await client.post('/login').send(credentials);
+      response = await client.post(login).send(credentials);
 
       await accountRepository.updateById(accountId, {
         isEmailVerified: true,
@@ -128,7 +134,7 @@ describe('e2e - Account Controller', () => {
 
       const {token} = response.body;
       await client
-        .post('/account/request-email-verification')
+        .post(reqEmailVerification)
         .set('Authorization', `Bearer: ${token}`)
         .expect(400)
         .send();
@@ -140,19 +146,19 @@ describe('e2e - Account Controller', () => {
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      let response = await client.post('/sign-up').send(newUser);
+      let response = await client.post(signup).send(newUser);
       const accountId = response.body.id;
 
       const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
-      response = await client.post('/login').send(credentials);
+      response = await client.post(login).send(credentials);
       await accountRepository.deleteById(accountId);
 
       const {token} = response.body;
       await client
-        .post('/account/request-email-verification')
+        .post(reqEmailVerification)
         .set('Authorization', `Bearer: ${token}`)
         .expect(404)
         .send();
@@ -168,17 +174,17 @@ describe('e2e - Account Controller', () => {
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      await client.post('/sign-up').send(newUser);
+      await client.post(signup).send(newUser);
 
       const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
-      const response = await client.post('/login').send(credentials);
+      const response = await client.post(login).send(credentials);
 
       const {token} = response.body;
       await client
-        .post('/account/request-email-verification')
+        .post(reqEmailVerification)
         .set('Authorization', `Bearer: ${token}`)
         .expect(500)
         .send();
@@ -188,7 +194,7 @@ describe('e2e - Account Controller', () => {
     });
   });
 
-  describe('Verify Email - /account/verify-email Endpoint', () => {
+  describe(`Verify Email - ${verifyEmail} Endpoint`, () => {
     it('Verifies an email when a valid token is provided', async () => {
       // Creates a new Dummy account
       const partialAccount = givenAccount();
@@ -205,7 +211,7 @@ describe('e2e - Account Controller', () => {
 
       // Calls the endpoint to verify the email
       const response = await client
-        .patch('/account/verify-email')
+        .patch(verifyEmail)
         .set('Authorization', `Bearer: ${verificationToken}`)
         .send();
 
@@ -237,7 +243,7 @@ describe('e2e - Account Controller', () => {
 
       // Calls the endpoint to verify the email
       const response = await client
-        .patch('/account/verify-email')
+        .patch(verifyEmail)
         .set('Authorization', `Bearer: ${verificationToken}`)
         .send();
 
@@ -253,7 +259,7 @@ describe('e2e - Account Controller', () => {
       await accountRepository.create(partialAccount);
 
       // Calls the endpoint to verify the email
-      await client.patch('/account/verify-email').send().expect(401);
+      await client.patch(verifyEmail).send().expect(401);
     });
 
     it('Rejects when user does not have the right permissions', async () => {
@@ -280,7 +286,7 @@ describe('e2e - Account Controller', () => {
 
         // Calls the endpoint to verify the email
         await client
-          .patch('/account/verify-email')
+          .patch(verifyEmail)
           .set('Authorization', `Bearer: ${verificationToken}`)
           .send()
           .expect(403);
