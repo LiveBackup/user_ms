@@ -68,20 +68,28 @@ describe('e2e - Account Controller', () => {
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      await client.post(signup).send(newUser);
+      let response = await client.post(signup).send(newUser);
+      const expectedAccount = response.body as Account;
 
       const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
-      const response = await client.post(login).send(credentials);
+      response = await client.post(login).send(credentials);
 
       const {token} = response.body;
-      await client
+      response = await client
         .post(reqEmailVerification)
         .set('Authorization', `Bearer: ${token}`)
-        .expect(204)
+        .expect(200)
         .send();
+
+      // Check the result
+      const responseBody = response.body as Account;
+      expect(responseBody.id).to.be.equal(expectedAccount.id);
+      expect(responseBody.username).to.be.equal(expectedAccount.username);
+      expect(responseBody.email).to.be.equal(expectedAccount.email);
+      expect(responseBody.isEmailVerified).to.be.False();
     });
 
     it('Reject when does not has request email verification permission', async () => {

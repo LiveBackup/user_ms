@@ -36,12 +36,19 @@ export class AccountController {
   @authenticate('jwt')
   @authorize({allowedRoles: [Permissions.REQUEST_EMAIL_VERIFICATION]})
   @post('/account/request-email-verification')
-  @response(204)
+  @response(200, {
+    description: 'Send a email with a token to verify a user email',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(Account),
+      },
+    },
+  })
   async requestEmailVerification(
     @inject(SecurityBindings.USER) currentUser: UserProfile,
-  ) {
+  ): Promise<Account> {
     const account = await this.accountService.findById(currentUser[securityId]);
-    if (account === null) {
+    if (!account) {
       throw new HttpErrors[404]('No account was found');
     } else if (account.isEmailVerified) {
       throw new HttpErrors[400]('Emails has already been verified');
@@ -61,9 +68,10 @@ export class AccountController {
       emailVerificationToken,
     );
 
-    if (!tasksStatus) {
+    if (!tasksStatus)
       throw new HttpErrors[500]('Could not add the task to the queue');
-    }
+
+    return account;
   }
 
   @authenticate('jwt')
