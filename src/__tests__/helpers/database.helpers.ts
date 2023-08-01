@@ -2,6 +2,7 @@ import {Account, AccountCredentials} from '../../models';
 import {
   AccountCredentialsRepository,
   AccountRepository,
+  TokenRepository,
 } from '../../repositories';
 import {userTestdb} from '../fixtures/datasources';
 
@@ -13,10 +14,11 @@ export const givenEmptyDatabase = async function () {
   await accountRepository.deleteAll();
 };
 
+/* eslint-disable prefer-const */
 export const givenRepositories = function () {
-  /* eslint-disable prefer-const */
   let accountRepository: AccountRepository;
   let accountCredentialsRepository: AccountCredentialsRepository;
+  let tokenRepository: TokenRepository;
 
   accountRepository = new AccountRepository(
     userTestdb,
@@ -27,13 +29,16 @@ export const givenRepositories = function () {
     userTestdb,
     async () => accountRepository,
   );
-  /* eslint-enable prefer-const */
+
+  tokenRepository = new TokenRepository(userTestdb);
 
   return {
     accountRepository,
     accountCredentialsRepository,
+    tokenRepository,
   };
 };
+/* eslint-enable prefer-const */
 
 // Return and Account Object using the given data
 

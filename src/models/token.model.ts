@@ -1,10 +1,20 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, belongsTo, model, property} from '@loopback/repository';
+import {Account} from './account.model';
 
 @model({
   settings: {
     idInjection: false,
-    postgresql: {schema: 'public', table: 'token'}
-  }
+    postgresql: {schema: 'public', table: 'token'},
+    foreignKeys: {
+      // eslint-disable-next-line
+      account_id_fkey: {
+        name: 'account_id_fkey',
+        entity: 'Account',
+        entityKey: 'id',
+        foreignKey: 'account_id',
+      },
+    },
+  },
 })
 export class Token extends Entity {
   @property({
@@ -18,6 +28,7 @@ export class Token extends Entity {
   @property({
     type: 'string',
     required: true,
+    index: {unique: true},
     postgresql: {
       columnName: 'token_value',
     },
@@ -32,6 +43,22 @@ export class Token extends Entity {
   })
   expirationDate?: string;
 
+  @belongsTo(
+    () => Account,
+    {
+      name: 'tokens',
+      keyFrom: 'account_id',
+      keyTo: 'id',
+    },
+    {
+      type: 'string',
+      required: true,
+      postgresql: {
+        columnName: 'account_id',
+      },
+    },
+  )
+  accountId: string;
 
   constructor(data?: Partial<Token>) {
     super(data);
@@ -42,4 +69,4 @@ export interface TokenRelations {
   // describe navigational properties here
 }
 
-export type TokenWithRelations = Token & TokenRelations;
+export type TokenWithRelations = Token;
