@@ -6,8 +6,9 @@ import {Account} from './account.model';
     idInjection: false,
     postgresql: {schema: 'public', table: 'account_credentials'},
     foreignKeys: {
-      fkCredentialsAccountId: {
-        name: 'fk_credentials_accountId',
+      // eslint-disable-next-line
+      account_id_fkey: {
+        name: 'account_id_fkey',
         entity: 'Account',
         entityKey: 'id',
         foreignKey: 'account_id',
