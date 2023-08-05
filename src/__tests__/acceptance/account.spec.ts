@@ -6,10 +6,10 @@ import {AccountRepository} from '../../repositories';
 import {Credentials, NewAccount} from '../../schemas';
 import {
   AccountService,
-  CustomTokenService,
-  CustomTokenServiceBindings,
   Permissions,
   TasksQueuesService,
+  TokenService,
+  TokenServiceBindings,
 } from '../../services';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {
@@ -29,7 +29,7 @@ describe('e2e - Account Controller', () => {
   let accountRepository: AccountRepository;
   // Services
   let accountService: AccountService;
-  let customTokenService: CustomTokenService;
+  let customTokenService: TokenService;
   // Auth endpoints
   const signup = '/auth/sign-up';
   const login = '/auth/login';
@@ -44,9 +44,7 @@ describe('e2e - Account Controller', () => {
 
     ({accountRepository} = givenRepositories());
     ({accountService} = await givenServices());
-    customTokenService = await app.get(
-      CustomTokenServiceBindings.TOKEN_SERVICE,
-    );
+    customTokenService = await app.get(TokenServiceBindings.TOKEN_SERVICE);
   });
 
   beforeEach(async () => {

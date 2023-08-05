@@ -6,10 +6,10 @@ import {Password} from '../../schemas';
 import {
   AccountCredentialsService,
   AccountService,
-  CustomTokenService,
-  CustomTokenServiceBindings,
   Permissions,
   TasksQueuesService,
+  TokenService,
+  TokenServiceBindings,
 } from '../../services';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {
@@ -28,7 +28,7 @@ describe('e2e - Account Credentials Controller', () => {
   // Services
   let accountService: AccountService;
   let accountCredentialsService: AccountCredentialsService;
-  let tokenService: CustomTokenService;
+  let tokenService: TokenService;
   // Account and credentials
   let defaultAccount: Account;
   let defaultCredentials: AccountCredentials;
@@ -40,7 +40,7 @@ describe('e2e - Account Credentials Controller', () => {
     app = await givenRunningApp();
     client = await givenClient(app);
     ({accountService, accountCredentialsService} = await givenServices());
-    tokenService = await app.get(CustomTokenServiceBindings.TOKEN_SERVICE);
+    tokenService = await app.get(TokenServiceBindings.TOKEN_SERVICE);
   });
 
   beforeEach(async () => {

@@ -17,11 +17,11 @@ import {Password} from '../schemas';
 import {
   AccountCredentialsService,
   AccountService,
-  CustomTokenService,
-  CustomTokenServiceBindings,
   ExtendedUserProfile,
   Permissions,
   TasksQueuesService,
+  TokenService,
+  TokenServiceBindings,
 } from '../services';
 
 export class AccountCredentialsController {
@@ -34,8 +34,8 @@ export class AccountCredentialsController {
     protected accountCredentialsService: AccountCredentialsService,
     @inject('services.TasksQueuesService')
     protected tasksQueuesService: TasksQueuesService,
-    @inject(CustomTokenServiceBindings.TOKEN_SERVICE)
-    protected jwtService: CustomTokenService,
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    protected jwtService: TokenService,
   ) {}
 
   @post('/credentials/request-password-recovery')

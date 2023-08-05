@@ -8,11 +8,7 @@ import {
   AccountRepository,
 } from '../../repositories';
 import {Credentials, NewAccount} from '../../schemas';
-import {
-  CustomTokenService,
-  CustomTokenServiceBindings,
-  Permissions,
-} from '../../services';
+import {Permissions, TokenService, TokenServiceBindings} from '../../services';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {
   givenAccount,
@@ -31,7 +27,7 @@ describe('e2e - Auth Controller', () => {
   let accountRepository: AccountRepository;
   let accountCredentialsRepository: AccountCredentialsRepository;
   // Services
-  let tokenService: CustomTokenService;
+  let tokenService: TokenService;
   // Endpoints to test
   const signup = '/auth/sign-up';
   const login = '/auth/login';
@@ -40,7 +36,7 @@ describe('e2e - Auth Controller', () => {
   before(async () => {
     ({accountRepository, accountCredentialsRepository} = givenRepositories());
     app = await givenRunningApp();
-    tokenService = await app.get(CustomTokenServiceBindings.TOKEN_SERVICE);
+    tokenService = await app.get(TokenServiceBindings.TOKEN_SERVICE);
     client = await givenClient(app);
   });
 

@@ -14,11 +14,11 @@ import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {Account} from '../models';
 import {
   AccountService,
-  CustomTokenService,
-  CustomTokenServiceBindings,
   ExtendedUserProfile,
   Permissions,
   TasksQueuesService,
+  TokenService,
+  TokenServiceBindings,
 } from '../services';
 
 export class AccountController {
@@ -29,8 +29,8 @@ export class AccountController {
     protected accountService: AccountService,
     @inject('services.TasksQueuesService')
     protected tasksQueuesService: TasksQueuesService,
-    @inject(CustomTokenServiceBindings.TOKEN_SERVICE)
-    protected jwtService: CustomTokenService,
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    protected jwtService: TokenService,
   ) {}
 
   @authenticate('jwt')

@@ -1,22 +1,33 @@
 import {securityId} from '@loopback/security';
 import {expect} from '@loopback/testlab';
+import {TokenRepository} from '../../../repositories';
 import {
-  CustomTokenService,
   ExtendedUserProfile,
   Permissions,
+  TokenService,
 } from '../../../services';
+import {givenRepositories} from '../../helpers/database.helpers';
 import {givenExtendedUserProfile} from '../../helpers/services.helpers';
 
-describe('Unit Testing - CustomToken Service', () => {
-  let customTokenService: CustomTokenService;
+describe('Unit Testing - Token Service', () => {
+  // App repositories
+  let tokenRepository: TokenRepository;
+  // App services
+  let tokenService: TokenService;
+  // Constants
   const expiredTokenMessage = 'Error decoding the token: jwt expired';
 
+  before(() => {
+    ({tokenRepository} = givenRepositories());
+  });
+
   beforeEach(() => {
-    customTokenService = new CustomTokenService(
+    tokenService = new TokenService(
+      tokenRepository,
       'secret',
-      '3600000',
-      '1800000',
-      '300000',
+      3600000,
+      1800000,
+      300000,
     );
   });
 
@@ -27,7 +38,7 @@ describe('Unit Testing - CustomToken Service', () => {
 
     let expectedError;
     try {
-      await customTokenService.generateToken(userProfile);
+      await tokenService.generateToken(userProfile);
     } catch (error) {
       expectedError = error;
     }
@@ -45,7 +56,7 @@ describe('Unit Testing - CustomToken Service', () => {
 
     let expectedError;
     try {
-      await customTokenService.generateToken(userProfile);
+      await tokenService.generateToken(userProfile);
     } catch (error) {
       expectedError = error;
     }
@@ -67,7 +78,7 @@ describe('Unit Testing - CustomToken Service', () => {
 
     let expectedError;
     try {
-      await customTokenService.generateToken(userProfile);
+      await tokenService.generateToken(userProfile);
     } catch (error) {
       expectedError = error;
     }
@@ -80,7 +91,7 @@ describe('Unit Testing - CustomToken Service', () => {
 
   it('Generates a token with a single permission', async () => {
     const userProfile = givenExtendedUserProfile();
-    const token = await customTokenService.generateToken(userProfile);
+    const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.null();
     expect(token.length).to.be.greaterThan(0);
   });
@@ -92,7 +103,7 @@ describe('Unit Testing - CustomToken Service', () => {
 
     let expectedError;
     try {
-      await customTokenService.generateToken(userProfile);
+      await tokenService.generateToken(userProfile);
     } catch (error) {
       expectedError = error;
     }
@@ -111,7 +122,7 @@ describe('Unit Testing - CustomToken Service', () => {
       ],
     });
 
-    const token = await customTokenService.generateToken(userProfile);
+    const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.null();
     expect(token.length).to.be.greaterThan(0);
   });
@@ -124,10 +135,10 @@ describe('Unit Testing - CustomToken Service', () => {
       permissions: [Permissions.REGULAR],
     };
 
-    const token = await customTokenService.generateToken(
+    const token = await tokenService.generateToken(
       givenExtendedUserProfile(partialUserProfile),
     );
-    const userProfile = await customTokenService.verifyToken(token);
+    const userProfile = await tokenService.verifyToken(token);
 
     expect(userProfile).not.to.be.null();
     expect(userProfile[securityId]).to.be.equal(partialUserProfile[securityId]);
@@ -141,7 +152,7 @@ describe('Unit Testing - CustomToken Service', () => {
   it('Throw a 401 error when no token is provided', async () => {
     let expectedError;
     try {
-      await customTokenService.verifyToken('');
+      await tokenService.verifyToken('');
     } catch (error) {
       expectedError = error;
     }
@@ -153,14 +164,14 @@ describe('Unit Testing - CustomToken Service', () => {
 
   it('Throw a 401 error when token has expired', async () => {
     let expectedError;
-    customTokenService = new CustomTokenService('secret', '1', '1', '1');
+    tokenService = new TokenService(tokenRepository, 'secret', 0, 0, 0);
     const userProfile = givenExtendedUserProfile();
-    const token = await customTokenService.generateToken(userProfile);
+    const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
     expect(token.length).to.be.greaterThan(0);
 
     try {
-      await customTokenService.verifyToken(token);
+      await tokenService.verifyToken(token);
     } catch (error) {
       expectedError = error;
     }
@@ -172,21 +183,22 @@ describe('Unit Testing - CustomToken Service', () => {
 
   it('Generates a regular token', async () => {
     let expectedError;
-    customTokenService = new CustomTokenService(
+    tokenService = new TokenService(
+      tokenRepository,
       'secret',
-      '1',
-      '1800000',
-      '300000',
+      0,
+      1800000,
+      300000,
     );
     const userProfile = givenExtendedUserProfile({
       permissions: [Permissions.REGULAR],
     });
-    const token = await customTokenService.generateToken(userProfile);
+    const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
     expect(token.length).to.be.greaterThan(0);
 
     try {
-      await customTokenService.verifyToken(token);
+      await tokenService.verifyToken(token);
     } catch (error) {
       expectedError = error;
     }
@@ -198,21 +210,16 @@ describe('Unit Testing - CustomToken Service', () => {
 
   it('Generates a request email verification token', async () => {
     let expectedError;
-    customTokenService = new CustomTokenService(
-      'secret',
-      '1',
-      '1800000',
-      '300000',
-    );
+    tokenService = new TokenService(tokenRepository, 'secret', 0, 1800, 300);
     const userProfile = givenExtendedUserProfile({
       permissions: [Permissions.REQUEST_EMAIL_VERIFICATION],
     });
-    const token = await customTokenService.generateToken(userProfile);
+    const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
     expect(token.length).to.be.greaterThan(0);
 
     try {
-      await customTokenService.verifyToken(token);
+      await tokenService.verifyToken(token);
     } catch (error) {
       expectedError = error;
     }
@@ -224,21 +231,16 @@ describe('Unit Testing - CustomToken Service', () => {
 
   it('Generates a verify email token', async () => {
     let expectedError;
-    customTokenService = new CustomTokenService(
-      'secret',
-      '3600000',
-      '1',
-      '300000',
-    );
+    tokenService = new TokenService(tokenRepository, 'secret', 3600, 0, 300);
     const userProfile = givenExtendedUserProfile({
       permissions: [Permissions.VERIFY_EMAIL],
     });
-    const token = await customTokenService.generateToken(userProfile);
+    const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
     expect(token.length).to.be.greaterThan(0);
 
     try {
-      await customTokenService.verifyToken(token);
+      await tokenService.verifyToken(token);
     } catch (error) {
       expectedError = error;
     }
@@ -250,21 +252,16 @@ describe('Unit Testing - CustomToken Service', () => {
 
   it('Generates a recover password token', async () => {
     let expectedError;
-    customTokenService = new CustomTokenService(
-      'secret',
-      '3600000',
-      '1800000',
-      '1',
-    );
+    tokenService = new TokenService(tokenRepository, 'secret', 3600, 1800, 0);
     const userProfile = givenExtendedUserProfile({
       permissions: [Permissions.RECOVER_PASSWORD],
     });
-    const token = await customTokenService.generateToken(userProfile);
+    const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
     expect(token.length).to.be.greaterThan(0);
 
     try {
-      await customTokenService.verifyToken(token);
+      await tokenService.verifyToken(token);
     } catch (error) {
       expectedError = error;
     }

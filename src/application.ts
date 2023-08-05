@@ -17,7 +17,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import {AuthorizationProvider} from './providers';
 import {MySequence} from './sequence';
-import {CustomTokenService, CustomTokenServiceBindings} from './services';
+import {TokenService, TokenServiceBindings} from './services';
 
 dotenv.config();
 
@@ -59,22 +59,20 @@ export class UserMsApplication extends BootMixin(
     this.component(JWTAuthenticationComponent);
 
     // Bind the cusatom token service
-    this.bind(CustomTokenServiceBindings.TOKEN_SERVICE).toClass(
-      CustomTokenService,
-    );
+    this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(TokenService);
 
     // Bind variables for jwt access token
-    this.bind(CustomTokenServiceBindings.TOKEN_SECRET).to(
+    this.bind(TokenServiceBindings.TOKEN_SECRET).to(
       process.env.USER_MS_ACCESS_TOKEN_SECRET ?? 'access_secret',
     );
-    this.bind(CustomTokenServiceBindings.TOKEN_REGULAR_EXPIRES_IN).to(
-      process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? '3600000',
+    this.bind(TokenServiceBindings.TOKEN_REGULAR_EXPIRES_IN).to(
+      +(process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? 3600000),
     );
-    this.bind(CustomTokenServiceBindings.TOKEN_VERIFICATE_EMAIL_EXPIRES_IN).to(
-      process.env.USER_MS_VERIFICATE_EMAIL_TOKEN_EXPIRATION_TIME ?? '3600000',
+    this.bind(TokenServiceBindings.TOKEN_VERIFICATE_EMAIL_EXPIRES_IN).to(
+      +(process.env.USER_MS_VERIFICATE_EMAIL_TOKEN_EXPIRATION_TIME ?? 3600000),
     );
-    this.bind(CustomTokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN).to(
-      process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? '3600000',
+    this.bind(TokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN).to(
+      +(process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? 3600000),
     );
 
     // Mount Authorization Component

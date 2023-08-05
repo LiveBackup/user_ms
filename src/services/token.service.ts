@@ -1,8 +1,10 @@
-import {TokenService} from '@loopback/authentication';
-import {BindingKey, inject} from '@loopback/core';
+import * as DefaultTokenService from '@loopback/authentication';
+import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
+import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {UserProfile, securityId} from '@loopback/security';
 import jwt from 'jsonwebtoken';
+import {TokenRepository} from '../repositories';
 
 export enum Permissions {
   REGULAR = 'REGULAR',
@@ -16,37 +18,40 @@ export type ExtendedUserProfile = UserProfile & {
   username: string;
 };
 
-export namespace CustomTokenServiceBindings {
+export namespace TokenServiceBindings {
   export const TOKEN_SECRET = BindingKey.create<string>(
     'authentication.jwt.secret',
   );
-  export const TOKEN_REGULAR_EXPIRES_IN = BindingKey.create<string>(
+  export const TOKEN_REGULAR_EXPIRES_IN = BindingKey.create<number>(
     'authentication.jwt.regular.expires.in.seconds',
   );
-  export const TOKEN_VERIFICATE_EMAIL_EXPIRES_IN = BindingKey.create<string>(
+  export const TOKEN_VERIFICATE_EMAIL_EXPIRES_IN = BindingKey.create<number>(
     'authentication.jwt.verificate-email.expires.in.seconds',
   );
-  export const TOKEN_RECOVERY_PASSWORD_EXPIRES_IN = BindingKey.create<string>(
+  export const TOKEN_RECOVERY_PASSWORD_EXPIRES_IN = BindingKey.create<number>(
     'authentication.jwt.recovery-password.expires.in.seconds',
   );
-  export const TOKEN_SERVICE = BindingKey.create<CustomTokenService>(
+  export const TOKEN_SERVICE = BindingKey.create<TokenService>(
     'services.authentication.jwt.tokenservice',
   );
 }
 
-export class CustomTokenService implements TokenService {
+@injectable({scope: BindingScope.TRANSIENT})
+export class TokenService implements DefaultTokenService.TokenService {
   constructor(
-    @inject(CustomTokenServiceBindings.TOKEN_SECRET)
+    @repository(TokenRepository)
+    private tokenRepository: TokenRepository,
+    @inject(TokenServiceBindings.TOKEN_SECRET)
     private secret: string,
-    @inject(CustomTokenServiceBindings.TOKEN_REGULAR_EXPIRES_IN)
-    private regularTokenExpiration: string,
-    @inject(CustomTokenServiceBindings.TOKEN_VERIFICATE_EMAIL_EXPIRES_IN)
-    private emailVerificationTokenExpiration: string,
-    @inject(CustomTokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN)
-    private passwordRecoveryTokenExpiration: string,
-  ) {}
+    @inject(TokenServiceBindings.TOKEN_REGULAR_EXPIRES_IN)
+    private regularTokenExpiration: number,
+    @inject(TokenServiceBindings.TOKEN_VERIFICATE_EMAIL_EXPIRES_IN)
+    private emailVerificationTokenExpiration: number,
+    @inject(TokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN)
+    private passwordRecoveryTokenExpiration: number,
+  ) { }
 
-  private getExpirationTime(permission: Permissions): string {
+  private getExpirationTime(permission: Permissions): number {
     switch (permission) {
       case Permissions.VERIFY_EMAIL:
         return this.emailVerificationTokenExpiration;
@@ -89,10 +94,16 @@ export class CustomTokenService implements TokenService {
       permissions: userProfile.permissions,
     };
 
-    const token: string = jwt.sign(tokenInfo, this.secret, {
-      expiresIn: this.getExpirationTime(userProfile.permissions[0]),
+    const expiresIn = this.getExpirationTime(userProfile.permissions[0]);
+    const tokenValue: string = jwt.sign(tokenInfo, this.secret, {expiresIn});
+
+    const dbToken = await this.tokenRepository.create({
+      tokenValue,
+      accountId: userProfile[securityId],
+      expirationDate: new Date(new Date().valueOf() + expiresIn),
     });
-    return token;
+
+    return dbToken.tokenValue;
   }
 
   async verifyToken(token: string): Promise<ExtendedUserProfile> {
@@ -101,6 +112,13 @@ export class CustomTokenService implements TokenService {
         'Error verifying the Token: No token was provided',
       );
     }
+
+    const dbToken = await this.tokenRepository.findOne({
+      where: {
+        tokenValue: token,
+      },
+    });
+    if (!dbToken) throw new HttpErrors[401]('The token is not stored in db');
 
     let userProfile: ExtendedUserProfile;
     try {

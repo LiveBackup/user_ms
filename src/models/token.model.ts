@@ -1,5 +1,4 @@
-import {Entity, belongsTo, model, property} from '@loopback/repository';
-import {Account} from './account.model';
+import {Entity, model, property} from '@loopback/repository';
 
 @model({
   settings: {
@@ -20,8 +19,7 @@ export class Token extends Entity {
   @property({
     type: 'string',
     id: true,
-    generated: false,
-    required: true,
+    defaultFn: 'uuidv4',
   })
   id: string;
 
@@ -39,25 +37,18 @@ export class Token extends Entity {
     type: 'date',
     postgresql: {
       columnName: 'expiration_date',
+      dataType: 'timestamptz',
     },
   })
-  expirationDate?: string;
+  expirationDate?: Date;
 
-  @belongsTo(
-    () => Account,
-    {
-      name: 'tokens',
-      keyFrom: 'account_id',
-      keyTo: 'id',
+  @property({
+    type: 'string',
+    required: true,
+    postgresql: {
+      columnName: 'account_id',
     },
-    {
-      type: 'string',
-      required: true,
-      postgresql: {
-        columnName: 'account_id',
-      },
-    },
-  )
+  })
   accountId: string;
 
   constructor(data?: Partial<Token>) {
