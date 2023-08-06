@@ -31,7 +31,7 @@ export class AuthController {
     protected accountCredentialsService: AccountCredentialsService,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected jwtService: TokenService,
-  ) { }
+  ) {}
 
   @post('/auth/sign-up')
   @response(201, {

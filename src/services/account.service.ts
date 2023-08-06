@@ -10,7 +10,7 @@ export class AccountService {
   constructor(
     @repository(AccountRepository)
     protected accountRepository: AccountRepository,
-  ) { }
+  ) {}
 
   convertToUserProfile(
     account: Account,

@@ -3,7 +3,7 @@ import {
   DefaultCrudRepository,
   HasManyRepositoryFactory,
   HasOneRepositoryFactory,
-  repository
+  repository,
 } from '@loopback/repository';
 import {UserDbDataSource} from '../datasources';
 import {Account, AccountCredentials, AccountRelations, Token} from '../models';
@@ -20,15 +20,23 @@ export class AccountRepository extends DefaultCrudRepository<
     typeof Account.prototype.id
   >;
 
-  public readonly tokens: HasManyRepositoryFactory<Token, typeof Account.prototype.id>;
+  public readonly tokens: HasManyRepositoryFactory<
+    Token,
+    typeof Account.prototype.id
+  >;
 
   constructor(
     @inject('datasources.user_db') dataSource: UserDbDataSource,
     @repository.getter('AccountCredentialsRepository')
-    protected accountCredentialsRepositoryGetter: Getter<AccountCredentialsRepository>, @repository.getter('TokenRepository') protected tokenRepositoryGetter: Getter<TokenRepository>,
+    protected accountCredentialsRepositoryGetter: Getter<AccountCredentialsRepository>,
+    @repository.getter('TokenRepository')
+    protected tokenRepositoryGetter: Getter<TokenRepository>,
   ) {
     super(Account, dataSource);
-    this.tokens = this.createHasManyRepositoryFactoryFor('tokens', tokenRepositoryGetter);
+    this.tokens = this.createHasManyRepositoryFactoryFor(
+      'tokens',
+      tokenRepositoryGetter,
+    );
     this.accountCredentials = this.createHasOneRepositoryFactoryFor(
       'accountCredentials',
       accountCredentialsRepositoryGetter,

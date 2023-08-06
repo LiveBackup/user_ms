@@ -2,11 +2,12 @@ import {securityId} from '@loopback/security';
 import {expect} from '@loopback/testlab';
 import {Account, Permissions} from '../../../models';
 import {AccountRepository, TokenRepository} from '../../../repositories';
+import {AccountService, TokenService} from '../../../services';
 import {
-  AccountService,
-  TokenService
-} from '../../../services';
-import {givenAccount, givenEmptyDatabase, givenRepositories} from '../../helpers/database.helpers';
+  givenAccount,
+  givenEmptyDatabase,
+  givenRepositories,
+} from '../../helpers/database.helpers';
 import {givenExtendedUserProfile} from '../../helpers/services.helpers';
 
 describe('Unit Testing - Token Service', () => {
@@ -30,7 +31,13 @@ describe('Unit Testing - Token Service', () => {
     await givenEmptyDatabase();
     await accountRepository.create(account);
 
-    tokenService = new TokenService(tokenRepository, 'secret', 3600000, 1800000, 300000);
+    tokenService = new TokenService(
+      tokenRepository,
+      'secret',
+      3600000,
+      1800000,
+      300000,
+    );
   });
 
   it('Fails to generate a token when no array permissions is given', async () => {
@@ -126,19 +133,18 @@ describe('Unit Testing - Token Service', () => {
   });
 
   it('Verify a token', async () => {
-    const userProfile = accountService.convertToUserProfile(
-      account,
-      [Permissions.REGULAR]
-    );
+    const userProfile = accountService.convertToUserProfile(account, [
+      Permissions.REGULAR,
+    ]);
 
     const token = await tokenService.generateToken(userProfile);
     const resultUserProfile = await tokenService.verifyToken(token);
 
     expect(resultUserProfile).not.to.be.null();
     expect(resultUserProfile[securityId]).to.be.equal(userProfile[securityId]);
-    expect(resultUserProfile.email).to.be.equal(userProfile.email);
-    expect(resultUserProfile.username).to.be.equal(userProfile.username);
-    expect(resultUserProfile.permissions).to.containDeep(userProfile.permissions);
+    expect(resultUserProfile.permissions).to.containDeep(
+      userProfile.permissions,
+    );
   });
 
   it('Throw a 401 error when no token is provided', async () => {

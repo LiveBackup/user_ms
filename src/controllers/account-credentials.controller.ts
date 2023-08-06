@@ -35,7 +35,7 @@ export class AccountCredentialsController {
     protected tasksQueuesService: TasksQueuesService,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected jwtService: TokenService,
-  ) { }
+  ) {}
 
   @post('/credentials/request-password-recovery')
   @response(204)

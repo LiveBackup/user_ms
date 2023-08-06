@@ -10,7 +10,7 @@ import {
   response,
   RestBindings,
 } from '@loopback/rest';
-import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
+import {SecurityBindings, securityId} from '@loopback/security';
 import {Account, Permissions} from '../models';
 import {
   AccountService,
@@ -30,7 +30,7 @@ export class AccountController {
     protected tasksQueuesService: TasksQueuesService,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected jwtService: TokenService,
-  ) { }
+  ) {}
 
   @authenticate('jwt')
   @authorize({allowedRoles: [Permissions.REQUEST_EMAIL_VERIFICATION]})
@@ -44,13 +44,13 @@ export class AccountController {
     },
   })
   async requestEmailVerification(
-    @inject(SecurityBindings.USER) currentUser: UserProfile,
+    @inject(SecurityBindings.USER) currentUser: ExtendedUserProfile,
   ): Promise<Account> {
-    const account = await this.accountService
-      .findById(currentUser[securityId]) as Account;
-    if (account.isEmailVerified) {
+    const account = await this.accountService.findById(currentUser[securityId]);
+    if (!account)
+      throw new HttpErrors[404]('The requested account does not exists');
+    else if (account.isEmailVerified)
       throw new HttpErrors[400]('Emails has already been verified');
-    }
 
     const userProfile = this.accountService.convertToUserProfile(account, [
       Permissions.VERIFY_EMAIL,

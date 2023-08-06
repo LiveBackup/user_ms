@@ -2,14 +2,13 @@ import {TokenService as DefaultTokenService} from '@loopback/authentication';
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
-import {UserProfile, securityId} from '@loopback/security';
+import {Principal, securityId} from '@loopback/security';
 import {v4 as uuidv4} from 'uuid';
-import {Account, Permissions, Token} from '../models';
+import {Permissions, Token} from '../models';
 import {TokenRepository} from '../repositories';
 
-export type ExtendedUserProfile = UserProfile & {
+export type ExtendedUserProfile = Principal & {
   permissions: Permissions[];
-  username: string;
 };
 
 export namespace TokenServiceBindings {
@@ -43,7 +42,7 @@ export class TokenService implements DefaultTokenService {
     private emailVerificationTokenExpiration: number,
     @inject(TokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN)
     private passwordRecoveryTokenExpiration: number,
-  ) { }
+  ) {}
 
   private getExpirationTime(permission: Permissions): number {
     switch (permission) {
@@ -90,7 +89,7 @@ export class TokenService implements DefaultTokenService {
       accountId: userProfile[securityId],
       expirationDate: new Date(new Date().valueOf() + expiresIn),
       allowedActions: userProfile.permissions,
-    }
+    };
     const dbToken = await this.tokenRepository.create(token);
 
     return dbToken.tokenValue;
@@ -107,7 +106,6 @@ export class TokenService implements DefaultTokenService {
       where: {
         tokenValue: token,
       },
-      include: ['account'],
     });
     // Verify if the token exists and the expiration date is valid
     if (!dbToken) {
@@ -116,11 +114,8 @@ export class TokenService implements DefaultTokenService {
       throw new HttpErrors[401]('Error verifying the token: Token has expired');
     }
 
-    const account = dbToken.account as Account;
     const userProfile: ExtendedUserProfile = {
       [securityId]: dbToken.accountId,
-      email: account.email,
-      username: account.username,
       permissions: dbToken.allowedActions,
     };
 

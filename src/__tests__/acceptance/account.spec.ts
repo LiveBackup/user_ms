@@ -146,21 +146,27 @@ describe('e2e - Account Controller', () => {
     });
 
     it('Does not find the account to verify the email', async () => {
+      // Create the new account request
       const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
+
+      // Get the generated account id
       let response = await client.post(signup).send(newUser);
       const accountId = response.body.id;
 
+      // Log in to get a valid token
       const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
       response = await client.post(login).send(credentials);
+      // Delete the account to force a 404
       await accountRepository.deleteById(accountId);
 
+      // Query the endpoint and compare the result
       const {token} = response.body;
       await client
         .post(reqEmailVerification)

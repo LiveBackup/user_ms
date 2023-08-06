@@ -71,7 +71,8 @@ export class Token extends Entity {
       postgresql: {
         columnName: 'account_id',
       },
-    })
+    },
+  )
   accountId: string;
 
   constructor(data?: Partial<Token>) {
