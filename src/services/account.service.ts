@@ -1,16 +1,16 @@
 import {BindingScope, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {securityId} from '@loopback/security';
-import {Account} from '../models';
+import {Account, Permissions} from '../models';
 import {AccountRepository} from '../repositories';
-import {ExtendedUserProfile, Permissions} from './token.service';
+import {ExtendedUserProfile} from './token.service';
 
 @injectable({scope: BindingScope.TRANSIENT})
 export class AccountService {
   constructor(
     @repository(AccountRepository)
     protected accountRepository: AccountRepository,
-  ) {}
+  ) { }
 
   convertToUserProfile(
     account: Account,

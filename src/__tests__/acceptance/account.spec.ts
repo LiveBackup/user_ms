@@ -1,12 +1,11 @@
 import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
-import {Account} from '../../models';
+import {Account, Permissions} from '../../models';
 import {AccountRepository} from '../../repositories';
 import {Credentials, NewAccount} from '../../schemas';
 import {
   AccountService,
-  Permissions,
   TasksQueuesService,
   TokenService,
   TokenServiceBindings,

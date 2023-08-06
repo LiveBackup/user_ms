@@ -1,17 +1,11 @@
-import * as DefaultTokenService from '@loopback/authentication';
+import {TokenService as DefaultTokenService} from '@loopback/authentication';
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {UserProfile, securityId} from '@loopback/security';
-import jwt from 'jsonwebtoken';
+import {v4 as uuidv4} from 'uuid';
+import {Account, Permissions, Token} from '../models';
 import {TokenRepository} from '../repositories';
-
-export enum Permissions {
-  REGULAR = 'REGULAR',
-  RECOVER_PASSWORD = 'RECOVER_PASSWORD',
-  REQUEST_EMAIL_VERIFICATION = 'REQUEST_EMAIL_VERIFICATION',
-  VERIFY_EMAIL = 'VERIFY_EMAIL',
-}
 
 export type ExtendedUserProfile = UserProfile & {
   permissions: Permissions[];
@@ -37,7 +31,7 @@ export namespace TokenServiceBindings {
 }
 
 @injectable({scope: BindingScope.TRANSIENT})
-export class TokenService implements DefaultTokenService.TokenService {
+export class TokenService implements DefaultTokenService {
   constructor(
     @repository(TokenRepository)
     private tokenRepository: TokenRepository,
@@ -87,55 +81,49 @@ export class TokenService implements DefaultTokenService.TokenService {
 
   async generateToken(userProfile: ExtendedUserProfile): Promise<string> {
     this.validatePermissions(userProfile.permissions);
-    const tokenInfo = {
-      id: userProfile[securityId],
-      email: userProfile.email,
-      name: userProfile.username,
-      permissions: userProfile.permissions,
-    };
 
     const expiresIn = this.getExpirationTime(userProfile.permissions[0]);
-    const tokenValue: string = jwt.sign(tokenInfo, this.secret, {expiresIn});
+    const tokenValue: string = uuidv4();
 
-    const dbToken = await this.tokenRepository.create({
+    const token: Partial<Token> = {
       tokenValue,
       accountId: userProfile[securityId],
       expirationDate: new Date(new Date().valueOf() + expiresIn),
-    });
+      allowedActions: userProfile.permissions,
+    }
+    const dbToken = await this.tokenRepository.create(token);
 
     return dbToken.tokenValue;
   }
 
   async verifyToken(token: string): Promise<ExtendedUserProfile> {
     if (!token) {
-      throw new HttpErrors[401](
-        'Error verifying the Token: No token was provided',
-      );
+      const message = 'Error verifying the Token: No token was provided';
+      throw new HttpErrors[401](message);
     }
 
+    // Get the token from DB
     const dbToken = await this.tokenRepository.findOne({
       where: {
         tokenValue: token,
       },
+      include: ['account'],
     });
-    if (!dbToken) throw new HttpErrors[401]('The token is not stored in db');
-
-    let userProfile: ExtendedUserProfile;
-    try {
-      // eslint-disable-next-line
-      const decodedToken = jwt.verify(token, this.secret) as any;
-      userProfile = Object.assign(
-        {[securityId]: '', email: ''},
-        {
-          [securityId]: decodedToken.id,
-          username: decodedToken.name,
-          email: decodedToken.email,
-          permissions: decodedToken.permissions,
-        },
-      );
-    } catch (error) {
-      throw new HttpErrors[401](`Error decoding the token: ${error.message}`);
+    // Verify if the token exists and the expiration date is valid
+    if (!dbToken) {
+      throw new HttpErrors[401]('The token is not stored in db');
+    } else if (dbToken.expirationDate.valueOf() < new Date().valueOf()) {
+      throw new HttpErrors[401]('Error verifying the token: Token has expired');
     }
+
+    const account = dbToken.account as Account;
+    const userProfile: ExtendedUserProfile = {
+      [securityId]: dbToken.accountId,
+      email: account.email,
+      username: account.username,
+      permissions: dbToken.allowedActions,
+    };
+
     return userProfile;
   }
 }

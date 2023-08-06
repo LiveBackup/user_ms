@@ -1,12 +1,11 @@
 import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
-import {Account, AccountCredentials} from '../../models';
+import {Account, AccountCredentials, Permissions} from '../../models';
 import {Password} from '../../schemas';
 import {
   AccountCredentialsService,
   AccountService,
-  Permissions,
   TasksQueuesService,
   TokenService,
   TokenServiceBindings,
@@ -195,6 +194,7 @@ describe('e2e - Account Credentials Controller', () => {
       };
       // Create a dummy account to generate a valid token
       const anotherMockAccount = givenAccount({id: 'some_id'});
+      await accountService.create(anotherMockAccount);
       const userProfile = accountService.convertToUserProfile(
         anotherMockAccount,
         [Permissions.REGULAR],

@@ -1,4 +1,12 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, belongsTo, model, property} from '@loopback/repository';
+import {Account, AccountWithRelations} from './account.model';
+
+export enum Permissions {
+  REGULAR = 'REGULAR',
+  RECOVER_PASSWORD = 'RECOVER_PASSWORD',
+  REQUEST_EMAIL_VERIFICATION = 'REQUEST_EMAIL_VERIFICATION',
+  VERIFY_EMAIL = 'VERIFY_EMAIL',
+}
 
 @model({
   settings: {
@@ -33,22 +41,37 @@ export class Token extends Entity {
   })
   tokenValue: string;
 
+  @property.array('string', {
+    postgresql: {
+      columnName: 'allowed_actions',
+    },
+  })
+  allowedActions: Permissions[];
+
   @property({
     type: 'date',
+    required: true,
     postgresql: {
       columnName: 'expiration_date',
       dataType: 'timestamptz',
     },
   })
-  expirationDate?: Date;
+  expirationDate: Date;
 
-  @property({
-    type: 'string',
-    required: true,
-    postgresql: {
-      columnName: 'account_id',
+  @belongsTo(
+    () => Account,
+    {
+      name: 'account',
+      keyFrom: 'account_id',
+      keyTo: 'id',
     },
-  })
+    {
+      type: 'string',
+      required: true,
+      postgresql: {
+        columnName: 'account_id',
+      },
+    })
   accountId: string;
 
   constructor(data?: Partial<Token>) {
@@ -57,7 +80,7 @@ export class Token extends Entity {
 }
 
 export interface TokenRelations {
-  // describe navigational properties here
+  account?: AccountWithRelations;
 }
 
-export type TokenWithRelations = Token;
+export type TokenWithRelations = Token & TokenRelations;

@@ -23,6 +23,7 @@ export const givenRepositories = function () {
   accountRepository = new AccountRepository(
     userTestdb,
     async () => accountCredentialsRepository,
+    async () => tokenRepository,
   );
 
   accountCredentialsRepository = new AccountCredentialsRepository(
@@ -30,7 +31,10 @@ export const givenRepositories = function () {
     async () => accountRepository,
   );
 
-  tokenRepository = new TokenRepository(userTestdb);
+  tokenRepository = new TokenRepository(
+    userTestdb,
+    async () => accountRepository,
+  );
 
   return {
     accountRepository,

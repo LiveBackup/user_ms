@@ -1,40 +1,40 @@
 import {securityId} from '@loopback/security';
 import {expect} from '@loopback/testlab';
-import {TokenRepository} from '../../../repositories';
+import {Account, Permissions} from '../../../models';
+import {AccountRepository, TokenRepository} from '../../../repositories';
 import {
-  ExtendedUserProfile,
-  Permissions,
-  TokenService,
+  AccountService,
+  TokenService
 } from '../../../services';
-import {givenRepositories} from '../../helpers/database.helpers';
+import {givenAccount, givenEmptyDatabase, givenRepositories} from '../../helpers/database.helpers';
 import {givenExtendedUserProfile} from '../../helpers/services.helpers';
 
 describe('Unit Testing - Token Service', () => {
   // App repositories
+  let accountRepository: AccountRepository;
   let tokenRepository: TokenRepository;
   // App services
   let tokenService: TokenService;
+  let accountService: AccountService;
+  // Utils
+  const account: Account = givenAccount();
   // Constants
-  const expiredTokenMessage = 'Error decoding the token: jwt expired';
+  const expiredTokenMessage = 'Error verifying the token: Token has expired';
 
   before(() => {
-    ({tokenRepository} = givenRepositories());
+    ({accountRepository, tokenRepository} = givenRepositories());
+    accountService = new AccountService(accountRepository);
   });
 
-  beforeEach(() => {
-    tokenService = new TokenService(
-      tokenRepository,
-      'secret',
-      3600000,
-      1800000,
-      300000,
-    );
+  beforeEach(async () => {
+    await givenEmptyDatabase();
+    await accountRepository.create(account);
+
+    tokenService = new TokenService(tokenRepository, 'secret', 3600000, 1800000, 300000);
   });
 
   it('Fails to generate a token when no array permissions is given', async () => {
-    const userProfile = givenExtendedUserProfile({
-      permissions: undefined,
-    });
+    const userProfile = givenExtendedUserProfile({permissions: undefined});
 
     let expectedError;
     try {
@@ -50,9 +50,7 @@ describe('Unit Testing - Token Service', () => {
   });
 
   it('Fails to generate a token when array permissions is empty', async () => {
-    const userProfile = givenExtendedUserProfile({
-      permissions: [],
-    });
+    const userProfile = givenExtendedUserProfile({permissions: []});
 
     let expectedError;
     try {
@@ -128,25 +126,19 @@ describe('Unit Testing - Token Service', () => {
   });
 
   it('Verify a token', async () => {
-    const partialUserProfile: Partial<ExtendedUserProfile> = {
-      [securityId]: '1',
-      email: 'testing@email.com',
-      username: 'testing',
-      permissions: [Permissions.REGULAR],
-    };
-
-    const token = await tokenService.generateToken(
-      givenExtendedUserProfile(partialUserProfile),
+    const userProfile = accountService.convertToUserProfile(
+      account,
+      [Permissions.REGULAR]
     );
-    const userProfile = await tokenService.verifyToken(token);
 
-    expect(userProfile).not.to.be.null();
-    expect(userProfile[securityId]).to.be.equal(partialUserProfile[securityId]);
-    expect(userProfile.email).to.be.equal(partialUserProfile.email);
-    expect(userProfile.username).to.be.equal(partialUserProfile.username);
-    expect(userProfile.permissions).to.containDeep(
-      partialUserProfile.permissions,
-    );
+    const token = await tokenService.generateToken(userProfile);
+    const resultUserProfile = await tokenService.verifyToken(token);
+
+    expect(resultUserProfile).not.to.be.null();
+    expect(resultUserProfile[securityId]).to.be.equal(userProfile[securityId]);
+    expect(resultUserProfile.email).to.be.equal(userProfile.email);
+    expect(resultUserProfile.username).to.be.equal(userProfile.username);
+    expect(resultUserProfile.permissions).to.containDeep(userProfile.permissions);
   });
 
   it('Throw a 401 error when no token is provided', async () => {
@@ -159,7 +151,8 @@ describe('Unit Testing - Token Service', () => {
 
     expect(expectedError).not.to.be.Undefined();
     expect(expectedError.statusCode).to.be.equal(401);
-    expect(expectedError.message).not.to.be.equal(expiredTokenMessage);
+    const noTokenError = 'Error verifying the Token: No token was provided';
+    expect(expectedError.message).to.be.equal(noTokenError);
   });
 
   it('Throw a 401 error when token has expired', async () => {
@@ -182,92 +175,82 @@ describe('Unit Testing - Token Service', () => {
   });
 
   it('Generates a regular token', async () => {
-    let expectedError;
-    tokenService = new TokenService(
-      tokenRepository,
-      'secret',
-      0,
-      1800000,
-      300000,
+    const permissions = [Permissions.REGULAR];
+    const userProfile = accountService.convertToUserProfile(
+      account,
+      permissions,
     );
-    const userProfile = givenExtendedUserProfile({
-      permissions: [Permissions.REGULAR],
-    });
+
+    // Generate the token
     const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
     expect(token.length).to.be.greaterThan(0);
 
-    try {
-      await tokenService.verifyToken(token);
-    } catch (error) {
-      expectedError = error;
-    }
+    // Get the token result
+    const resultProfle = await tokenService.verifyToken(token);
 
-    expect(expectedError).not.to.be.Undefined();
-    expect(expectedError.statusCode).to.be.equal(401);
-    expect(expectedError.message).to.be.equal(expiredTokenMessage);
+    expect(resultProfle).not.to.be.Undefined();
+    expect(resultProfle.permissions).to.be.Array();
+    expect(resultProfle.permissions).to.be.deepEqual(permissions);
   });
 
   it('Generates a request email verification token', async () => {
-    let expectedError;
-    tokenService = new TokenService(tokenRepository, 'secret', 0, 1800, 300);
-    const userProfile = givenExtendedUserProfile({
-      permissions: [Permissions.REQUEST_EMAIL_VERIFICATION],
-    });
+    const permissions = [Permissions.REQUEST_EMAIL_VERIFICATION];
+    const userProfile = accountService.convertToUserProfile(
+      account,
+      permissions,
+    );
+
+    // Generate the token
     const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
     expect(token.length).to.be.greaterThan(0);
 
-    try {
-      await tokenService.verifyToken(token);
-    } catch (error) {
-      expectedError = error;
-    }
+    // Get the token result
+    const resultProfle = await tokenService.verifyToken(token);
 
-    expect(expectedError).not.to.be.Undefined();
-    expect(expectedError.statusCode).to.be.equal(401);
-    expect(expectedError.message).to.be.equal(expiredTokenMessage);
+    expect(resultProfle).not.to.be.Undefined();
+    expect(resultProfle.permissions).to.be.Array();
+    expect(resultProfle.permissions).to.be.deepEqual(permissions);
   });
 
   it('Generates a verify email token', async () => {
-    let expectedError;
-    tokenService = new TokenService(tokenRepository, 'secret', 3600, 0, 300);
-    const userProfile = givenExtendedUserProfile({
-      permissions: [Permissions.VERIFY_EMAIL],
-    });
+    const permissions = [Permissions.VERIFY_EMAIL];
+    const userProfile = accountService.convertToUserProfile(
+      account,
+      permissions,
+    );
+
+    // Generate the token
     const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
     expect(token.length).to.be.greaterThan(0);
 
-    try {
-      await tokenService.verifyToken(token);
-    } catch (error) {
-      expectedError = error;
-    }
+    // Get the token result
+    const resultProfle = await tokenService.verifyToken(token);
 
-    expect(expectedError).not.to.be.Undefined();
-    expect(expectedError.statusCode).to.be.equal(401);
-    expect(expectedError.message).to.be.equal(expiredTokenMessage);
+    expect(resultProfle).not.to.be.Undefined();
+    expect(resultProfle.permissions).to.be.Array();
+    expect(resultProfle.permissions).to.be.deepEqual(permissions);
   });
 
   it('Generates a recover password token', async () => {
-    let expectedError;
-    tokenService = new TokenService(tokenRepository, 'secret', 3600, 1800, 0);
-    const userProfile = givenExtendedUserProfile({
-      permissions: [Permissions.RECOVER_PASSWORD],
-    });
+    const permissions = [Permissions.RECOVER_PASSWORD];
+    const userProfile = accountService.convertToUserProfile(
+      account,
+      permissions,
+    );
+
+    // Generate the token
     const token = await tokenService.generateToken(userProfile);
     expect(token).not.to.be.Null();
     expect(token.length).to.be.greaterThan(0);
 
-    try {
-      await tokenService.verifyToken(token);
-    } catch (error) {
-      expectedError = error;
-    }
+    // Get the token result
+    const resultProfle = await tokenService.verifyToken(token);
 
-    expect(expectedError).not.to.be.Undefined();
-    expect(expectedError.statusCode).to.be.equal(401);
-    expect(expectedError.message).to.be.equal(expiredTokenMessage);
+    expect(resultProfle).not.to.be.Undefined();
+    expect(resultProfle.permissions).to.be.Array();
+    expect(resultProfle.permissions).to.be.deepEqual(permissions);
   });
 });

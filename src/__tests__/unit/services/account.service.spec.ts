@@ -1,8 +1,8 @@
 import {securityId} from '@loopback/security';
 import {expect} from '@loopback/testlab';
-import {Account} from '../../../models';
+import {Account, Permissions} from '../../../models';
 import {AccountRepository} from '../../../repositories';
-import {AccountService, Permissions} from '../../../services';
+import {AccountService} from '../../../services';
 import {
   givenAccount,
   givenEmptyDatabase,

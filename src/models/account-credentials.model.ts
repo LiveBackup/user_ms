@@ -36,7 +36,7 @@ export class AccountCredentials extends Entity {
   @belongsTo(
     () => Account,
     {
-      name: 'accountCredentials',
+      name: 'account',
       keyFrom: 'account_id',
       keyTo: 'id',
     },

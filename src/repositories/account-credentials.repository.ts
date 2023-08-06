@@ -29,11 +29,11 @@ export class AccountCredentialsRepository extends DefaultCrudRepository<
   ) {
     super(AccountCredentials, dataSource);
     this.accountCredentials = this.createBelongsToAccessorFor(
-      'accountCredentials',
+      'account',
       accountRepositoryGetter,
     );
     this.registerInclusionResolver(
-      'accountCredentials',
+      'account',
       this.accountCredentials.inclusionResolver,
     );
   }

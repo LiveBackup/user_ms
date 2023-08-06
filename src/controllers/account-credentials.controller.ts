@@ -12,13 +12,12 @@ import {
   response,
 } from '@loopback/rest';
 import {SecurityBindings, securityId} from '@loopback/security';
-import {Account, AccountCredentials} from '../models';
+import {Account, AccountCredentials, Permissions} from '../models';
 import {Password} from '../schemas';
 import {
   AccountCredentialsService,
   AccountService,
   ExtendedUserProfile,
-  Permissions,
   TasksQueuesService,
   TokenService,
   TokenServiceBindings,
@@ -36,7 +35,7 @@ export class AccountCredentialsController {
     protected tasksQueuesService: TasksQueuesService,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected jwtService: TokenService,
-  ) {}
+  ) { }
 
   @post('/credentials/request-password-recovery')
   @response(204)
