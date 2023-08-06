@@ -58,6 +58,12 @@ export class UserMsApplication extends BootMixin(
     // Mount jwt component
     this.component(JWTAuthenticationComponent);
 
+    // Mount Authorization Component
+    this.component(AuthorizationComponent);
+    this.bind('authorizationProviders.authorization-provider')
+      .toProvider(AuthorizationProvider)
+      .tag(AuthorizationTags.AUTHORIZER);
+
     // Bind the cusatom token service
     this.bind(CustomTokenServiceBindings.TOKEN_SERVICE).toClass(
       CustomTokenService,
@@ -76,11 +82,5 @@ export class UserMsApplication extends BootMixin(
     this.bind(CustomTokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN).to(
       process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? '3600000',
     );
-
-    // Mount Authorization Component
-    this.component(AuthorizationComponent);
-    this.bind('authorizationProviders.authorization-provider')
-      .toProvider(AuthorizationProvider)
-      .tag(AuthorizationTags.AUTHORIZER);
   }
 }
