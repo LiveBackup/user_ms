@@ -28,6 +28,7 @@ describe('e2e - Account Credentials Controller', () => {
   let accountService: AccountService;
   let accountCredentialsService: AccountCredentialsService;
   let tokenService: TokenService;
+  let tasksQueuesService: TasksQueuesService;
   // Account and credentials
   let defaultAccount: Account;
   let defaultCredentials: AccountCredentials;
@@ -40,6 +41,7 @@ describe('e2e - Account Credentials Controller', () => {
     client = await givenClient(app);
     ({accountService, accountCredentialsService} = await givenServices());
     tokenService = await app.get(TokenServiceBindings.TOKEN_SERVICE);
+    tasksQueuesService = await app.get('services.TasksQueuesService');
   });
 
   beforeEach(async () => {
@@ -91,7 +93,7 @@ describe('e2e - Account Credentials Controller', () => {
 
     it('Fails to enqueue the email sending tasks', async () => {
       const addJobStub = sandbox
-        .stub(TasksQueuesService.passwordRecovery, 'add')
+        .stub(tasksQueuesService.passwordRecovery, 'add')
         .throws('Failed to add a Job');
 
       const recoveryRequest = {

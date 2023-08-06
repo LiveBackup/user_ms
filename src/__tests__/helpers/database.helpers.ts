@@ -1,4 +1,5 @@
-import {Account, AccountCredentials} from '../../models';
+import {AES} from 'crypto-js';
+import {Account, AccountCredentials, Permissions, Token} from '../../models';
 import {
   AccountCredentialsRepository,
   AccountRepository,
@@ -72,4 +73,20 @@ export const givenAccountCredentials = function (
     },
     data,
   ) as AccountCredentials;
+};
+
+export const givenToken = function (
+  data?: Partial<Token>,
+  secret?: string,
+): Token {
+  return Object.assign(
+    {
+      id: '1-2-3-4-5',
+      tokenValue: AES.encrypt('6-7-8-9-0', secret ?? 'secret'),
+      allowedActions: [Permissions.REGULAR],
+      expirationDate: new Date(new Date().valueOf() + 3600),
+      accountId: '1-1-1',
+    },
+    data,
+  ) as Token;
 };

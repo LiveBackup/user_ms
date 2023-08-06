@@ -5,7 +5,7 @@ import {Account, Permissions} from '../models';
 import {AccountRepository} from '../repositories';
 import {ExtendedUserProfile} from './token.service';
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({scope: BindingScope.SINGLETON})
 export class AccountService {
   constructor(
     @repository(AccountRepository)

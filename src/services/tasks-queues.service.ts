@@ -1,24 +1,17 @@
 import {BindingScope, inject, injectable} from '@loopback/core';
 import {Queue, QueueOptions} from 'bullmq';
-import dotenv from 'dotenv';
 import {TasksQueuesDataSource} from '../datasources';
 
-dotenv.config();
-
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({scope: BindingScope.SINGLETON})
 export class TasksQueuesService {
-  // Service status
-  static initialized = false;
   // Available Queues
-  static verificationEmailQueue: Queue;
-  static passwordRecovery: Queue;
+  public readonly verificationEmailQueue: Queue;
+  public readonly passwordRecovery: Queue;
 
   constructor(
     @inject('datasources.tasks_queues')
     tasksQueuesDataSource: TasksQueuesDataSource,
   ) {
-    if (TasksQueuesService.initialized) return;
-
     const bullMQSettings: QueueOptions = {
       connection: {
         host: tasksQueuesDataSource.settings.host,
@@ -29,15 +22,11 @@ export class TasksQueuesService {
       },
     };
 
-    TasksQueuesService.verificationEmailQueue = new Queue(
+    this.verificationEmailQueue = new Queue(
       'VerificationEmail',
       bullMQSettings,
     );
-    TasksQueuesService.passwordRecovery = new Queue(
-      'PasswordRecovery',
-      bullMQSettings,
-    );
-    TasksQueuesService.initialized = true;
+    this.passwordRecovery = new Queue('PasswordRecovery', bullMQSettings);
   }
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -60,7 +49,7 @@ export class TasksQueuesService {
     email: string,
     accessToken: string,
   ): Promise<boolean> {
-    const queue = TasksQueuesService.verificationEmailQueue;
+    const queue = this.verificationEmailQueue;
     const taskName = `Verification email for ${username}`;
     const taskData = {email, accessToken};
     return this.enqueueTask(queue, taskName, taskData);
@@ -71,7 +60,7 @@ export class TasksQueuesService {
     email: string,
     recoveryToken: string,
   ): Promise<boolean> {
-    const queue = TasksQueuesService.passwordRecovery;
+    const queue = this.passwordRecovery;
     const taskName = `Password recovery request for ${username}`;
     const taskData = {email, recoveryToken};
     return this.enqueueTask(queue, taskName, taskData);

@@ -3,6 +3,7 @@ import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {Principal, securityId} from '@loopback/security';
+import {AES, enc} from 'crypto-js';
 import {v4 as uuidv4} from 'uuid';
 import {Permissions, Token} from '../models';
 import {TokenRepository} from '../repositories';
@@ -13,23 +14,23 @@ export type ExtendedUserProfile = Principal & {
 
 export namespace TokenServiceBindings {
   export const TOKEN_SECRET = BindingKey.create<string>(
-    'authentication.jwt.secret',
+    'services.TokenService.secret',
   );
   export const TOKEN_REGULAR_EXPIRES_IN = BindingKey.create<number>(
-    'authentication.jwt.regular.expires.in.seconds',
+    'services.TokenService.regular.expires.in.seconds',
   );
   export const TOKEN_VERIFICATE_EMAIL_EXPIRES_IN = BindingKey.create<number>(
-    'authentication.jwt.verificate-email.expires.in.seconds',
+    'services.TokenService.verificate-email.expires.in.seconds',
   );
   export const TOKEN_RECOVERY_PASSWORD_EXPIRES_IN = BindingKey.create<number>(
-    'authentication.jwt.recovery-password.expires.in.seconds',
+    'services.TokenService.recovery-password.expires.in.seconds',
   );
   export const TOKEN_SERVICE = BindingKey.create<TokenService>(
     'services.authentication.jwt.tokenservice',
   );
 }
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({scope: BindingScope.SINGLETON})
 export class TokenService implements DefaultTokenService {
   constructor(
     @repository(TokenRepository)
@@ -85,34 +86,46 @@ export class TokenService implements DefaultTokenService {
     const tokenValue: string = uuidv4();
 
     const token: Partial<Token> = {
-      tokenValue,
+      tokenValue: AES.encrypt(tokenValue, this.secret).toString(),
       accountId: userProfile[securityId],
       expirationDate: new Date(new Date().valueOf() + expiresIn),
       allowedActions: userProfile.permissions,
     };
     const dbToken = await this.tokenRepository.create(token);
 
-    return dbToken.tokenValue;
+    return `${dbToken.id}-${tokenValue}`;
   }
 
   async verifyToken(token: string): Promise<ExtendedUserProfile> {
+    const invalidTokenError = new HttpErrors[401](
+      'Error verifying the token: Invalid Token',
+    );
     if (!token) {
       const message = 'Error verifying the Token: No token was provided';
       throw new HttpErrors[401](message);
     }
 
+    const tokenParts = token.split('-');
+    if (tokenParts.length !== 10) throw invalidTokenError;
+
+    const tokenId = tokenParts.slice(0, 5).join('-');
+    const tokenSecret = tokenParts.slice(-5).join('-');
+
     // Get the token from DB
-    const dbToken = await this.tokenRepository.findOne({
-      where: {
-        tokenValue: token,
-      },
-    });
+    const dbToken = await this.findById(tokenId);
     // Verify if the token exists and the expiration date is valid
     if (!dbToken) {
-      throw new HttpErrors[401]('The token is not stored in db');
+      throw invalidTokenError;
     } else if (dbToken.expirationDate.valueOf() < new Date().valueOf()) {
       throw new HttpErrors[401]('Error verifying the token: Token has expired');
     }
+
+    const decryptedStoredToken = AES.decrypt(
+      dbToken.tokenValue,
+      this.secret,
+    ).toString(enc.Utf8);
+
+    if (tokenSecret !== decryptedStoredToken) throw invalidTokenError;
 
     const userProfile: ExtendedUserProfile = {
       [securityId]: dbToken.accountId,
@@ -120,5 +133,13 @@ export class TokenService implements DefaultTokenService {
     };
 
     return userProfile;
+  }
+
+  async findById(id: string): Promise<Token | null> {
+    try {
+      return await this.tokenRepository.findById(id);
+    } catch (error) {
+      return null;
+    }
   }
 }

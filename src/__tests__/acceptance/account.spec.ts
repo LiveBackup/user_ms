@@ -29,6 +29,7 @@ describe('e2e - Account Controller', () => {
   // Services
   let accountService: AccountService;
   let customTokenService: TokenService;
+  let tasksQueuesService: TasksQueuesService;
   // Auth endpoints
   const signup = '/auth/sign-up';
   const login = '/auth/login';
@@ -39,7 +40,7 @@ describe('e2e - Account Controller', () => {
   before(async () => {
     app = await givenRunningApp();
     client = await givenClient(app);
-    await app.get('services.TasksQueuesService');
+    tasksQueuesService = await app.get('services.TasksQueuesService');
 
     ({accountRepository} = givenRepositories());
     ({accountService} = await givenServices());
@@ -177,7 +178,7 @@ describe('e2e - Account Controller', () => {
 
     it('Fails when it can not enqueue the email tasks', async () => {
       const emailQueueStub = sandbox
-        .stub(TasksQueuesService.verificationEmailQueue, 'add')
+        .stub(tasksQueuesService.verificationEmailQueue, 'add')
         .throws('Some error');
 
       const newUser: NewAccount = {

@@ -21,7 +21,7 @@ describe('Unit testing - Tasks Queues Service', () => {
       const email = 'dummy@email.com';
       const token = 'dummy_token';
       const emailQueueSpy = sandbox.spy(
-        TasksQueuesService.verificationEmailQueue,
+        tasksQueuesService.verificationEmailQueue,
         'add',
       );
 
@@ -39,7 +39,7 @@ describe('Unit testing - Tasks Queues Service', () => {
       const email = 'dummy@email.com';
       const token = 'dummy_token';
       const emailQueueStub = sandbox
-        .stub(TasksQueuesService.verificationEmailQueue, 'add')
+        .stub(tasksQueuesService.verificationEmailQueue, 'add')
         .throws('Some error');
 
       const emailEnqueued = await tasksQueuesService.enqueueVerificationEmail(
@@ -58,7 +58,7 @@ describe('Unit testing - Tasks Queues Service', () => {
       const email = 'dummy@email.com';
       const token = 'dummy_token';
       const recoveryQueueSpy = sandbox.spy(
-        TasksQueuesService.passwordRecovery,
+        tasksQueuesService.passwordRecovery,
         'add',
       );
 
@@ -77,7 +77,7 @@ describe('Unit testing - Tasks Queues Service', () => {
       const email = 'dummy@email.com';
       const token = 'dummy_token';
       const recoveryQueueStub = sandbox
-        .stub(TasksQueuesService.passwordRecovery, 'add')
+        .stub(tasksQueuesService.passwordRecovery, 'add')
         .throws('Some error');
 
       const recoveryEnqueued =
