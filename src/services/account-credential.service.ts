@@ -4,7 +4,7 @@ import {compare, genSalt, hash} from 'bcryptjs';
 import {AccountCredentials} from '../models';
 import {AccountCredentialsRepository} from '../repositories';
 
-@injectable({scope: BindingScope.TRANSIENT})
+@injectable({scope: BindingScope.SINGLETON})
 export class AccountCredentialsService {
   constructor(
     @repository(AccountCredentialsRepository)

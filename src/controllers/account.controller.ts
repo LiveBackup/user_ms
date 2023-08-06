@@ -10,15 +10,14 @@ import {
   response,
   RestBindings,
 } from '@loopback/rest';
-import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
-import {Account} from '../models';
+import {SecurityBindings, securityId} from '@loopback/security';
+import {Account, Permissions} from '../models';
 import {
   AccountService,
-  CustomTokenService,
-  CustomTokenServiceBindings,
   ExtendedUserProfile,
-  Permissions,
   TasksQueuesService,
+  TokenService,
+  TokenServiceBindings,
 } from '../services';
 
 export class AccountController {
@@ -29,8 +28,8 @@ export class AccountController {
     protected accountService: AccountService,
     @inject('services.TasksQueuesService')
     protected tasksQueuesService: TasksQueuesService,
-    @inject(CustomTokenServiceBindings.TOKEN_SERVICE)
-    protected jwtService: CustomTokenService,
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    protected jwtService: TokenService,
   ) {}
 
   @authenticate('jwt')
@@ -45,14 +44,13 @@ export class AccountController {
     },
   })
   async requestEmailVerification(
-    @inject(SecurityBindings.USER) currentUser: UserProfile,
+    @inject(SecurityBindings.USER) currentUser: ExtendedUserProfile,
   ): Promise<Account> {
     const account = await this.accountService.findById(currentUser[securityId]);
-    if (!account) {
-      throw new HttpErrors[404]('No account was found');
-    } else if (account.isEmailVerified) {
+    if (!account)
+      throw new HttpErrors[404]('The requested account does not exists');
+    else if (account.isEmailVerified)
       throw new HttpErrors[400]('Emails has already been verified');
-    }
 
     const userProfile = this.accountService.convertToUserProfile(account, [
       Permissions.VERIFY_EMAIL,

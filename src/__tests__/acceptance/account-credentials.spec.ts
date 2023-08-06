@@ -1,15 +1,14 @@
 import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
-import {Account, AccountCredentials} from '../../models';
+import {Account, AccountCredentials, Permissions} from '../../models';
 import {Password} from '../../schemas';
 import {
   AccountCredentialsService,
   AccountService,
-  CustomTokenService,
-  CustomTokenServiceBindings,
-  Permissions,
   TasksQueuesService,
+  TokenService,
+  TokenServiceBindings,
 } from '../../services';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {
@@ -28,7 +27,8 @@ describe('e2e - Account Credentials Controller', () => {
   // Services
   let accountService: AccountService;
   let accountCredentialsService: AccountCredentialsService;
-  let tokenService: CustomTokenService;
+  let tokenService: TokenService;
+  let tasksQueuesService: TasksQueuesService;
   // Account and credentials
   let defaultAccount: Account;
   let defaultCredentials: AccountCredentials;
@@ -40,7 +40,8 @@ describe('e2e - Account Credentials Controller', () => {
     app = await givenRunningApp();
     client = await givenClient(app);
     ({accountService, accountCredentialsService} = await givenServices());
-    tokenService = await app.get(CustomTokenServiceBindings.TOKEN_SERVICE);
+    tokenService = await app.get(TokenServiceBindings.TOKEN_SERVICE);
+    tasksQueuesService = await app.get('services.TasksQueuesService');
   });
 
   beforeEach(async () => {
@@ -92,7 +93,7 @@ describe('e2e - Account Credentials Controller', () => {
 
     it('Fails to enqueue the email sending tasks', async () => {
       const addJobStub = sandbox
-        .stub(TasksQueuesService.passwordRecovery, 'add')
+        .stub(tasksQueuesService.passwordRecovery, 'add')
         .throws('Failed to add a Job');
 
       const recoveryRequest = {
@@ -195,6 +196,7 @@ describe('e2e - Account Credentials Controller', () => {
       };
       // Create a dummy account to generate a valid token
       const anotherMockAccount = givenAccount({id: 'some_id'});
+      await accountService.create(anotherMockAccount);
       const userProfile = accountService.convertToUserProfile(
         anotherMockAccount,
         [Permissions.REGULAR],

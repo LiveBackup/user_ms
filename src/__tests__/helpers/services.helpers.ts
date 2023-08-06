@@ -1,9 +1,9 @@
 import {securityId} from '@loopback/security';
+import {Permissions} from '../../models';
 import {
   AccountCredentialsService,
   AccountService,
   ExtendedUserProfile,
-  Permissions,
   TasksQueuesService,
 } from '../../services';
 import {tasksQueuesTestdb} from '../fixtures/datasources';

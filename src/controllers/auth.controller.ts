@@ -12,14 +12,13 @@ import {
   response,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {Account, AccountCredentials} from '../models';
+import {Account, AccountCredentials, Permissions} from '../models';
 import {Credentials, NewAccount, TokenResponse} from '../schemas';
 import {
   AccountCredentialsService,
   AccountService,
-  CustomTokenService,
-  CustomTokenServiceBindings,
-  Permissions,
+  TokenService,
+  TokenServiceBindings,
 } from '../services';
 
 export class AuthController {
@@ -30,8 +29,8 @@ export class AuthController {
     protected accountService: AccountService,
     @inject('services.AccountCredentialsService')
     protected accountCredentialsService: AccountCredentialsService,
-    @inject(CustomTokenServiceBindings.TOKEN_SERVICE)
-    protected jwtService: CustomTokenService,
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    protected jwtService: TokenService,
   ) {}
 
   @post('/auth/sign-up')

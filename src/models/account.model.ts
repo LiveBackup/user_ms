@@ -1,5 +1,6 @@
-import {Entity, hasOne, model, property} from '@loopback/repository';
+import {Entity, hasMany, hasOne, model, property} from '@loopback/repository';
 import {AccountCredentials} from './account-credentials.model';
+import {Token} from './token.model';
 
 @model({
   settings: {
@@ -53,6 +54,9 @@ export class Account extends Entity {
 
   @hasOne(() => AccountCredentials, {keyTo: 'account_id', keyFrom: 'id'})
   accountCredentials: AccountCredentials;
+
+  @hasMany(() => Token, {keyTo: 'account_id', keyFrom: 'id'})
+  tokens: Token[];
 
   constructor(data?: Partial<Account>) {
     super(data);

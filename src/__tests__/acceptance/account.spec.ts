@@ -1,15 +1,14 @@
 import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
-import {Account} from '../../models';
+import {Account, Permissions} from '../../models';
 import {AccountRepository} from '../../repositories';
 import {Credentials, NewAccount} from '../../schemas';
 import {
   AccountService,
-  CustomTokenService,
-  CustomTokenServiceBindings,
-  Permissions,
   TasksQueuesService,
+  TokenService,
+  TokenServiceBindings,
 } from '../../services';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {
@@ -29,7 +28,8 @@ describe('e2e - Account Controller', () => {
   let accountRepository: AccountRepository;
   // Services
   let accountService: AccountService;
-  let customTokenService: CustomTokenService;
+  let customTokenService: TokenService;
+  let tasksQueuesService: TasksQueuesService;
   // Auth endpoints
   const signup = '/auth/sign-up';
   const login = '/auth/login';
@@ -40,13 +40,11 @@ describe('e2e - Account Controller', () => {
   before(async () => {
     app = await givenRunningApp();
     client = await givenClient(app);
-    await app.get('services.TasksQueuesService');
+    tasksQueuesService = await app.get('services.TasksQueuesService');
 
     ({accountRepository} = givenRepositories());
     ({accountService} = await givenServices());
-    customTokenService = await app.get(
-      CustomTokenServiceBindings.TOKEN_SERVICE,
-    );
+    customTokenService = await app.get(TokenServiceBindings.TOKEN_SERVICE);
   });
 
   beforeEach(async () => {
@@ -149,21 +147,27 @@ describe('e2e - Account Controller', () => {
     });
 
     it('Does not find the account to verify the email', async () => {
+      // Create the new account request
       const newUser: NewAccount = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
+
+      // Get the generated account id
       let response = await client.post(signup).send(newUser);
       const accountId = response.body.id;
 
+      // Log in to get a valid token
       const credentials: Credentials = {
         username: newUser.username,
         password: newUser.password,
       };
       response = await client.post(login).send(credentials);
+      // Delete the account to force a 404
       await accountRepository.deleteById(accountId);
 
+      // Query the endpoint and compare the result
       const {token} = response.body;
       await client
         .post(reqEmailVerification)
@@ -174,7 +178,7 @@ describe('e2e - Account Controller', () => {
 
     it('Fails when it can not enqueue the email tasks', async () => {
       const emailQueueStub = sandbox
-        .stub(TasksQueuesService.verificationEmailQueue, 'add')
+        .stub(tasksQueuesService.verificationEmailQueue, 'add')
         .throws('Some error');
 
       const newUser: NewAccount = {

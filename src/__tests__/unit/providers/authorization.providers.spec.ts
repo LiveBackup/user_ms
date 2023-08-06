@@ -5,8 +5,9 @@ import {
 } from '@loopback/authorization';
 import {InvocationContext} from '@loopback/core';
 import {expect} from '@loopback/testlab';
+import {Permissions} from '../../../models';
 import {AuthorizationProvider} from '../../../providers';
-import {ExtendedUserProfile, Permissions} from '../../../services';
+import {ExtendedUserProfile} from '../../../services';
 import {givenExtendedUserProfile} from '../../helpers/services.helpers';
 
 describe('Unit Testing - Authorization provider', () => {

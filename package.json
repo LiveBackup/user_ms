@@ -66,18 +66,20 @@
     "@types/bcryptjs": "^2.4.2",
     "bcryptjs": "^2.4.3",
     "bullmq": "^3.12.0",
+    "crypto-js": "^4.1.1",
     "dotenv": "^16.0.2",
-    "jsonwebtoken": "^9.0.0",
     "loopback-connector-kv-redis": "^3.0.3",
     "loopback-connector-postgresql": "^5.5.1",
-    "tslib": "^2.0.0"
+    "tslib": "^2.0.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@loopback/build": "^9.0.4",
     "@loopback/eslint-config": "^13.0.4",
     "@loopback/testlab": "^5.0.4",
-    "@types/jsonwebtoken": "^9.0.2",
+    "@types/crypto-js": "^4.1.1",
     "@types/node": "^14.18.32",
+    "@types/uuid": "^9.0.2",
     "eslint": "^8.25.0",
     "mocha": "^10.0.0",
     "redis-memory-server": "^0.6.0",
