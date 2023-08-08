@@ -6,8 +6,6 @@
 coverage
 dist
 node_modules
-public
-.yo-rc.json
 
 # Files
 .dockerignore
@@ -20,6 +18,7 @@ public
 .nycrc
 .prettierignore
 .prettierrc
+.yo-rc.json
 Dockerfile
 README.md
 sonar-project.properties
