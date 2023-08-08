@@ -28,6 +28,12 @@ COPY --chown=node . .
 
 RUN npm run build
 
+# Unistall devDependencies
+RUN npm prune --production
+
+# Remove source code and build configuration
+RUN rm -rf src tsconfig.json tsconfig.tsbuildinfo
+
 # Bind to all network interfaces so that it can be mapped to the host OS
 ENV HOST=0.0.0.0 PORT=3000
 
