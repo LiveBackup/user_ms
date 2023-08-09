@@ -83,10 +83,6 @@ export class Token extends Entity {
     },
   })
   expirationDate: Date;
-
-  constructor(data?: Partial<Token>) {
-    super(data);
-  }
 }
 
 export interface TokenRelations {

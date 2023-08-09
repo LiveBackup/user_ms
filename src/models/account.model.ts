@@ -57,10 +57,6 @@ export class Account extends Entity {
 
   @hasMany(() => Token, {keyTo: 'account_id', keyFrom: 'id'})
   tokens: Token[];
-
-  constructor(data?: Partial<Account>) {
-    super(data);
-  }
 }
 
 export interface AccountRelations {

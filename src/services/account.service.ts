@@ -24,7 +24,7 @@ export class AccountService {
     };
   }
 
-  async create(newAccount: Account): Promise<Account> {
+  async create(newAccount: Partial<Account>): Promise<Account> {
     return this.accountRepository.create(newAccount);
   }
 
