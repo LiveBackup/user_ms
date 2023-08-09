@@ -30,7 +30,7 @@ export class AccountController {
     protected tasksQueuesService: TasksQueuesService,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected jwtService: TokenService,
-  ) { }
+  ) {}
 
   @authenticate('jwt')
   @authorize({allowedRoles: [Permissions.REQUEST_EMAIL_VERIFICATION]})

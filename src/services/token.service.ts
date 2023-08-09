@@ -43,7 +43,7 @@ export class TokenService implements DefaultTokenService {
     private emailVerificationTokenExpiration: number,
     @inject(TokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN)
     private passwordRecoveryTokenExpiration: number,
-  ) { }
+  ) {}
 
   private getTokenData(permission: Permissions): Partial<Token> {
     let isOneUsageToken: boolean;
@@ -64,7 +64,10 @@ export class TokenService implements DefaultTokenService {
         break;
       case Permissions.REQUEST_EMAIL_VERIFICATION:
         isOneUsageToken = false;
-        allowedActions = [Permissions.REGULAR, Permissions.REQUEST_EMAIL_VERIFICATION];
+        allowedActions = [
+          Permissions.REGULAR,
+          Permissions.REQUEST_EMAIL_VERIFICATION,
+        ];
         lifeTime = this.regularTokenExpiration;
         break;
       default: // VERIFY_EMAIL
@@ -81,6 +84,11 @@ export class TokenService implements DefaultTokenService {
   }
 
   async generateToken(userProfile: ExtendedUserProfile): Promise<string> {
+    if (!userProfile.permissions)
+      throw new Error('User permissions must be provided');
+    else if (userProfile.permissions.length !== 1)
+      throw new Error('Permissions array must contain only 1 permission');
+
     const tokenSecret: string = uuidv4();
 
     const token: Partial<Token> = this.getTokenData(userProfile.permissions[0]);

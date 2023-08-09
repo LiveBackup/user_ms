@@ -168,26 +168,21 @@ describe('e2e - Account Credentials Controller', () => {
     });
 
     it('Rejects the query if was not called with right permissions', async () => {
-      const permissions = [
-        Permissions.REQUEST_EMAIL_VERIFICATION,
-        Permissions.VERIFY_EMAIL,
-      ];
+      const permission = Permissions.VERIFY_EMAIL;
 
-      for (const permission of permissions) {
-        const newPassword: Password = {password: 'dummy_password'};
-        // Generates the token
-        const userProfile = accountService.convertToUserProfile(
-          defaultAccount,
-          permission,
-        );
-        const token = await tokenService.generateToken(userProfile);
+      const newPassword: Password = {password: 'dummy_password'};
+      // Generates the token
+      const userProfile = accountService.convertToUserProfile(
+        defaultAccount,
+        permission,
+      );
+      const token = await tokenService.generateToken(userProfile);
 
-        await client
-          .patch(updatePassword)
-          .set('Authorization', `Bearer ${token}`)
-          .send(newPassword)
-          .expect(403);
-      }
+      await client
+        .patch(updatePassword)
+        .set('Authorization', `Bearer ${token}`)
+        .send(newPassword)
+        .expect(403);
     });
 
     it('Does not found the related account', async () => {

@@ -54,7 +54,7 @@ describe('Unit Testing - Token Service', () => {
 
       expect(expectedError).not.to.be.Undefined();
       expect(expectedError.message).to.be.equal(
-        'Permissions array must be provided',
+        'User permissions must be provided',
       );
     });
 
@@ -70,40 +70,11 @@ describe('Unit Testing - Token Service', () => {
 
       expect(expectedError).not.to.be.Undefined();
       expect(expectedError.message).to.be.equal(
-        'Permissions array must contain at least 1 permission',
+        'Permissions array must contain only 1 permission',
       );
     });
 
-    it('Fails to generate a token when more than 2 permissions were provided', async () => {
-      const userProfile = givenExtendedUserProfile({
-        permissions: [
-          Permissions.REGULAR,
-          Permissions.RECOVER_PASSWORD,
-          Permissions.VERIFY_EMAIL,
-        ],
-      });
-
-      let expectedError;
-      try {
-        await tokenService.generateToken(userProfile);
-      } catch (error) {
-        expectedError = error;
-      }
-
-      expect(expectedError).not.to.be.Undefined();
-      expect(expectedError.message).to.be.equal(
-        'Permissions array can not contain at more than 2 permissions',
-      );
-    });
-
-    it('Generates a token with a single permission', async () => {
-      const userProfile = givenExtendedUserProfile();
-      const token = await tokenService.generateToken(userProfile);
-      expect(token).not.to.be.null();
-      expect(token.length).to.be.greaterThan(0);
-    });
-
-    it('Fails to generate a token when combination is not allowed', async () => {
+    it('Fails to generate a token when more than 1 permissions were provided', async () => {
       const userProfile = givenExtendedUserProfile({
         permissions: [Permissions.REGULAR, Permissions.RECOVER_PASSWORD],
       });
@@ -117,18 +88,12 @@ describe('Unit Testing - Token Service', () => {
 
       expect(expectedError).not.to.be.Undefined();
       expect(expectedError.message).to.be.equal(
-        'Combination of permissions are not allowed: REGULAR,RECOVER_PASSWORD',
+        'Permissions array must contain only 1 permission',
       );
     });
 
-    it('Generate a token when combination is allowed', async () => {
-      const userProfile = givenExtendedUserProfile({
-        permissions: [
-          Permissions.REGULAR,
-          Permissions.REQUEST_EMAIL_VERIFICATION,
-        ],
-      });
-
+    it('Generates a token with a single permission', async () => {
+      const userProfile = givenExtendedUserProfile();
       const token = await tokenService.generateToken(userProfile);
       expect(token).not.to.be.null();
       expect(token.length).to.be.greaterThan(0);
@@ -242,10 +207,10 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Validates a regular token', async () => {
-      const permissions = Permissions.REGULAR;
+      const permission = Permissions.REGULAR;
       const userProfile = accountService.convertToUserProfile(
         account,
-        permissions,
+        permission,
       );
 
       // Generate the token
@@ -258,14 +223,14 @@ describe('Unit Testing - Token Service', () => {
 
       expect(resultProfle).not.to.be.Undefined();
       expect(resultProfle.permissions).to.be.Array();
-      expect(resultProfle.permissions).to.be.deepEqual(permissions);
+      expect(resultProfle.permissions).to.be.deepEqual([permission]);
     });
 
     it('Validates a request email verification token', async () => {
-      const permissions = Permissions.REQUEST_EMAIL_VERIFICATION;
+      const permission = Permissions.REQUEST_EMAIL_VERIFICATION;
       const userProfile = accountService.convertToUserProfile(
         account,
-        permissions,
+        permission,
       );
 
       // Generate the token
@@ -278,14 +243,17 @@ describe('Unit Testing - Token Service', () => {
 
       expect(resultProfle).not.to.be.Undefined();
       expect(resultProfle.permissions).to.be.Array();
-      expect(resultProfle.permissions).to.be.deepEqual(permissions);
+      expect(resultProfle.permissions).to.be.deepEqual([
+        Permissions.REGULAR,
+        permission,
+      ]);
     });
 
-    it('Validates a verify email token', async () => {
-      const permissions = Permissions.VERIFY_EMAIL;
+    it('Validates and delete a verify email token', async () => {
+      const permission = Permissions.VERIFY_EMAIL;
       const userProfile = accountService.convertToUserProfile(
         account,
-        permissions,
+        permission,
       );
 
       // Generate the token
@@ -298,14 +266,14 @@ describe('Unit Testing - Token Service', () => {
 
       expect(resultProfle).not.to.be.Undefined();
       expect(resultProfle.permissions).to.be.Array();
-      expect(resultProfle.permissions).to.be.deepEqual(permissions);
+      expect(resultProfle.permissions).to.be.deepEqual([permission]);
     });
 
-    it('Validates a recover password token', async () => {
-      const permissions = Permissions.RECOVER_PASSWORD;
+    it('Validates and delete a recover password token', async () => {
+      const permission = Permissions.RECOVER_PASSWORD;
       const userProfile = accountService.convertToUserProfile(
         account,
-        permissions,
+        permission,
       );
 
       // Generate the token
@@ -318,7 +286,7 @@ describe('Unit Testing - Token Service', () => {
 
       expect(resultProfle).not.to.be.Undefined();
       expect(resultProfle.permissions).to.be.Array();
-      expect(resultProfle.permissions).to.be.deepEqual(permissions);
+      expect(resultProfle.permissions).to.be.deepEqual([permission]);
     });
   });
 });
