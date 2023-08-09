@@ -42,8 +42,7 @@ export class Token extends Entity {
   tokenSecret: string;
 
   @property({
-    type: 'bool',
-    required: true,
+    type: 'boolean',
     default: false,
     postgresql: {
       columnName: 'is_one_usage_token',

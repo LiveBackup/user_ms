@@ -83,9 +83,10 @@ export class TokenService implements DefaultTokenService {
   async generateToken(userProfile: ExtendedUserProfile): Promise<string> {
     const tokenSecret: string = uuidv4();
 
-    const token: Partial<Token> = this.getTokenData(userProfile.permission[0]);
-    token.tokenSecret = tokenSecret;
-    const dbToken = await this.tokenRepository.create(token);
+    const token: Partial<Token> = this.getTokenData(userProfile.permissions[0]);
+    token.tokenSecret = AES.encrypt(tokenSecret, this.secret).toString();
+    token.accountId = userProfile[securityId];
+    const dbToken = await this.tokenRepository.create(new Token(token));
 
     return `${dbToken.id}-${tokenSecret}`;
   }
