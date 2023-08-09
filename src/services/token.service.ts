@@ -117,23 +117,27 @@ export class TokenService implements DefaultTokenService {
     // Get the token from DB
     const dbToken = await this.findById(tokenId);
     // Verify if the token exists and the expiration date is valid
-    if (!dbToken) {
-      throw invalidTokenError;
-    } else if (dbToken.expirationDate.valueOf() < new Date().valueOf()) {
+    if (!dbToken) throw invalidTokenError;
+    else if (dbToken.expirationDate.valueOf() < new Date().valueOf())
       throw new HttpErrors[401]('Error verifying the token: Token has expired');
-    }
 
+    // Decrypt the stored token secret
     const decryptedStoredToken = AES.decrypt(
       dbToken.tokenSecret,
       this.secret,
     ).toString(enc.Utf8);
 
+    // Compare the given and stored token secrets
     if (tokenSecret !== decryptedStoredToken) throw invalidTokenError;
 
+    // Create the user profile
     const userProfile: ExtendedUserProfile = {
       [securityId]: dbToken.accountId,
       permissions: dbToken.allowedActions,
     };
+
+    // Delete the one usage tokens
+    if (dbToken.isOneUsageToken) await this.tokenRepository.deleteById(tokenId);
 
     return userProfile;
   }

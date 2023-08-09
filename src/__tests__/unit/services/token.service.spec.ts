@@ -224,6 +224,15 @@ describe('Unit Testing - Token Service', () => {
       expect(resultProfle).not.to.be.Undefined();
       expect(resultProfle.permissions).to.be.Array();
       expect(resultProfle.permissions).to.be.deepEqual([permission]);
+
+      // Verify the token has not been deleted
+      let error;
+      try {
+        await tokenService.verifyToken(token);
+      } catch (err) {
+        error = err;
+      }
+      expect(error).to.be.undefined();
     });
 
     it('Validates a request email verification token', async () => {
@@ -247,9 +256,18 @@ describe('Unit Testing - Token Service', () => {
         Permissions.REGULAR,
         permission,
       ]);
+
+      // Verify the token has not been deleted
+      let error;
+      try {
+        await tokenService.verifyToken(token);
+      } catch (err) {
+        error = err;
+      }
+      expect(error).to.be.undefined();
     });
 
-    it('Validates and delete a verify email token', async () => {
+    it('Validates and deletes a verify email token', async () => {
       const permission = Permissions.VERIFY_EMAIL;
       const userProfile = accountService.convertToUserProfile(
         account,
@@ -267,9 +285,18 @@ describe('Unit Testing - Token Service', () => {
       expect(resultProfle).not.to.be.Undefined();
       expect(resultProfle.permissions).to.be.Array();
       expect(resultProfle.permissions).to.be.deepEqual([permission]);
+
+      // Verify the token has been deleted
+      let error;
+      try {
+        await tokenService.verifyToken(token);
+      } catch (err) {
+        error = err;
+      }
+      expect(error).not.to.be.undefined();
     });
 
-    it('Validates and delete a recover password token', async () => {
+    it('Validates and deletes a recover password token', async () => {
       const permission = Permissions.RECOVER_PASSWORD;
       const userProfile = accountService.convertToUserProfile(
         account,
@@ -287,6 +314,15 @@ describe('Unit Testing - Token Service', () => {
       expect(resultProfle).not.to.be.Undefined();
       expect(resultProfle.permissions).to.be.Array();
       expect(resultProfle.permissions).to.be.deepEqual([permission]);
+
+      // Verify the token has been deleted
+      let error;
+      try {
+        await tokenService.verifyToken(token);
+      } catch (err) {
+        error = err;
+      }
+      expect(error).not.to.be.undefined();
     });
   });
 });
