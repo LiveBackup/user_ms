@@ -43,57 +43,51 @@ export class TokenService implements DefaultTokenService {
     private emailVerificationTokenExpiration: number,
     @inject(TokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN)
     private passwordRecoveryTokenExpiration: number,
-  ) {}
+  ) { }
 
-  private getExpirationTime(permission: Permissions): number {
+  private getTokenData(permission: Permissions): Partial<Token> {
+    let isOneUsageToken: boolean;
+    let allowedActions: Permissions[];
+    let lifeTime: number;
+
+    // Fill the values
     switch (permission) {
-      case Permissions.VERIFY_EMAIL:
-        return this.emailVerificationTokenExpiration;
+      case Permissions.REGULAR:
+        isOneUsageToken = false;
+        allowedActions = [Permissions.REGULAR];
+        lifeTime = this.regularTokenExpiration;
+        break;
       case Permissions.RECOVER_PASSWORD:
-        return this.passwordRecoveryTokenExpiration;
-      default:
-        return this.regularTokenExpiration;
+        isOneUsageToken = true;
+        allowedActions = [Permissions.RECOVER_PASSWORD];
+        lifeTime = this.passwordRecoveryTokenExpiration;
+        break;
+      case Permissions.REQUEST_EMAIL_VERIFICATION:
+        isOneUsageToken = false;
+        allowedActions = [Permissions.REGULAR, Permissions.REQUEST_EMAIL_VERIFICATION];
+        lifeTime = this.regularTokenExpiration;
+        break;
+      default: // VERIFY_EMAIL
+        isOneUsageToken = true;
+        allowedActions = [Permissions.VERIFY_EMAIL];
+        lifeTime = this.emailVerificationTokenExpiration;
+        break;
     }
-  }
 
-  private validatePermissions(permissions: Permissions[]): void {
-    if (permissions === undefined) {
-      throw new Error('Permissions array must be provided');
-    } else if (permissions.length < 1) {
-      throw new Error('Permissions array must contain at least 1 permission');
-    } else if (permissions.length > 2) {
-      throw new Error(
-        'Permissions array can not contain at more than 2 permissions',
-      );
-    } else if (permissions.length === 2) {
-      if (
-        !(
-          permissions.includes(Permissions.REGULAR) &&
-          permissions.includes(Permissions.REQUEST_EMAIL_VERIFICATION)
-        )
-      ) {
-        throw new Error(
-          `Combination of permissions are not allowed: ${permissions}`,
-        );
-      }
-    }
+    // Calculate the token expiration date
+    const expirationDate = new Date(new Date().valueOf() + lifeTime);
+    // Return the object
+    return {isOneUsageToken, allowedActions, expirationDate};
   }
 
   async generateToken(userProfile: ExtendedUserProfile): Promise<string> {
-    this.validatePermissions(userProfile.permissions);
+    const tokenSecret: string = uuidv4();
 
-    const expiresIn = this.getExpirationTime(userProfile.permissions[0]);
-    const tokenValue: string = uuidv4();
-
-    const token: Partial<Token> = {
-      tokenValue: AES.encrypt(tokenValue, this.secret).toString(),
-      accountId: userProfile[securityId],
-      expirationDate: new Date(new Date().valueOf() + expiresIn),
-      allowedActions: userProfile.permissions,
-    };
+    const token: Partial<Token> = this.getTokenData(userProfile.permission[0]);
+    token.tokenSecret = tokenSecret;
     const dbToken = await this.tokenRepository.create(token);
 
-    return `${dbToken.id}-${tokenValue}`;
+    return `${dbToken.id}-${tokenSecret}`;
   }
 
   async verifyToken(token: string): Promise<ExtendedUserProfile> {
@@ -121,7 +115,7 @@ export class TokenService implements DefaultTokenService {
     }
 
     const decryptedStoredToken = AES.decrypt(
-      dbToken.tokenValue,
+      dbToken.tokenSecret,
       this.secret,
     ).toString(enc.Utf8);
 

@@ -36,27 +36,20 @@ export class Token extends Entity {
     required: true,
     index: {unique: true},
     postgresql: {
-      columnName: 'token_value',
+      columnName: 'token_secret',
     },
   })
-  tokenValue: string;
-
-  @property.array('string', {
-    postgresql: {
-      columnName: 'allowed_actions',
-    },
-  })
-  allowedActions: Permissions[];
+  tokenSecret: string;
 
   @property({
-    type: 'date',
+    type: 'bool',
     required: true,
+    default: false,
     postgresql: {
-      columnName: 'expiration_date',
-      dataType: 'timestamptz',
+      columnName: 'is_one_usage_token',
     },
   })
-  expirationDate: Date;
+  isOneUsageToken: boolean;
 
   @belongsTo(
     () => Account,
@@ -74,6 +67,23 @@ export class Token extends Entity {
     },
   )
   accountId: string;
+
+  @property.array('string', {
+    postgresql: {
+      columnName: 'allowed_actions',
+    },
+  })
+  allowedActions: Permissions[];
+
+  @property({
+    type: 'date',
+    required: true,
+    postgresql: {
+      columnName: 'expiration_date',
+      dataType: 'timestamptz',
+    },
+  })
+  expirationDate: Date;
 
   constructor(data?: Partial<Token>) {
     super(data);

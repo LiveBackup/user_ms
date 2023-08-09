@@ -10,17 +10,17 @@ export class AccountService {
   constructor(
     @repository(AccountRepository)
     protected accountRepository: AccountRepository,
-  ) {}
+  ) { }
 
   convertToUserProfile(
     account: Account,
-    permissions: Permissions[],
+    permission: Permissions,
   ): ExtendedUserProfile {
     return {
       [securityId]: account.id,
       username: account.username,
       email: account.email,
-      permissions,
+      permissions: [permission],
     };
   }
 

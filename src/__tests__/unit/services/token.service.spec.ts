@@ -137,9 +137,10 @@ describe('Unit Testing - Token Service', () => {
 
   describe('Token verification', () => {
     it('Verify a token', async () => {
-      const userProfile = accountService.convertToUserProfile(account, [
+      const userProfile = accountService.convertToUserProfile(
+        account,
         Permissions.REGULAR,
-      ]);
+      );
 
       const token = await tokenService.generateToken(userProfile);
       const resultUserProfile = await tokenService.verifyToken(token);
@@ -241,7 +242,7 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Validates a regular token', async () => {
-      const permissions = [Permissions.REGULAR];
+      const permissions = Permissions.REGULAR;
       const userProfile = accountService.convertToUserProfile(
         account,
         permissions,
@@ -261,7 +262,7 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Validates a request email verification token', async () => {
-      const permissions = [Permissions.REQUEST_EMAIL_VERIFICATION];
+      const permissions = Permissions.REQUEST_EMAIL_VERIFICATION;
       const userProfile = accountService.convertToUserProfile(
         account,
         permissions,
@@ -281,7 +282,7 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Validates a verify email token', async () => {
-      const permissions = [Permissions.VERIFY_EMAIL];
+      const permissions = Permissions.VERIFY_EMAIL;
       const userProfile = accountService.convertToUserProfile(
         account,
         permissions,
@@ -301,7 +302,7 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Validates a recover password token', async () => {
-      const permissions = [Permissions.RECOVER_PASSWORD];
+      const permissions = Permissions.RECOVER_PASSWORD;
       const userProfile = accountService.convertToUserProfile(
         account,
         permissions,

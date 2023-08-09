@@ -126,7 +126,7 @@ describe('e2e - Account Credentials Controller', () => {
         // Generate the token
         const userProfile = accountService.convertToUserProfile(
           defaultAccount,
-          [context.tokenPermission],
+          context.tokenPermission,
         );
         const token = await tokenService.generateToken(userProfile);
 
@@ -178,7 +178,7 @@ describe('e2e - Account Credentials Controller', () => {
         // Generates the token
         const userProfile = accountService.convertToUserProfile(
           defaultAccount,
-          [permission],
+          permission,
         );
         const token = await tokenService.generateToken(userProfile);
 
@@ -199,7 +199,7 @@ describe('e2e - Account Credentials Controller', () => {
       await accountService.create(anotherMockAccount);
       const userProfile = accountService.convertToUserProfile(
         anotherMockAccount,
-        [Permissions.REGULAR],
+        Permissions.REGULAR,
       );
       const token = await tokenService.generateToken(userProfile);
 
@@ -219,9 +219,10 @@ describe('e2e - Account Credentials Controller', () => {
         password: givenAccountCredentials().password,
       };
       // Generate the token
-      const userProfile = accountService.convertToUserProfile(defaultAccount, [
+      const userProfile = accountService.convertToUserProfile(
+        defaultAccount,
         Permissions.REGULAR,
-      ]);
+      );
       const token = await tokenService.generateToken(userProfile);
 
       const response = await client
