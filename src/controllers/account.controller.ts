@@ -52,9 +52,12 @@ export class AccountController {
     else if (account.isEmailVerified)
       throw new HttpErrors[400]('Emails has already been verified');
 
-    const userProfile = this.accountService.convertToUserProfile(account, [
+    // Create the user profile
+    const userProfile = this.accountService.convertToUserProfile(
+      account,
       Permissions.VERIFY_EMAIL,
-    ]);
+    );
+    // Generate the token
     const emailVerificationToken = await this.jwtService.generateToken(
       userProfile,
     );

@@ -139,16 +139,13 @@ export class AuthController {
     }
 
     // Generate the user permissions
-    const permissions: Permissions[] = [Permissions.REGULAR];
-    // If hte email has not been verified then add the permission
-    // to request the verification
-    if (!account.isEmailVerified) {
-      permissions.push(Permissions.REQUEST_EMAIL_VERIFICATION);
-    }
+    const permission: Permissions = account.isEmailVerified
+      ? Permissions.REGULAR
+      : Permissions.REQUEST_EMAIL_VERIFICATION;
     // Generate the user profile
     const userProfile = this.accountService.convertToUserProfile(
       account,
-      permissions,
+      permission,
     );
 
     // Generate the token

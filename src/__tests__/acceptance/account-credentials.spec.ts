@@ -126,7 +126,7 @@ describe('e2e - Account Credentials Controller', () => {
         // Generate the token
         const userProfile = accountService.convertToUserProfile(
           defaultAccount,
-          [context.tokenPermission],
+          context.tokenPermission,
         );
         const token = await tokenService.generateToken(userProfile);
 
@@ -168,26 +168,21 @@ describe('e2e - Account Credentials Controller', () => {
     });
 
     it('Rejects the query if was not called with right permissions', async () => {
-      const permissions = [
-        Permissions.REQUEST_EMAIL_VERIFICATION,
-        Permissions.VERIFY_EMAIL,
-      ];
+      const permission = Permissions.VERIFY_EMAIL;
 
-      for (const permission of permissions) {
-        const newPassword: Password = {password: 'dummy_password'};
-        // Generates the token
-        const userProfile = accountService.convertToUserProfile(
-          defaultAccount,
-          [permission],
-        );
-        const token = await tokenService.generateToken(userProfile);
+      const newPassword: Password = {password: 'dummy_password'};
+      // Generates the token
+      const userProfile = accountService.convertToUserProfile(
+        defaultAccount,
+        permission,
+      );
+      const token = await tokenService.generateToken(userProfile);
 
-        await client
-          .patch(updatePassword)
-          .set('Authorization', `Bearer ${token}`)
-          .send(newPassword)
-          .expect(403);
-      }
+      await client
+        .patch(updatePassword)
+        .set('Authorization', `Bearer ${token}`)
+        .send(newPassword)
+        .expect(403);
     });
 
     it('Does not found the related account', async () => {
@@ -199,7 +194,7 @@ describe('e2e - Account Credentials Controller', () => {
       await accountService.create(anotherMockAccount);
       const userProfile = accountService.convertToUserProfile(
         anotherMockAccount,
-        [Permissions.REGULAR],
+        Permissions.REGULAR,
       );
       const token = await tokenService.generateToken(userProfile);
 
@@ -219,9 +214,10 @@ describe('e2e - Account Credentials Controller', () => {
         password: givenAccountCredentials().password,
       };
       // Generate the token
-      const userProfile = accountService.convertToUserProfile(defaultAccount, [
+      const userProfile = accountService.convertToUserProfile(
+        defaultAccount,
         Permissions.REGULAR,
-      ]);
+      );
       const token = await tokenService.generateToken(userProfile);
 
       const response = await client

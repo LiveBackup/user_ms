@@ -45,55 +45,58 @@ export class TokenService implements DefaultTokenService {
     private passwordRecoveryTokenExpiration: number,
   ) {}
 
-  private getExpirationTime(permission: Permissions): number {
-    switch (permission) {
-      case Permissions.VERIFY_EMAIL:
-        return this.emailVerificationTokenExpiration;
-      case Permissions.RECOVER_PASSWORD:
-        return this.passwordRecoveryTokenExpiration;
-      default:
-        return this.regularTokenExpiration;
-    }
-  }
+  private getTokenData(permission: Permissions): Partial<Token> {
+    let isOneUsageToken: boolean;
+    let allowedActions: Permissions[];
+    let lifeTime: number;
 
-  private validatePermissions(permissions: Permissions[]): void {
-    if (permissions === undefined) {
-      throw new Error('Permissions array must be provided');
-    } else if (permissions.length < 1) {
-      throw new Error('Permissions array must contain at least 1 permission');
-    } else if (permissions.length > 2) {
-      throw new Error(
-        'Permissions array can not contain at more than 2 permissions',
-      );
-    } else if (permissions.length === 2) {
-      if (
-        !(
-          permissions.includes(Permissions.REGULAR) &&
-          permissions.includes(Permissions.REQUEST_EMAIL_VERIFICATION)
-        )
-      ) {
-        throw new Error(
-          `Combination of permissions are not allowed: ${permissions}`,
-        );
-      }
+    // Fill the values
+    switch (permission) {
+      case Permissions.REGULAR:
+        isOneUsageToken = false;
+        allowedActions = [Permissions.REGULAR];
+        lifeTime = this.regularTokenExpiration;
+        break;
+      case Permissions.RECOVER_PASSWORD:
+        isOneUsageToken = true;
+        allowedActions = [Permissions.RECOVER_PASSWORD];
+        lifeTime = this.passwordRecoveryTokenExpiration;
+        break;
+      case Permissions.REQUEST_EMAIL_VERIFICATION:
+        isOneUsageToken = false;
+        allowedActions = [
+          Permissions.REGULAR,
+          Permissions.REQUEST_EMAIL_VERIFICATION,
+        ];
+        lifeTime = this.regularTokenExpiration;
+        break;
+      default: // VERIFY_EMAIL
+        isOneUsageToken = true;
+        allowedActions = [Permissions.VERIFY_EMAIL];
+        lifeTime = this.emailVerificationTokenExpiration;
+        break;
     }
+
+    // Calculate the token expiration date
+    const expirationDate = new Date(new Date().valueOf() + lifeTime);
+    // Return the object
+    return {isOneUsageToken, allowedActions, expirationDate};
   }
 
   async generateToken(userProfile: ExtendedUserProfile): Promise<string> {
-    this.validatePermissions(userProfile.permissions);
+    if (!userProfile.permissions)
+      throw new Error('User permissions must be provided');
+    else if (userProfile.permissions.length !== 1)
+      throw new Error('Permissions array must contain only 1 permission');
 
-    const expiresIn = this.getExpirationTime(userProfile.permissions[0]);
-    const tokenValue: string = uuidv4();
+    const tokenSecret: string = uuidv4();
 
-    const token: Partial<Token> = {
-      tokenValue: AES.encrypt(tokenValue, this.secret).toString(),
-      accountId: userProfile[securityId],
-      expirationDate: new Date(new Date().valueOf() + expiresIn),
-      allowedActions: userProfile.permissions,
-    };
-    const dbToken = await this.tokenRepository.create(token);
+    const token: Partial<Token> = this.getTokenData(userProfile.permissions[0]);
+    token.tokenSecret = AES.encrypt(tokenSecret, this.secret).toString();
+    token.accountId = userProfile[securityId];
+    const dbToken = await this.tokenRepository.create(new Token(token));
 
-    return `${dbToken.id}-${tokenValue}`;
+    return `${dbToken.id}-${tokenSecret}`;
   }
 
   async verifyToken(token: string): Promise<ExtendedUserProfile> {
@@ -114,23 +117,27 @@ export class TokenService implements DefaultTokenService {
     // Get the token from DB
     const dbToken = await this.findById(tokenId);
     // Verify if the token exists and the expiration date is valid
-    if (!dbToken) {
-      throw invalidTokenError;
-    } else if (dbToken.expirationDate.valueOf() < new Date().valueOf()) {
+    if (!dbToken) throw invalidTokenError;
+    else if (dbToken.expirationDate.valueOf() < new Date().valueOf())
       throw new HttpErrors[401]('Error verifying the token: Token has expired');
-    }
 
+    // Decrypt the stored token secret
     const decryptedStoredToken = AES.decrypt(
-      dbToken.tokenValue,
+      dbToken.tokenSecret,
       this.secret,
     ).toString(enc.Utf8);
 
+    // Compare the given and stored token secrets
     if (tokenSecret !== decryptedStoredToken) throw invalidTokenError;
 
+    // Create the user profile
     const userProfile: ExtendedUserProfile = {
       [securityId]: dbToken.accountId,
       permissions: dbToken.allowedActions,
     };
+
+    // Delete the one usage tokens
+    if (dbToken.isOneUsageToken) await this.tokenRepository.deleteById(tokenId);
 
     return userProfile;
   }

@@ -212,9 +212,10 @@ describe('e2e - Account Controller', () => {
       const partialAccount = givenAccount();
       const account = await accountRepository.create(partialAccount);
       // Get the user profile related to the account
-      const userProfile = accountService.convertToUserProfile(account, [
+      const userProfile = accountService.convertToUserProfile(
+        account,
         Permissions.VERIFY_EMAIL,
-      ]);
+      );
 
       // Generate the verification token
       const verificationToken = await customTokenService.generateToken(
@@ -241,9 +242,10 @@ describe('e2e - Account Controller', () => {
       const partialAccount = givenAccount();
       const account = await accountRepository.create(partialAccount);
       // Get the user profile related to the account
-      const userProfile = accountService.convertToUserProfile(account, [
+      const userProfile = accountService.convertToUserProfile(
+        account,
         Permissions.VERIFY_EMAIL,
-      ]);
+      );
 
       // Generate the verification token
       const verificationToken = await customTokenService.generateToken(
@@ -287,9 +289,10 @@ describe('e2e - Account Controller', () => {
 
       for (const permission of permissions) {
         // Get the user profile related to the account
-        const userProfile = accountService.convertToUserProfile(account, [
+        const userProfile = accountService.convertToUserProfile(
+          account,
           permission,
-        ]);
+        );
 
         // Generate the verification token
         const verificationToken = await customTokenService.generateToken(
