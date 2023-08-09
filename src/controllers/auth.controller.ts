@@ -12,7 +12,7 @@ import {
   response,
 } from '@loopback/rest';
 import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
-import {Account, AccountCredentials, Permissions} from '../models';
+import {Account, Permissions} from '../models';
 import {Credentials, NewAccount, TokenResponse} from '../schemas';
 import {
   AccountCredentialsService,
@@ -72,22 +72,17 @@ export class AuthController {
     }
 
     // Creates the account into the database
-
-    const newAccount = await this.accountService.create(
-      new Account({
-        email,
-        username,
-        registeredAt: new Date(),
-      }),
-    );
+    const newAccount = await this.accountService.create({
+      email,
+      username,
+      registeredAt: new Date(),
+    });
 
     // Creates the user credentials into the database
-    await this.accountCredentialsService.create(
-      new AccountCredentials({
-        accountId: newAccount.id,
-        password: await this.accountCredentialsService.hashPassword(password),
-      }),
-    );
+    await this.accountCredentialsService.create({
+      accountId: newAccount.id,
+      password: await this.accountCredentialsService.hashPassword(password),
+    });
 
     this.httpResponse.status(201);
     return newAccount;

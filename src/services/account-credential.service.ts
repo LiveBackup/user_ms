@@ -23,7 +23,7 @@ export class AccountCredentialsService {
   }
 
   async create(
-    newCrendentials: AccountCredentials,
+    newCrendentials: Partial<AccountCredentials>,
   ): Promise<AccountCredentials> {
     return this.accountCredentialsRepository.create(newCrendentials);
   }

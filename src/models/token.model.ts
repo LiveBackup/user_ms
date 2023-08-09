@@ -74,10 +74,6 @@ export class Token extends Entity {
     },
   )
   accountId: string;
-
-  constructor(data?: Partial<Token>) {
-    super(data);
-  }
 }
 
 export interface TokenRelations {

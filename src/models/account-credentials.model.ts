@@ -50,10 +50,6 @@ export class AccountCredentials extends Entity {
     },
   )
   accountId: string;
-
-  constructor(data?: Partial<AccountCredentials>) {
-    super(data);
-  }
 }
 
 export interface AccountCredentialsRelations {
