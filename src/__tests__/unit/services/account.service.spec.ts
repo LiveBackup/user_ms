@@ -146,9 +146,10 @@ describe('Unit testing - Account Service', () => {
     const accountMock = givenAccount();
     const account = new Account(accountMock);
 
-    const userProfile = accountService.convertToUserProfile(account, [
+    const userProfile = accountService.convertToUserProfile(
+      account,
       Permissions.REGULAR,
-    ]);
+    );
 
     expect(userProfile[securityId]).to.be.equal(account.id);
     expect(userProfile.username).to.be.equal(account.username);

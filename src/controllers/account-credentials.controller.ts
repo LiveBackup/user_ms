@@ -62,9 +62,10 @@ export class AccountCredentialsController {
     }
 
     // Convert the related account to UserProfile
-    const userProfile = this.accountService.convertToUserProfile(account, [
+    const userProfile = this.accountService.convertToUserProfile(
+      account,
       Permissions.RECOVER_PASSWORD,
-    ]);
+    );
 
     // Generate the recovery token
     const recoveryToken = await this.jwtService.generateToken(userProfile);
