@@ -7,14 +7,14 @@ import {InvocationContext} from '@loopback/core';
 import {expect} from '@loopback/testlab';
 import {Permissions} from '../../../models';
 import {AuthorizationProvider} from '../../../providers';
-import {ExtendedUserProfile} from '../../../services';
-import {givenExtendedUserProfile} from '../../helpers/services.helpers';
+import {RequestUserProfile} from '../../../services';
+import {givenRequestUserProfile} from '../../helpers/services.helpers';
 
 describe('Unit Testing - Authorization provider', () => {
   const authorizationProvider = new AuthorizationProvider();
   let authorizationContext: AuthorizationContext;
   let metadata: AuthorizationMetadata;
-  let principal: ExtendedUserProfile;
+  let principal: RequestUserProfile;
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   beforeEach(() => {
@@ -38,7 +38,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when no allowed or denied roles are provided', async () => {
-    principal = givenExtendedUserProfile();
+    principal = givenRequestUserProfile();
     authorizationContext.principals = [principal];
 
     const authorizationDecision = await authorizationProvider.authorize(
@@ -49,7 +49,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when its role are included in allowed roles', async () => {
-    principal = givenExtendedUserProfile({permissions: [Permissions.REGULAR]});
+    principal = givenRequestUserProfile({permissions: [Permissions.REGULAR]});
     authorizationContext.principals = [principal];
     metadata = {
       allowedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],
@@ -63,7 +63,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when its role are not included in denied roles', async () => {
-    principal = givenExtendedUserProfile({
+    principal = givenRequestUserProfile({
       permissions: [Permissions.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];
@@ -79,7 +79,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role are not included in allowed roles', async () => {
-    principal = givenExtendedUserProfile({
+    principal = givenRequestUserProfile({
       permissions: [Permissions.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];
@@ -95,7 +95,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role are included in denied roles', async () => {
-    principal = givenExtendedUserProfile({permissions: [Permissions.REGULAR]});
+    principal = givenRequestUserProfile({permissions: [Permissions.REGULAR]});
     authorizationContext.principals = [principal];
     metadata = {
       deniedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],
@@ -109,7 +109,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when its role are included in allowed roles but not in denied roles', async () => {
-    principal = givenExtendedUserProfile({permissions: [Permissions.REGULAR]});
+    principal = givenRequestUserProfile({permissions: [Permissions.REGULAR]});
     authorizationContext.principals = [principal];
     metadata = {
       allowedRoles: [Permissions.REGULAR, Permissions.VERIFY_EMAIL],
@@ -127,7 +127,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role are included in denied roles but not in allowed roles', async () => {
-    principal = givenExtendedUserProfile({
+    principal = givenRequestUserProfile({
       permissions: [Permissions.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];
@@ -147,7 +147,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role is not included in neither allowed nor denied roles', async () => {
-    principal = givenExtendedUserProfile({
+    principal = givenRequestUserProfile({
       permissions: [Permissions.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];

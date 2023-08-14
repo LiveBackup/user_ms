@@ -3,7 +3,7 @@ import {Permissions} from '../../models';
 import {
   AccountCredentialsService,
   AccountService,
-  ExtendedUserProfile,
+  RequestUserProfile,
   TasksQueuesService,
 } from '../../services';
 import {tasksQueuesTestdb} from '../fixtures/datasources';
@@ -26,8 +26,8 @@ export const givenServices = async function () {
   };
 };
 
-export const givenExtendedUserProfile = function (
-  data?: Partial<ExtendedUserProfile>,
+export const givenRequestUserProfile = function (
+  data?: Partial<RequestUserProfile>,
 ) {
   return Object.assign(
     {

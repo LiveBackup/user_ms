@@ -15,7 +15,7 @@ import {
   givenEmptyDatabase,
   givenRepositories,
 } from '../helpers/database.helpers';
-import {givenExtendedUserProfile} from '../helpers/services.helpers';
+import {givenRequestUserProfile} from '../helpers/services.helpers';
 
 describe('e2e - Auth Controller', () => {
   // Sandbox
@@ -341,7 +341,7 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
       const response = await client.post(signup).send(newUser);
-      const userProfile = givenExtendedUserProfile(response.body);
+      const userProfile = givenRequestUserProfile(response.body);
       userProfile[securityId] = response.body.id;
 
       userProfile.permissions = [Permissions.RECOVER_PASSWORD];

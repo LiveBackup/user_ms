@@ -3,7 +3,7 @@ import {repository} from '@loopback/repository';
 import {securityId} from '@loopback/security';
 import {Account, Permissions} from '../models';
 import {AccountRepository} from '../repositories';
-import {ExtendedUserProfile} from './token.service';
+import {RequestUserProfile} from './token.service';
 
 @injectable({scope: BindingScope.SINGLETON})
 export class AccountService {
@@ -15,7 +15,7 @@ export class AccountService {
   convertToUserProfile(
     account: Account,
     permission: Permissions,
-  ): ExtendedUserProfile {
+  ): RequestUserProfile {
     return {
       [securityId]: account.id,
       username: account.username,
