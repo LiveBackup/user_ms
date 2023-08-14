@@ -41,7 +41,51 @@ describe('Unit Testing - Token Service', () => {
     );
   });
 
-  describe('', () => {});
+  describe('Get token parts', () => {
+    it('Gets the id and secret from a token', () => {
+      // Generate a dummy token value
+      const expectedId = '1-2-3-4-5';
+      const expectedSecret = '6-7-8-9-0';
+      const token = `${expectedId}-${expectedSecret}`;
+
+      // Split the dummt token into its parts
+      const [id, secret] = tokenService.getTokenParts(token);
+
+      // Check the results
+      expect(id).to.be.equal(expectedId);
+      expect(secret).to.be.equal(expectedSecret);
+    });
+
+    it('Throws an error when less than 10 parts are provided', () => {
+      let error;
+      // Call the error and expected to catch an error
+      try {
+        tokenService.getTokenParts('1-2-3-4-5-6-7-8-9');
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).not.to.be.Undefined();
+      expect(error.message).to.be.equal(
+        'Error verifying the token: Invalid Token',
+      );
+    });
+
+    it('Throws an error when more than 10 parts are provided', () => {
+      let error;
+      // Call the error and expected to catch an error
+      try {
+        tokenService.getTokenParts('1-2-3-4-5-6-7-8-9-10-11');
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).not.to.be.Undefined();
+      expect(error.message).to.be.equal(
+        'Error verifying the token: Invalid Token',
+      );
+    });
+  });
 
   describe('Token generation and validations', () => {
     it('Fails to generate a token when no permission is given', async () => {
