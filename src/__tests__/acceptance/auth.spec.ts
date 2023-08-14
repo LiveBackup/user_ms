@@ -344,7 +344,7 @@ describe('e2e - Auth Controller', () => {
       const userProfile = givenRequestUserProfile(response.body);
       userProfile[securityId] = response.body.id;
 
-      userProfile.permissions = [Permissions.RECOVER_PASSWORD];
+      userProfile.permission = Permissions.RECOVER_PASSWORD;
       token = await tokenService.generateToken(userProfile);
       await client
         .get(whoAmI)
@@ -352,7 +352,7 @@ describe('e2e - Auth Controller', () => {
         .expect(403)
         .send();
 
-      userProfile.permissions = [Permissions.VERIFY_EMAIL];
+      userProfile.permission = Permissions.VERIFY_EMAIL;
       token = await tokenService.generateToken(userProfile);
       await client
         .get(whoAmI)

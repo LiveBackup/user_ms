@@ -9,12 +9,13 @@ import {Permissions, Token} from '../models';
 import {TokenRepository} from '../repositories';
 
 export type RequestUserProfile = Principal & {
-  permissions: Permissions[];
+  permission: Permissions;
 };
 
-export type ExtendedUserProfile = RequestUserProfile & {
+export type ExtendedUserProfile = Principal & {
   token: string;
   isOneUsageProfile: boolean;
+  permissions: Permissions[];
 };
 
 export namespace TokenServiceBindings {
@@ -106,14 +107,12 @@ export class TokenService implements DefaultTokenService {
   }
 
   async generateToken(userProfile: RequestUserProfile): Promise<string> {
-    if (!userProfile.permissions)
-      throw new Error('User permissions must be provided');
-    else if (userProfile.permissions.length !== 1)
-      throw new Error('Permissions array must contain only 1 permission');
+    if (!userProfile.permission)
+      throw new Error('User permission must be provided');
 
     const tokenSecret: string = uuidv4();
 
-    const token: Partial<Token> = this.getTokenData(userProfile.permissions[0]);
+    const token: Partial<Token> = this.getTokenData(userProfile.permission);
     token.tokenSecret = AES.encrypt(tokenSecret, this.secret).toString();
     token.accountId = userProfile[securityId];
     const dbToken = await this.tokenRepository.create(new Token(token));

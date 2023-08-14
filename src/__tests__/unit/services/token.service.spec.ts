@@ -44,8 +44,8 @@ describe('Unit Testing - Token Service', () => {
   describe('', () => {});
 
   describe('Token generation and validations', () => {
-    it('Fails to generate a token when no array permissions is given', async () => {
-      const userProfile = givenRequestUserProfile({permissions: undefined});
+    it('Fails to generate a token when no permission is given', async () => {
+      const userProfile = givenRequestUserProfile({permission: undefined});
 
       let expectedError;
       try {
@@ -56,41 +56,7 @@ describe('Unit Testing - Token Service', () => {
 
       expect(expectedError).not.to.be.Undefined();
       expect(expectedError.message).to.be.equal(
-        'User permissions must be provided',
-      );
-    });
-
-    it('Fails to generate a token when array permissions is empty', async () => {
-      const userProfile = givenRequestUserProfile({permissions: []});
-
-      let expectedError;
-      try {
-        await tokenService.generateToken(userProfile);
-      } catch (error) {
-        expectedError = error;
-      }
-
-      expect(expectedError).not.to.be.Undefined();
-      expect(expectedError.message).to.be.equal(
-        'Permissions array must contain only 1 permission',
-      );
-    });
-
-    it('Fails to generate a token when more than 1 permissions were provided', async () => {
-      const userProfile = givenRequestUserProfile({
-        permissions: [Permissions.REGULAR, Permissions.RECOVER_PASSWORD],
-      });
-
-      let expectedError;
-      try {
-        await tokenService.generateToken(userProfile);
-      } catch (error) {
-        expectedError = error;
-      }
-
-      expect(expectedError).not.to.be.Undefined();
-      expect(expectedError.message).to.be.equal(
-        'Permissions array must contain only 1 permission',
+        'User permission must be provided',
       );
     });
 
@@ -104,21 +70,21 @@ describe('Unit Testing - Token Service', () => {
 
   describe('Token verification', () => {
     it('Verify a token', async () => {
-      const userProfile = accountService.convertToUserProfile(
+      const requestUserProfile = accountService.convertToUserProfile(
         account,
         Permissions.REGULAR,
       );
 
-      const token = await tokenService.generateToken(userProfile);
-      const resultUserProfile = await tokenService.verifyToken(token);
+      const token = await tokenService.generateToken(requestUserProfile);
+      const extendedUserProfile = await tokenService.verifyToken(token);
 
-      expect(resultUserProfile).not.to.be.null();
-      expect(resultUserProfile[securityId]).to.be.equal(
-        userProfile[securityId],
+      expect(extendedUserProfile).not.to.be.null();
+      expect(extendedUserProfile[securityId]).to.be.equal(
+        requestUserProfile[securityId],
       );
-      expect(resultUserProfile.permissions).to.containDeep(
-        userProfile.permissions,
-      );
+      expect(extendedUserProfile.permissions).to.containDeep([
+        requestUserProfile.permission,
+      ]);
     });
 
     it('Throws a 401 error when no token is provided', async () => {

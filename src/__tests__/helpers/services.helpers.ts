@@ -33,7 +33,7 @@ export const givenRequestUserProfile = function (
     {
       [securityId]: '1',
       username: 'user',
-      permissions: [Permissions.REGULAR],
+      permission: Permissions.REGULAR,
     },
     data,
   );

@@ -20,7 +20,7 @@ export class AccountService {
       [securityId]: account.id,
       username: account.username,
       email: account.email,
-      permissions: [permission],
+      permission: permission,
     };
   }
 
