@@ -1,6 +1,6 @@
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
-import {inject} from '@loopback/core';
+import {inject, intercept} from '@loopback/core';
 import {
   HttpErrors,
   Response,
@@ -12,6 +12,7 @@ import {
   response,
 } from '@loopback/rest';
 import {SecurityBindings, securityId} from '@loopback/security';
+import {TokenInterceptor} from '../interceptors';
 import {Account, AccountCredentials, Permissions} from '../models';
 import {Password} from '../schemas';
 import {
@@ -89,6 +90,7 @@ export class AccountCredentialsController {
   @authorize({
     allowedRoles: [Permissions.REGULAR, Permissions.RECOVER_PASSWORD],
   })
+  @intercept(TokenInterceptor.BINDING_KEY)
   @patch('/credentials/update-password')
   @response(204)
   async updatePassword(

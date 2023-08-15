@@ -1,16 +1,17 @@
 import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
-import {inject} from '@loopback/core';
+import {inject, intercept} from '@loopback/core';
 import {
-  getModelSchemaRef,
   HttpErrors,
+  Response,
+  RestBindings,
+  getModelSchemaRef,
   patch,
   post,
-  Response,
   response,
-  RestBindings,
 } from '@loopback/rest';
 import {SecurityBindings, securityId} from '@loopback/security';
+import {TokenInterceptor} from '../interceptors';
 import {Account, Permissions} from '../models';
 import {
   AccountService,
@@ -77,6 +78,7 @@ export class AccountController {
 
   @authenticate('jwt')
   @authorize({allowedRoles: [Permissions.VERIFY_EMAIL]})
+  @intercept(TokenInterceptor.BINDING_KEY)
   @patch('/account/verify-email')
   @response(200, {
     description: 'Account info with email verified',

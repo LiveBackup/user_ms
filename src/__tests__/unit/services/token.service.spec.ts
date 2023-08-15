@@ -9,7 +9,7 @@ import {
   givenRepositories,
   givenToken,
 } from '../../helpers/database.helpers';
-import {givenExtendedUserProfile} from '../../helpers/services.helpers';
+import {givenRequestUserProfile} from '../../helpers/services.helpers';
 
 describe('Unit Testing - Token Service', () => {
   // App repositories
@@ -41,9 +41,55 @@ describe('Unit Testing - Token Service', () => {
     );
   });
 
+  describe('Get token parts', () => {
+    it('Gets the id and secret from a token', () => {
+      // Generate a dummy token value
+      const expectedId = '1-2-3-4-5';
+      const expectedSecret = '6-7-8-9-0';
+      const token = `${expectedId}-${expectedSecret}`;
+
+      // Split the dummt token into its parts
+      const [id, secret] = tokenService.getTokenParts(token);
+
+      // Check the results
+      expect(id).to.be.equal(expectedId);
+      expect(secret).to.be.equal(expectedSecret);
+    });
+
+    it('Throws an error when less than 10 parts are provided', () => {
+      let error;
+      // Call the error and expected to catch an error
+      try {
+        tokenService.getTokenParts('1-2-3-4-5-6-7-8-9');
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).not.to.be.Undefined();
+      expect(error.message).to.be.equal(
+        'Error verifying the token: Invalid Token',
+      );
+    });
+
+    it('Throws an error when more than 10 parts are provided', () => {
+      let error;
+      // Call the error and expected to catch an error
+      try {
+        tokenService.getTokenParts('1-2-3-4-5-6-7-8-9-10-11');
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).not.to.be.Undefined();
+      expect(error.message).to.be.equal(
+        'Error verifying the token: Invalid Token',
+      );
+    });
+  });
+
   describe('Token generation and validations', () => {
-    it('Fails to generate a token when no array permissions is given', async () => {
-      const userProfile = givenExtendedUserProfile({permissions: undefined});
+    it('Fails to generate a token when no permission is given', async () => {
+      const userProfile = givenRequestUserProfile({permission: undefined});
 
       let expectedError;
       try {
@@ -54,46 +100,12 @@ describe('Unit Testing - Token Service', () => {
 
       expect(expectedError).not.to.be.Undefined();
       expect(expectedError.message).to.be.equal(
-        'User permissions must be provided',
-      );
-    });
-
-    it('Fails to generate a token when array permissions is empty', async () => {
-      const userProfile = givenExtendedUserProfile({permissions: []});
-
-      let expectedError;
-      try {
-        await tokenService.generateToken(userProfile);
-      } catch (error) {
-        expectedError = error;
-      }
-
-      expect(expectedError).not.to.be.Undefined();
-      expect(expectedError.message).to.be.equal(
-        'Permissions array must contain only 1 permission',
-      );
-    });
-
-    it('Fails to generate a token when more than 1 permissions were provided', async () => {
-      const userProfile = givenExtendedUserProfile({
-        permissions: [Permissions.REGULAR, Permissions.RECOVER_PASSWORD],
-      });
-
-      let expectedError;
-      try {
-        await tokenService.generateToken(userProfile);
-      } catch (error) {
-        expectedError = error;
-      }
-
-      expect(expectedError).not.to.be.Undefined();
-      expect(expectedError.message).to.be.equal(
-        'Permissions array must contain only 1 permission',
+        'User permission must be provided',
       );
     });
 
     it('Generates a token with a single permission', async () => {
-      const userProfile = givenExtendedUserProfile();
+      const userProfile = givenRequestUserProfile();
       const token = await tokenService.generateToken(userProfile);
       expect(token).not.to.be.null();
       expect(token.length).to.be.greaterThan(0);
@@ -102,21 +114,21 @@ describe('Unit Testing - Token Service', () => {
 
   describe('Token verification', () => {
     it('Verify a token', async () => {
-      const userProfile = accountService.convertToUserProfile(
+      const requestUserProfile = accountService.convertToUserProfile(
         account,
         Permissions.REGULAR,
       );
 
-      const token = await tokenService.generateToken(userProfile);
-      const resultUserProfile = await tokenService.verifyToken(token);
+      const token = await tokenService.generateToken(requestUserProfile);
+      const extendedUserProfile = await tokenService.verifyToken(token);
 
-      expect(resultUserProfile).not.to.be.null();
-      expect(resultUserProfile[securityId]).to.be.equal(
-        userProfile[securityId],
+      expect(extendedUserProfile).not.to.be.null();
+      expect(extendedUserProfile[securityId]).to.be.equal(
+        requestUserProfile[securityId],
       );
-      expect(resultUserProfile.permissions).to.containDeep(
-        userProfile.permissions,
-      );
+      expect(extendedUserProfile.permissions).to.containDeep([
+        requestUserProfile.permission,
+      ]);
     });
 
     it('Throws a 401 error when no token is provided', async () => {
@@ -190,7 +202,7 @@ describe('Unit Testing - Token Service', () => {
     it('Throws a 401 error when token has expired', async () => {
       let expectedError;
       tokenService = new TokenService(tokenRepository, 'secret', 0, 0, 0);
-      const userProfile = givenExtendedUserProfile();
+      const userProfile = givenRequestUserProfile();
       const token = await tokenService.generateToken(userProfile);
       expect(token).not.to.be.Null();
       expect(token.length).to.be.greaterThan(0);
@@ -267,7 +279,7 @@ describe('Unit Testing - Token Service', () => {
       expect(error).to.be.undefined();
     });
 
-    it('Validates and deletes a verify email token', async () => {
+    it('Validates a verify email token', async () => {
       const permission = Permissions.VERIFY_EMAIL;
       const userProfile = accountService.convertToUserProfile(
         account,
@@ -285,18 +297,9 @@ describe('Unit Testing - Token Service', () => {
       expect(resultProfle).not.to.be.Undefined();
       expect(resultProfle.permissions).to.be.Array();
       expect(resultProfle.permissions).to.be.deepEqual([permission]);
-
-      // Verify the token has been deleted
-      let error;
-      try {
-        await tokenService.verifyToken(token);
-      } catch (err) {
-        error = err;
-      }
-      expect(error).not.to.be.undefined();
     });
 
-    it('Validates and deletes a recover password token', async () => {
+    it('Validates a recover password token', async () => {
       const permission = Permissions.RECOVER_PASSWORD;
       const userProfile = accountService.convertToUserProfile(
         account,
@@ -314,15 +317,87 @@ describe('Unit Testing - Token Service', () => {
       expect(resultProfle).not.to.be.Undefined();
       expect(resultProfle.permissions).to.be.Array();
       expect(resultProfle.permissions).to.be.deepEqual([permission]);
+    });
+  });
 
-      // Verify the token has been deleted
+  describe('Token revocation', () => {
+    it('Revokes a token', async () => {
+      // Generates an request UserProfile
+      const requestUserProfile = accountService.convertToUserProfile(
+        account,
+        Permissions.REGULAR,
+      );
+
+      // Generates a valid token
+      const token = await tokenService.generateToken(requestUserProfile);
+      const verifiedUserProfile = await tokenService.verifyToken(token);
+      expect(verifiedUserProfile).not.to.be.null();
+      expect(verifiedUserProfile[securityId]).to.be.equal(
+        requestUserProfile[securityId],
+      );
+
+      // Revokes the token
+      const revoked = await tokenService.revokeToken(verifiedUserProfile.token);
+      expect(revoked).to.be.True();
+
+      // Check the token has been revoked
       let error;
       try {
         await tokenService.verifyToken(token);
       } catch (err) {
         error = err;
       }
-      expect(error).not.to.be.undefined();
+      expect(error).not.to.be.Undefined();
+      expect(error.message).to.be.equal(
+        'Error verifying the token: Invalid Token',
+      );
+    });
+
+    it('Throws an error when token can not be splited', async () => {
+      // Set a non-valid token
+      const dummyToken = '1-2-3-4-5-6-7-8';
+
+      // Revoke the token
+      let error;
+      try {
+        await tokenService.revokeToken(dummyToken);
+      } catch (err) {
+        error = err;
+      }
+      expect(error).not.to.be.Undefined();
+      expect(error.message).to.be.equal(
+        'Error verifying the token: Invalid Token',
+      );
+    });
+
+    it('Fails to revoke a token when it does not exist in db', async () => {
+      // Set a non-valid token
+      const dummyToken = '11-22-33-44-55-66-77-88-99-00';
+
+      // Revokes the token
+      const revoked = await tokenService.revokeToken(dummyToken);
+      expect(revoked).to.be.False();
+    });
+
+    it('Fails to revoke a token when secret does not match', async () => {
+      // Generates an request UserProfile
+      const requestUserProfile = accountService.convertToUserProfile(
+        account,
+        Permissions.REGULAR,
+      );
+
+      // Generates a valid token
+      const token = await tokenService.generateToken(requestUserProfile);
+      const verifiedUserProfile = await tokenService.verifyToken(token);
+      expect(verifiedUserProfile).not.to.be.null();
+      expect(verifiedUserProfile[securityId]).to.be.equal(
+        requestUserProfile[securityId],
+      );
+
+      // Revokes the token
+      const nonValidSecretToken = `${verifiedUserProfile.token}somethingElse`;
+      const revoked = await tokenService.revokeToken(nonValidSecretToken);
+      expect(revoked).to.be.False();
     });
   });
 });

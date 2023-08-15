@@ -108,55 +108,95 @@ describe('e2e - Account Credentials Controller', () => {
   });
 
   describe(`Update password - ${updatePassword} Endpoint`, () => {
-    it('Updates the password using regular and recovery tokens', async () => {
-      const contexts = [
-        {
-          tokenPermission: Permissions.REGULAR,
-          newPassword: 'regular_password',
-        },
-        {
-          tokenPermission: Permissions.RECOVER_PASSWORD,
-          newPassword: 'recover_password',
-        },
-      ];
+    it('Updates the password using regular token', async () => {
+      // Set the new password
+      const newPassword: Password = {password: 'regular_password'};
+      // Generate the token
+      const userProfile = accountService.convertToUserProfile(
+        defaultAccount,
+        Permissions.REGULAR,
+      );
+      const token = await tokenService.generateToken(userProfile);
 
-      for (const context of contexts) {
-        // Set the new password
-        const newPassword: Password = {password: context.newPassword};
-        // Generate the token
-        const userProfile = accountService.convertToUserProfile(
-          defaultAccount,
-          context.tokenPermission,
-        );
-        const token = await tokenService.generateToken(userProfile);
+      // Test the endpoint
+      await client
+        .patch(updatePassword)
+        .set('Authorization', `Bearer: ${token}`)
+        .send(newPassword)
+        .expect(204);
 
-        // Test the endpoint
-        await client
-          .patch(updatePassword)
-          .set('Authorization', `Bearer: ${token}`)
-          .send(newPassword)
-          .expect(204);
-
-        // Check the result
-        const updatedCredentials = await accountCredentialsService.findById(
-          defaultCredentials.id,
-        );
-        if (!updatedCredentials) {
-          expect.fail(null, null, 'Updated credentials should not be null', '');
-          return;
-        }
-
-        const matchOldPassword = await accountCredentialsService.verifyPassword(
-          newPassword.password,
-          defaultCredentials.password,
-        );
-        const matchNewPassword = await accountCredentialsService.verifyPassword(
-          newPassword.password,
-          updatedCredentials.password,
-        );
-        expect(matchOldPassword).to.be.False();
-        expect(matchNewPassword).to.be.True();
+      // Check the result
+      const updatedCredentials = await accountCredentialsService.findById(
+        defaultCredentials.id,
+      );
+      if (!updatedCredentials) {
+        expect.fail(null, null, 'Updated credentials should not be null', '');
+        return;
       }
+
+      const matchOldPassword = await accountCredentialsService.verifyPassword(
+        newPassword.password,
+        defaultCredentials.password,
+      );
+      const matchNewPassword = await accountCredentialsService.verifyPassword(
+        newPassword.password,
+        updatedCredentials.password,
+      );
+      expect(matchOldPassword).to.be.False();
+      expect(matchNewPassword).to.be.True();
+
+      // Try to call the endpoint again (Token should not be revoked)
+      newPassword.password = 'regular_password 2.0';
+      await client
+        .patch(updatePassword)
+        .set('Authorization', `Bearer: ${token}`)
+        .send(newPassword)
+        .expect(204);
+    });
+
+    it('Updates the password using recovery tokens', async () => {
+      // Set the new password
+      const newPassword: Password = {password: 'recover_password'};
+      // Generate the token
+      const userProfile = accountService.convertToUserProfile(
+        defaultAccount,
+        Permissions.RECOVER_PASSWORD,
+      );
+      const token = await tokenService.generateToken(userProfile);
+
+      // Test the endpoint
+      await client
+        .patch(updatePassword)
+        .set('Authorization', `Bearer: ${token}`)
+        .send(newPassword)
+        .expect(204);
+
+      // Check the result
+      const updatedCredentials = await accountCredentialsService.findById(
+        defaultCredentials.id,
+      );
+      if (!updatedCredentials) {
+        expect.fail(null, null, 'Updated credentials should not be null', '');
+        return;
+      }
+
+      const matchOldPassword = await accountCredentialsService.verifyPassword(
+        newPassword.password,
+        defaultCredentials.password,
+      );
+      const matchNewPassword = await accountCredentialsService.verifyPassword(
+        newPassword.password,
+        updatedCredentials.password,
+      );
+      expect(matchOldPassword).to.be.False();
+      expect(matchNewPassword).to.be.True();
+
+      // Try to call the endpoint again (Token should be revoked)
+      await client
+        .patch(updatePassword)
+        .set('Authorization', `Bearer: ${token}`)
+        .send(newPassword)
+        .expect(401);
     });
 
     it('Rejects the query if a valid token is not provided', async () => {

@@ -11,12 +11,13 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {SecurityBindings, UserProfile, securityId} from '@loopback/security';
+import {SecurityBindings, securityId} from '@loopback/security';
 import {Account, Permissions} from '../models';
 import {Credentials, NewAccount, TokenResponse} from '../schemas';
 import {
   AccountCredentialsService,
   AccountService,
+  ExtendedUserProfile,
   TokenService,
   TokenServiceBindings,
 } from '../services';
@@ -167,7 +168,7 @@ export class AuthController {
     },
   })
   async whoAmI(
-    @inject(SecurityBindings.USER) currentUser: UserProfile,
+    @inject(SecurityBindings.USER) currentUser: ExtendedUserProfile,
   ): Promise<Account> {
     const account = await this.accountService.findById(currentUser[securityId]);
     if (account === null) {

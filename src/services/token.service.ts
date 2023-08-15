@@ -8,7 +8,13 @@ import {v4 as uuidv4} from 'uuid';
 import {Permissions, Token} from '../models';
 import {TokenRepository} from '../repositories';
 
+export type RequestUserProfile = Principal & {
+  permission: Permissions;
+};
+
 export type ExtendedUserProfile = Principal & {
+  token: string;
+  isOneUsageProfile: boolean;
   permissions: Permissions[];
 };
 
@@ -83,15 +89,30 @@ export class TokenService implements DefaultTokenService {
     return {isOneUsageToken, allowedActions, expirationDate};
   }
 
-  async generateToken(userProfile: ExtendedUserProfile): Promise<string> {
-    if (!userProfile.permissions)
-      throw new Error('User permissions must be provided');
-    else if (userProfile.permissions.length !== 1)
-      throw new Error('Permissions array must contain only 1 permission');
+  public getTokenParts(token: string): string[] {
+    // Define the error
+    const invalidTokenError = new HttpErrors[401](
+      'Error verifying the token: Invalid Token',
+    );
+    // Split the token
+    const tokenParts = token.split('-');
+    if (tokenParts.length !== 10) throw invalidTokenError;
+
+    // Join the token id
+    const tokenId = tokenParts.slice(0, 5).join('-');
+    // Join the token secret
+    const tokenSecret = tokenParts.slice(-5).join('-');
+    // Return the token parts
+    return [tokenId, tokenSecret];
+  }
+
+  async generateToken(userProfile: RequestUserProfile): Promise<string> {
+    if (!userProfile.permission)
+      throw new Error('User permission must be provided');
 
     const tokenSecret: string = uuidv4();
 
-    const token: Partial<Token> = this.getTokenData(userProfile.permissions[0]);
+    const token: Partial<Token> = this.getTokenData(userProfile.permission);
     token.tokenSecret = AES.encrypt(tokenSecret, this.secret).toString();
     token.accountId = userProfile[securityId];
     const dbToken = await this.tokenRepository.create(new Token(token));
@@ -108,11 +129,8 @@ export class TokenService implements DefaultTokenService {
       throw new HttpErrors[401](message);
     }
 
-    const tokenParts = token.split('-');
-    if (tokenParts.length !== 10) throw invalidTokenError;
-
-    const tokenId = tokenParts.slice(0, 5).join('-');
-    const tokenSecret = tokenParts.slice(-5).join('-');
+    // Get the token parts
+    const [tokenId, tokenSecret] = this.getTokenParts(token);
 
     // Get the token from DB
     const dbToken = await this.findById(tokenId);
@@ -134,12 +152,35 @@ export class TokenService implements DefaultTokenService {
     const userProfile: ExtendedUserProfile = {
       [securityId]: dbToken.accountId,
       permissions: dbToken.allowedActions,
+      token,
+      isOneUsageProfile: dbToken.isOneUsageToken,
     };
 
-    // Delete the one usage tokens
-    if (dbToken.isOneUsageToken) await this.tokenRepository.deleteById(tokenId);
-
     return userProfile;
+  }
+
+  async revokeToken(token: string): Promise<boolean> {
+    // Split the token
+    const [tokenId, tokenSecret] = this.getTokenParts(token);
+
+    // Get the token from db
+    const dbToken = await this.findById(tokenId);
+    // Verify if the token exists and the expiration date is valid
+    if (!dbToken) return false;
+
+    // Decrypt the stored token secret
+    const decryptedStoredToken = AES.decrypt(
+      dbToken.tokenSecret,
+      this.secret,
+    ).toString(enc.Utf8);
+
+    // Compare the given and stored token secrets
+    if (tokenSecret !== decryptedStoredToken) return false;
+
+    // Remove the token from db
+    await this.tokenRepository.deleteById(tokenId);
+
+    return true;
   }
 
   async findById(id: string): Promise<Token | null> {

@@ -235,6 +235,13 @@ describe('e2e - Account Controller', () => {
       expect(updatedAccount.email).to.be.equal(account.email);
       expect(updatedAccount.username).to.be.equal(account.username);
       expect(updatedAccount.isEmailVerified).to.be.True();
+
+      // Try to call the endpoint again (token should be revoked)
+      await client
+        .patch(verifyEmail)
+        .set('Authorization', `Bearer: ${verificationToken}`)
+        .send()
+        .expect(401);
     });
 
     it('Fails when the account is not found', async () => {
