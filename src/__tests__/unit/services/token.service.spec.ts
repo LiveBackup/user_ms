@@ -319,4 +319,85 @@ describe('Unit Testing - Token Service', () => {
       expect(resultProfle.permissions).to.be.deepEqual([permission]);
     });
   });
+
+  describe('Token revocation', () => {
+    it('Revokes a token', async () => {
+      // Generates an request UserProfile
+      const requestUserProfile = accountService.convertToUserProfile(
+        account,
+        Permissions.REGULAR,
+      );
+
+      // Generates a valid token
+      const token = await tokenService.generateToken(requestUserProfile);
+      const verifiedUserProfile = await tokenService.verifyToken(token);
+      expect(verifiedUserProfile).not.to.be.null();
+      expect(verifiedUserProfile[securityId]).to.be.equal(
+        requestUserProfile[securityId],
+      );
+
+      // Revokes the token
+      const revoked = await tokenService.revokeToken(verifiedUserProfile.token);
+      expect(revoked).to.be.True();
+
+      // Check the token has been revoked
+      let error;
+      try {
+        await tokenService.verifyToken(token);
+      } catch (err) {
+        error = err;
+      }
+      expect(error).not.to.be.Undefined();
+      expect(error.message).to.be.equal(
+        'Error verifying the token: Invalid Token',
+      );
+    });
+
+    it('Throws an error when token can not be splited', async () => {
+      // Set a non-valid token
+      const dummyToken = '1-2-3-4-5-6-7-8';
+
+      // Revoke the token
+      let error;
+      try {
+        await tokenService.revokeToken(dummyToken);
+      } catch (err) {
+        error = err;
+      }
+      expect(error).not.to.be.Undefined();
+      expect(error.message).to.be.equal(
+        'Error verifying the token: Invalid Token',
+      );
+    });
+
+    it('Fails to revoke a token when it does not exist in db', async () => {
+      // Set a non-valid token
+      const dummyToken = '11-22-33-44-55-66-77-88-99-00';
+
+      // Revokes the token
+      const revoked = await tokenService.revokeToken(dummyToken);
+      expect(revoked).to.be.False();
+    });
+
+    it('Fails to revoke a token when secret does not match', async () => {
+      // Generates an request UserProfile
+      const requestUserProfile = accountService.convertToUserProfile(
+        account,
+        Permissions.REGULAR,
+      );
+
+      // Generates a valid token
+      const token = await tokenService.generateToken(requestUserProfile);
+      const verifiedUserProfile = await tokenService.verifyToken(token);
+      expect(verifiedUserProfile).not.to.be.null();
+      expect(verifiedUserProfile[securityId]).to.be.equal(
+        requestUserProfile[securityId],
+      );
+
+      // Revokes the token
+      const nonValidSecretToken = `${verifiedUserProfile.token}somethingElse`;
+      const revoked = await tokenService.revokeToken(nonValidSecretToken);
+      expect(revoked).to.be.False();
+    });
+  });
 });
