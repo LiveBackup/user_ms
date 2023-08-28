@@ -9,8 +9,10 @@ import {userTestdb} from '../fixtures/datasources';
 
 // Clear the testing database
 export const givenEmptyDatabase = async function () {
-  const {accountRepository, accountCredentialsRepository} = givenRepositories();
+  const {accountRepository, accountCredentialsRepository, tokenRepository} =
+    givenRepositories();
 
+  await tokenRepository.deleteAll();
   await accountCredentialsRepository.deleteAll();
   await accountRepository.deleteAll();
 };
