@@ -1,14 +1,25 @@
+import {AuthenticationComponent} from '@loopback/authentication';
+import {JWTAuthenticationComponent} from '@loopback/authentication-jwt';
+import {
+  AuthorizationComponent,
+  AuthorizationTags,
+} from '@loopback/authorization';
 import {BootMixin} from '@loopback/boot';
 import {ApplicationConfig} from '@loopback/core';
+import {RepositoryMixin} from '@loopback/repository';
+import {RestApplication} from '@loopback/rest';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
-import {RepositoryMixin} from '@loopback/repository';
-import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
+import dotenv from 'dotenv';
 import path from 'path';
+import {AuthorizationProvider} from './providers';
 import {MySequence} from './sequence';
+import {TokenService, TokenServiceBindings} from './services';
+
+dotenv.config();
 
 export {ApplicationConfig};
 
@@ -40,5 +51,34 @@ export class UserMsApplication extends BootMixin(
         nested: true,
       },
     };
+
+    // Mount authentication system
+    this.component(AuthenticationComponent);
+
+    // Mount jwt component
+    this.component(JWTAuthenticationComponent);
+
+    // Mount Authorization Component
+    this.component(AuthorizationComponent);
+    this.bind('authorizationProviders.authorization-provider')
+      .toProvider(AuthorizationProvider)
+      .tag(AuthorizationTags.AUTHORIZER);
+
+    // Bind the cusatom token service
+    this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(TokenService);
+
+    // Bind variables for jwt access token
+    this.bind(TokenServiceBindings.TOKEN_SECRET).to(
+      process.env.USER_MS_ACCESS_TOKEN_SECRET ?? 'access_secret',
+    );
+    this.bind(TokenServiceBindings.TOKEN_REGULAR_EXPIRES_IN).to(
+      +(process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? 3600000),
+    );
+    this.bind(TokenServiceBindings.TOKEN_VERIFICATE_EMAIL_EXPIRES_IN).to(
+      +(process.env.USER_MS_VERIFICATE_EMAIL_TOKEN_EXPIRATION_TIME ?? 3600000),
+    );
+    this.bind(TokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN).to(
+      +(process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? 3600000),
+    );
   }
 }

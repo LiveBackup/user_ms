@@ -1,5 +1,25 @@
+# Folders
+.git
+.github
+.nyc_output
+.vscode
+coverage
+dist
 node_modules
-npm-debug.log
-/dist
-# Cache used by TypeScript's incremental build
-*.tsbuildinfo
+
+# Files
+.dockerignore
+.env
+.eslintignore
+.eslintrc.js
+.example.env
+.gitignore
+.mocharc.json
+.nycrc
+.prettierignore
+.prettierrc
+.yo-rc.json
+Dockerfile
+README.md
+sonar-project.properties
+tsconfig.tsbuildinfo
