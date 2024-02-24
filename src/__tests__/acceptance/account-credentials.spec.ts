@@ -191,7 +191,7 @@ describe('e2e - Account Credentials Controller', () => {
       expect(matchOldPassword).to.be.False();
       expect(matchNewPassword).to.be.True();
 
-      // Try to call the endpoint again (Token should be revoked)
+      // Try to call the endpoint again (Token should have been revoked)
       await client
         .patch(updatePassword)
         .set('Authorization', `Bearer: ${token}`)
