@@ -129,13 +129,13 @@ export class AuthController {
       throw new HttpErrors[404]('User credentials not found');
     }
 
-    // Compare the stored password againts the given password
-    const isValidPassowrd = await this.accountCredentialsService.verifyPassword(
+    // Compare the stored password against the given password
+    const isValidPassword = await this.accountCredentialsService.verifyPassword(
       password,
       accountCredentials.password,
     );
     // Throw the error if the passwords do not match
-    if (!isValidPassowrd) {
+    if (!isValidPassword) {
       throw wrongCredentialsError;
     }
 

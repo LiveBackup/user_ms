@@ -353,7 +353,7 @@ describe('Unit Testing - Token Service', () => {
       );
     });
 
-    it('Throws an error when token can not be splited', async () => {
+    it('Throws an error when token can not be splitted', async () => {
       // Set a non-valid token
       const dummyToken = '1-2-3-4-5-6-7-8';
 
