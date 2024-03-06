@@ -1,9 +1,9 @@
 import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
+import {LoginDto, NewAccountDto} from '../../dtos';
 import {Account, Permissions} from '../../models';
 import {AccountRepository} from '../../repositories';
-import {Credentials, NewAccount} from '../../schemas';
 import {
   AccountService,
   TasksQueuesService,
@@ -61,7 +61,7 @@ describe('e2e - Account Controller', () => {
 
   describe(`Email query creation - ${reqEmailVerification} Endpoint`, () => {
     it('Creates the email verification request', async () => {
-      const newUser: NewAccount = {
+      const newUser: NewAccountDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -69,7 +69,7 @@ describe('e2e - Account Controller', () => {
       let response = await client.post(signup).send(newUser);
       const expectedAccount = response.body as Account;
 
-      const credentials: Credentials = {
+      const credentials: LoginDto = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -91,7 +91,7 @@ describe('e2e - Account Controller', () => {
     });
 
     it('Reject when does not has request email verification permission', async () => {
-      const newUser: NewAccount = {
+      const newUser: NewAccountDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -104,7 +104,7 @@ describe('e2e - Account Controller', () => {
         isEmailVerified: true,
       });
 
-      const credentials: Credentials = {
+      const credentials: LoginDto = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -119,7 +119,7 @@ describe('e2e - Account Controller', () => {
     });
 
     it('Reject when the user email it has already been verified', async () => {
-      const newUser: NewAccount = {
+      const newUser: NewAccountDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -128,7 +128,7 @@ describe('e2e - Account Controller', () => {
       let response = await client.post(signup).send(newUser);
       const accountId = response.body.id;
 
-      const credentials: Credentials = {
+      const credentials: LoginDto = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -148,7 +148,7 @@ describe('e2e - Account Controller', () => {
 
     it('Does not find the account to verify the email', async () => {
       // Create the new account request
-      const newUser: NewAccount = {
+      const newUser: NewAccountDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -159,7 +159,7 @@ describe('e2e - Account Controller', () => {
       const accountId = response.body.id;
 
       // Log in to get a valid token
-      const credentials: Credentials = {
+      const credentials: LoginDto = {
         username: newUser.username,
         password: newUser.password,
       };
@@ -181,14 +181,14 @@ describe('e2e - Account Controller', () => {
         .stub(tasksQueuesService.verificationEmailQueue, 'add')
         .throws('Some error');
 
-      const newUser: NewAccount = {
+      const newUser: NewAccountDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
       await client.post(signup).send(newUser);
 
-      const credentials: Credentials = {
+      const credentials: LoginDto = {
         username: newUser.username,
         password: newUser.password,
       };

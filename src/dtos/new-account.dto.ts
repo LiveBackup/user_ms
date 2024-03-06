@@ -1,12 +1,24 @@
 import {model, property} from '@loopback/repository';
 
 @model()
-export class Credentials {
+export class NewAccountDto {
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {
+      minLength: 3,
+    },
   })
   username: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {
+      format: 'email',
+    },
+  })
+  email: string;
 
   @property({
     type: 'string',

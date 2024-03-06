@@ -1,7 +1,7 @@
 import {model, property} from '@loopback/repository';
 
 @model()
-export class TokenResponse {
+export class TokenDto {
   @property({
     type: 'string',
   })

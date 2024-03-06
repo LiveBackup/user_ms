@@ -1,8 +1,8 @@
 import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
+import {UpdatePasswordDto} from '../../dtos';
 import {Account, AccountCredentials, Permissions} from '../../models';
-import {Password} from '../../schemas';
 import {
   AccountCredentialsService,
   AccountService,
@@ -110,7 +110,7 @@ describe('e2e - Account Credentials Controller', () => {
   describe(`Update password - ${updatePassword} Endpoint`, () => {
     it('Updates the password using regular token', async () => {
       // Set the new password
-      const newPassword: Password = {password: 'regular_password'};
+      const newPassword: UpdatePasswordDto = {password: 'regular_password'};
       // Generate the token
       const userProfile = accountService.convertToUserProfile(
         defaultAccount,
@@ -156,7 +156,7 @@ describe('e2e - Account Credentials Controller', () => {
 
     it('Updates the password using recovery tokens', async () => {
       // Set the new password
-      const newPassword: Password = {password: 'recover_password'};
+      const newPassword: UpdatePasswordDto = {password: 'recover_password'};
       // Generate the token
       const userProfile = accountService.convertToUserProfile(
         defaultAccount,
@@ -200,7 +200,7 @@ describe('e2e - Account Credentials Controller', () => {
     });
 
     it('Rejects the query if a valid token is not provided', async () => {
-      const newPassword: Password = {
+      const newPassword: UpdatePasswordDto = {
         password: 'new_strong_password',
       };
 
@@ -210,7 +210,7 @@ describe('e2e - Account Credentials Controller', () => {
     it('Rejects the query if was not called with right permissions', async () => {
       const permission = Permissions.VERIFY_EMAIL;
 
-      const newPassword: Password = {password: 'dummy_password'};
+      const newPassword: UpdatePasswordDto = {password: 'dummy_password'};
       // Generates the token
       const userProfile = accountService.convertToUserProfile(
         defaultAccount,
@@ -226,7 +226,7 @@ describe('e2e - Account Credentials Controller', () => {
     });
 
     it('Does not found the related account', async () => {
-      const newPassword: Password = {
+      const newPassword: UpdatePasswordDto = {
         password: 'new_strong_password',
       };
       // Create a dummy account to generate a valid token
@@ -250,7 +250,7 @@ describe('e2e - Account Credentials Controller', () => {
     });
 
     it('Rejects if the new password is same than older', async () => {
-      const newPassword: Password = {
+      const newPassword: UpdatePasswordDto = {
         password: givenAccountCredentials().password,
       };
       // Generate the token
