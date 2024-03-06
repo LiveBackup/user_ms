@@ -1,14 +1,14 @@
 import {model, property} from '@loopback/repository';
-import {Credentials} from './credentials.schema';
 
 @model()
-export class NewAccount extends Credentials {
+export class UpdatePasswordDto {
   @property({
     type: 'string',
     required: true,
     jsonSchema: {
-      format: 'email',
+      format: 'password',
+      minLength: 8,
     },
   })
-  email: string;
+  password: string;
 }

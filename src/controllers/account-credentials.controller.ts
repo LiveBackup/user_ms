@@ -12,9 +12,9 @@ import {
   response,
 } from '@loopback/rest';
 import {SecurityBindings, securityId} from '@loopback/security';
+import {UpdatePasswordDto} from '../dtos';
 import {TokenInterceptor} from '../interceptors';
 import {Account, AccountCredentials, Permissions} from '../models';
-import {Password} from '../schemas';
 import {
   AccountCredentialsService,
   AccountService,
@@ -99,11 +99,11 @@ export class AccountCredentialsController {
       description: 'New password',
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Password),
+          schema: getModelSchemaRef(UpdatePasswordDto),
         },
       },
     })
-    newPassword: Password,
+    newPassword: UpdatePasswordDto,
   ): Promise<void> {
     const {password} = newPassword;
     // Search the credentials using the account id

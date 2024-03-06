@@ -12,8 +12,8 @@ import {
   response,
 } from '@loopback/rest';
 import {SecurityBindings, securityId} from '@loopback/security';
+import {LoginDto, NewAccountDto, TokenDto} from '../dtos';
 import {Account, Permissions} from '../models';
-import {Credentials, NewAccount, TokenResponse} from '../schemas';
 import {
   AccountCredentialsService,
   AccountService,
@@ -47,11 +47,11 @@ export class AuthController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(NewAccount),
+          schema: getModelSchemaRef(NewAccountDto),
         },
       },
     })
-    newAccountRequest: NewAccount,
+    newAccountRequest: NewAccountDto,
   ): Promise<Account> {
     const {email, username, password} = newAccountRequest;
 
@@ -94,7 +94,7 @@ export class AuthController {
     description: 'Request a JWT by giving the account credentials',
     content: {
       'application/json': {
-        schema: getModelSchemaRef(TokenResponse),
+        schema: getModelSchemaRef(TokenDto),
       },
     },
   })
@@ -102,12 +102,12 @@ export class AuthController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Credentials),
+          schema: getModelSchemaRef(LoginDto),
         },
       },
     })
-    credentials: Credentials,
-  ): Promise<TokenResponse> {
+    credentials: LoginDto,
+  ): Promise<TokenDto> {
     // Create the error when email or password do not match
     const wrongCredentialsError = new HttpErrors[400](
       'Incorrect username or password',

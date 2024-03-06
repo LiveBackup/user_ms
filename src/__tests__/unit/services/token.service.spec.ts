@@ -201,7 +201,7 @@ describe('Unit Testing - Token Service', () => {
 
     it('Throws a 401 error when token has expired', async () => {
       let expectedError;
-      tokenService = new TokenService(tokenRepository, 'secret', 0, 0, 0);
+      tokenService = new TokenService(tokenRepository, 'secret', -1, -1, -1);
       const userProfile = givenRequestUserProfile();
       const token = await tokenService.generateToken(userProfile);
       expect(token).not.to.be.Null();
@@ -231,11 +231,11 @@ describe('Unit Testing - Token Service', () => {
       expect(token.length).to.be.greaterThan(0);
 
       // Get the token result
-      const resultProfle = await tokenService.verifyToken(token);
+      const resultProfile = await tokenService.verifyToken(token);
 
-      expect(resultProfle).not.to.be.Undefined();
-      expect(resultProfle.permissions).to.be.Array();
-      expect(resultProfle.permissions).to.be.deepEqual([permission]);
+      expect(resultProfile).not.to.be.Undefined();
+      expect(resultProfile.permissions).to.be.Array();
+      expect(resultProfile.permissions).to.be.deepEqual([permission]);
 
       // Verify the token has not been deleted
       let error;
@@ -260,11 +260,11 @@ describe('Unit Testing - Token Service', () => {
       expect(token.length).to.be.greaterThan(0);
 
       // Get the token result
-      const resultProfle = await tokenService.verifyToken(token);
+      const resultProfile = await tokenService.verifyToken(token);
 
-      expect(resultProfle).not.to.be.Undefined();
-      expect(resultProfle.permissions).to.be.Array();
-      expect(resultProfle.permissions).to.be.deepEqual([
+      expect(resultProfile).not.to.be.Undefined();
+      expect(resultProfile.permissions).to.be.Array();
+      expect(resultProfile.permissions).to.be.deepEqual([
         Permissions.REGULAR,
         permission,
       ]);
@@ -292,11 +292,11 @@ describe('Unit Testing - Token Service', () => {
       expect(token.length).to.be.greaterThan(0);
 
       // Get the token result
-      const resultProfle = await tokenService.verifyToken(token);
+      const resultProfile = await tokenService.verifyToken(token);
 
-      expect(resultProfle).not.to.be.Undefined();
-      expect(resultProfle.permissions).to.be.Array();
-      expect(resultProfle.permissions).to.be.deepEqual([permission]);
+      expect(resultProfile).not.to.be.Undefined();
+      expect(resultProfile.permissions).to.be.Array();
+      expect(resultProfile.permissions).to.be.deepEqual([permission]);
     });
 
     it('Validates a recover password token', async () => {
@@ -312,11 +312,11 @@ describe('Unit Testing - Token Service', () => {
       expect(token.length).to.be.greaterThan(0);
 
       // Get the token result
-      const resultProfle = await tokenService.verifyToken(token);
+      const resultProfile = await tokenService.verifyToken(token);
 
-      expect(resultProfle).not.to.be.Undefined();
-      expect(resultProfle.permissions).to.be.Array();
-      expect(resultProfle.permissions).to.be.deepEqual([permission]);
+      expect(resultProfile).not.to.be.Undefined();
+      expect(resultProfile.permissions).to.be.Array();
+      expect(resultProfile.permissions).to.be.deepEqual([permission]);
     });
   });
 
