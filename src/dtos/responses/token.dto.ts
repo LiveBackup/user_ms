@@ -5,5 +5,5 @@ export class TokenDto {
   @property({
     type: 'string',
   })
-  token: string;
+  readonly token: string;
 }

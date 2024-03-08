@@ -1,7 +1,7 @@
 import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
-import {LoginDto, NewAccountDto} from '../../dtos';
+import {CreateAccountRequestDto, LoginDto} from '../../dtos';
 import {Account, Permissions} from '../../models';
 import {AccountRepository} from '../../repositories';
 import {
@@ -61,7 +61,7 @@ describe('e2e - Account Controller', () => {
 
   describe(`Email query creation - ${reqEmailVerification} Endpoint`, () => {
     it('Creates the email verification request', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -91,7 +91,7 @@ describe('e2e - Account Controller', () => {
     });
 
     it('Reject when does not has request email verification permission', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -119,7 +119,7 @@ describe('e2e - Account Controller', () => {
     });
 
     it('Reject when the user email it has already been verified', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -148,7 +148,7 @@ describe('e2e - Account Controller', () => {
 
     it('Does not find the account to verify the email', async () => {
       // Create the new account request
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -181,7 +181,7 @@ describe('e2e - Account Controller', () => {
         .stub(tasksQueuesService.verificationEmailQueue, 'add')
         .throws('Some error');
 
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',

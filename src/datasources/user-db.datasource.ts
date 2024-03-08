@@ -23,7 +23,7 @@ export class UserDbDataSource
   extends juggler.DataSource
   implements LifeCycleObserver
 {
-  static dataSourceName = 'user_db';
+  static readonly dataSourceName = 'user_db';
   static readonly defaultConfig = config;
 
   constructor(

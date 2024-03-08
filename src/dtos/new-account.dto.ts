@@ -1,32 +1,20 @@
-import {model, property} from '@loopback/repository';
+import {CreateAccountRequestDto} from './requests';
 
-@model()
 export class NewAccountDto {
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: {
-      minLength: 3,
-    },
-  })
-  username: string;
+  readonly username: string;
+  readonly email: string;
+  readonly registeredAt: Date;
 
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: {
-      format: 'email',
-    },
-  })
-  email: string;
+  constructor(username: string, email: string) {
+    this.username = username;
+    this.email = email;
+    this.registeredAt = new Date();
+  }
 
-  @property({
-    type: 'string',
-    required: true,
-    jsonSchema: {
-      format: 'password',
-      minLength: 8,
-    },
-  })
-  password: string;
+  static fromCreateAccountRequestDto(
+    createAccountRequestDto: CreateAccountRequestDto,
+  ): NewAccountDto {
+    const {username, email} = createAccountRequestDto;
+    return new NewAccountDto(username, email);
+  }
 }

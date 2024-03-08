@@ -1,7 +1,16 @@
 import {model, property} from '@loopback/repository';
 
 @model()
-export class UpdatePasswordDto {
+export class LoginDto {
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {
+      minLength: 3,
+    },
+  })
+  readonly username: string;
+
   @property({
     type: 'string',
     required: true,
@@ -10,5 +19,5 @@ export class UpdatePasswordDto {
       minLength: 8,
     },
   })
-  password: string;
+  readonly password: string;
 }

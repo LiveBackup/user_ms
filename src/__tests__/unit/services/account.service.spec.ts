@@ -1,21 +1,14 @@
 import {securityId} from '@loopback/security';
 import {expect} from '@loopback/testlab';
 import {Account, Permissions} from '../../../models';
-import {AccountRepository} from '../../../repositories';
 import {AccountService} from '../../../services';
-import {
-  givenAccount,
-  givenEmptyDatabase,
-  givenRepositories,
-} from '../../helpers/database.helpers';
+import {givenAccount, givenEmptyDatabase} from '../../helpers/database.helpers';
 import {givenServices} from '../../helpers/services.helpers';
 
 describe('Unit testing - Account Service', () => {
-  let accountRepository: AccountRepository;
   let accountService: AccountService;
 
   before(async () => {
-    ({accountRepository} = givenRepositories());
     ({accountService} = await givenServices());
   });
 
@@ -23,45 +16,44 @@ describe('Unit testing - Account Service', () => {
     await givenEmptyDatabase();
   });
 
-  it('Creates a new Account', async () => {
-    const account = new Account(givenAccount());
-    await accountService.create(account);
+  describe('Create account method', () => {
+    it('Creates a new Account', async () => {
+      // Create the test account
+      const account = givenAccount({id: undefined});
 
-    const savedAccount = await accountRepository.findOne({
-      where: {email: account.email},
+      // Save the account and check the result
+      const savedAccount = await accountService.create(account);
+      expect(savedAccount.id).not.to.be.null();
+      expect(savedAccount.email).to.be.equal(account.email);
+      expect(savedAccount.username).to.be.equal(account.username);
+      expect(savedAccount.registeredAt).not.to.be.null();
     });
-    expect(savedAccount).not.to.be.null();
-    expect(savedAccount?.email).to.be.equal(account.email);
-    expect(savedAccount?.username).to.be.equal(account.username);
-  });
 
-  it('Verify when already exists an account with some given email or username', async () => {
-    const account1 = new Account(givenAccount());
-    await accountService.create(account1);
+    it('Fails for duplicated email', async () => {
+      // Create the test accounts
+      const account1 = givenAccount({id: undefined, username: 'jdiegopm'});
+      const account2 = givenAccount({id: undefined, username: 'jdiegopm12'});
 
-    // The account 2 has the same email of the account 1
-    const account2 = new Account(givenAccount({username: 'jdiegopm12'}));
+      // Save the first account
+      await accountService.create(account1);
+      // Expect the second one to fail
+      await expect(accountService.create(account2)).to.be.rejectedWith(
+        `Duplicated (email) with value (${account2.email})`,
+      );
+    });
 
-    // Both accounts have the same email
-    let exists = await accountService.existByEmailOrUsername(
-      account2.email,
-      account2.username,
-    );
+    it('Fails fro duplicated username', async () => {
+      // Create the test accounts
+      const account1 = givenAccount({id: undefined, email: 'test@email.com'});
+      const account2 = givenAccount({id: undefined, email: 'test2@email.com'});
 
-    expect(exists).to.be.true();
-
-    // The account 3 has the same username of the account 1
-    const account3 = new Account(
-      givenAccount({email: 'jpreciado@livebackup.com'}),
-    );
-
-    // Both accounts have the same email
-    exists = await accountService.existByEmailOrUsername(
-      account3.email,
-      account3.username,
-    );
-
-    expect(exists).to.be.true();
+      // Save the first account
+      await accountService.create(account1);
+      // Expect the second one to fail
+      await expect(accountService.create(account2)).to.be.rejectedWith(
+        `Duplicated (username) with value (${account2.username})`,
+      );
+    });
   });
 
   it('Find an user by its account id', async () => {
@@ -75,51 +67,6 @@ describe('Unit testing - Account Service', () => {
 
     const searchedAccount2 = await accountService.findById('createdAccount.id');
     expect(searchedAccount2).to.be.null();
-  });
-
-  it('Verify if exist an account by either email or username', async () => {
-    const account1 = new Account(givenAccount());
-    await accountService.create(account1);
-
-    const account2 = new Account(
-      givenAccount({
-        username: 'jdiegopm12',
-        email: 'jpreciado@livebackup.com',
-      }),
-    );
-
-    // The accounts have different usernames and emails
-    let exists = await accountService.existByEmailOrUsername(
-      account1.email,
-      account2.username,
-    );
-    expect(exists).to.be.true();
-
-    exists = await accountService.existByEmailOrUsername(
-      account2.email,
-      account1.username,
-    );
-    expect(exists).to.be.true();
-  });
-
-  it('Verify if does not exist an account by either email or username', async () => {
-    const account1 = new Account(givenAccount());
-    await accountService.create(account1);
-
-    const account2 = new Account(
-      givenAccount({
-        username: 'jdiegopm12',
-        email: 'jpreciado@livebackup.com',
-      }),
-    );
-
-    // The accounts have different usernames and emails
-    const exists = await accountService.existByEmailOrUsername(
-      account2.email,
-      account2.username,
-    );
-
-    expect(exists).to.be.false();
   });
 
   it('Finds an account by its email', async () => {

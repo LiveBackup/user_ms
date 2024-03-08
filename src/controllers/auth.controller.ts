@@ -12,7 +12,12 @@ import {
   response,
 } from '@loopback/rest';
 import {SecurityBindings, securityId} from '@loopback/security';
-import {LoginDto, NewAccountDto, TokenDto} from '../dtos';
+import {
+  CreateAccountRequestDto,
+  LoginDto,
+  NewAccountDto,
+  TokenDto,
+} from '../dtos';
 import {Account, Permissions} from '../models';
 import {
   AccountCredentialsService,
@@ -47,46 +52,28 @@ export class AuthController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(NewAccountDto),
+          schema: getModelSchemaRef(CreateAccountRequestDto),
         },
       },
     })
-    newAccountRequest: NewAccountDto,
+    createAccountRequest: CreateAccountRequestDto,
   ): Promise<Account> {
-    const {email, username, password} = newAccountRequest;
-
-    // Verify if the given email and username are available
-    const existAccountByEmailOrUsername =
-      await this.accountService.existByEmailOrUsername(
-        newAccountRequest.email,
-        newAccountRequest.username,
-      );
-
-    if (existAccountByEmailOrUsername) {
-      const accountByEmail = await this.accountService.findByEmail(email);
-
-      const errorMessage =
-        accountByEmail !== null
-          ? 'There already exists an Account with the given email'
-          : 'There already exists an Account with the given username';
-      throw new HttpErrors[400](errorMessage);
-    }
-
     // Creates the account into the database
-    const newAccount = await this.accountService.create({
-      email,
-      username,
-      registeredAt: new Date(),
-    });
+    const savedAccount = await this.accountService.create(
+      NewAccountDto.fromCreateAccountRequestDto(createAccountRequest),
+    );
 
     // Creates the user credentials into the database
+    const hashedPassword = await this.accountCredentialsService.hashPassword(
+      createAccountRequest.password,
+    );
     await this.accountCredentialsService.create({
-      accountId: newAccount.id,
-      password: await this.accountCredentialsService.hashPassword(password),
+      accountId: savedAccount.id,
+      password: hashedPassword,
     });
 
     this.httpResponse.status(201);
-    return newAccount;
+    return savedAccount;
   }
 
   @post('/auth/login')

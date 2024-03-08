@@ -1,6 +1,8 @@
 import {BindingScope, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
+import {HttpErrors} from '@loopback/rest';
 import {securityId} from '@loopback/security';
+import {NewAccountDto} from '../dtos';
 import {Account, Permissions} from '../models';
 import {AccountRepository} from '../repositories';
 import {RequestUserProfile} from './token.service';
@@ -24,22 +26,28 @@ export class AccountService {
     };
   }
 
-  async create(newAccount: Partial<Account>): Promise<Account> {
-    return this.accountRepository.create(newAccount);
-  }
-
-  async existByEmailOrUsername(
-    email: string,
-    username: string,
-  ): Promise<boolean> {
-    const account = await this.accountRepository.findOne({
+  private async verifyUniqueEntries(newAccount: NewAccountDto): Promise<void> {
+    // Find one account that match with either email or username
+    const existingAccount = await this.accountRepository.findOne({
       where: {
-        or: [{email}, {username}],
+        or: [{email: newAccount.email}, {username: newAccount.username}],
       },
-      fields: {id: true},
     });
 
-    return account !== null;
+    // If no accounts were found then continue
+    if (!existingAccount) return;
+
+    let key: string, value: string;
+    if (newAccount.email === existingAccount.email)
+      [key, value] = ['email', newAccount.email];
+    else [key, value] = ['username', newAccount.username];
+
+    throw new HttpErrors[400](`Duplicated (${key}) with value (${value})`);
+  }
+
+  async create(newAccount: NewAccountDto): Promise<Account> {
+    await this.verifyUniqueEntries(newAccount);
+    return this.accountRepository.create(newAccount);
   }
 
   async findById(id: string): Promise<Account | null> {

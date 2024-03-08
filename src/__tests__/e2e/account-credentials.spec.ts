@@ -146,11 +146,11 @@ describe('e2e - Account Credentials Controller', () => {
       expect(matchNewPassword).to.be.True();
 
       // Try to call the endpoint again (Token should not be revoked)
-      newPassword.password = 'regular_password 2.0';
+      const secondPassword = {password: 'regular_password 2.0'};
       await client
         .patch(updatePassword)
         .set('Authorization', `Bearer: ${token}`)
-        .send(newPassword)
+        .send(secondPassword)
         .expect(204);
     });
 
@@ -225,12 +225,16 @@ describe('e2e - Account Credentials Controller', () => {
         .expect(403);
     });
 
-    it('Does not found the related account', async () => {
+    it('Does not find the related account', async () => {
       const newPassword: UpdatePasswordDto = {
         password: 'new_strong_password',
       };
       // Create a dummy account to generate a valid token
-      const anotherMockAccount = givenAccount({id: 'some_id'});
+      const anotherMockAccount = givenAccount({
+        id: 'some_id',
+        username: 'user',
+        email: 'email',
+      });
       await accountService.create(anotherMockAccount);
       const userProfile = accountService.convertToUserProfile(
         anotherMockAccount,

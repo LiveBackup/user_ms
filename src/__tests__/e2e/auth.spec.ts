@@ -2,7 +2,7 @@ import {securityId} from '@loopback/security';
 import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
-import {LoginDto, NewAccountDto} from '../../dtos';
+import {CreateAccountRequestDto, LoginDto} from '../../dtos';
 import {Account, Permissions} from '../../models';
 import {
   AccountCredentialsRepository,
@@ -54,7 +54,7 @@ describe('e2e - Auth Controller', () => {
 
   describe(`User creation - ${signup} Endpoint`, () => {
     it('Creates a new User', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -95,7 +95,7 @@ describe('e2e - Auth Controller', () => {
       const user = givenAccount({email: 'jdiegopm12@livebackup.com'});
       await accountRepository.create(user);
 
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm12',
         email: 'jdiegopm12@livebackup.com',
         password: 'strong_password',
@@ -104,7 +104,7 @@ describe('e2e - Auth Controller', () => {
       const response = await client.post(signup).send(newUser);
       expect(response.status).to.be.equal(400);
       expect(response.body.error.message).to.be.equal(
-        'There already exists an Account with the given email',
+        'Duplicated (email) with value (jdiegopm12@livebackup.com)',
       );
     });
 
@@ -112,7 +112,7 @@ describe('e2e - Auth Controller', () => {
       const user = givenAccount({username: 'jdiegopm12'});
       await accountRepository.create(user);
 
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm12',
         email: 'jdiegopm12@livebackup.com',
         password: 'strong_password',
@@ -121,14 +121,14 @@ describe('e2e - Auth Controller', () => {
       const response = await client.post(signup).send(newUser);
       expect(response.status).to.be.equal(400);
       expect(response.body.error.message).to.be.equal(
-        'There already exists an Account with the given username',
+        'Duplicated (username) with value (jdiegopm12)',
       );
     });
   });
 
   describe(`User login - ${login} Endpoint`, () => {
     it('Get a valid token', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -155,7 +155,7 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Reject the query when the account credentials are not found', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -189,7 +189,7 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Reject the query when user not found', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -209,7 +209,7 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Reject the query when the password is wrong', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -232,7 +232,7 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Get the token even when user has not verified the email', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -252,7 +252,7 @@ describe('e2e - Auth Controller', () => {
 
   describe(`User token validation - ${whoAmI} Endpoint`, () => {
     it('Get the account info by providing a valid token', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -287,7 +287,7 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Does not find the account for the provided token', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -317,7 +317,7 @@ describe('e2e - Auth Controller', () => {
     });
 
     it('Fails to get account info by providing a non-valid token', async () => {
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
@@ -335,7 +335,7 @@ describe('e2e - Auth Controller', () => {
 
     it('Reject with 403 when the provided token contains Recover Password or Verify email permissions', async () => {
       let token;
-      const newUser: NewAccountDto = {
+      const newUser: CreateAccountRequestDto = {
         username: 'jdiegopm',
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',

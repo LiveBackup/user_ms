@@ -23,7 +23,7 @@ export class TasksQueuesDataSource
   extends juggler.DataSource
   implements LifeCycleObserver
 {
-  static dataSourceName = 'tasks_queues';
+  static readonly dataSourceName = 'tasks_queues';
   static readonly defaultConfig = config;
 
   constructor(

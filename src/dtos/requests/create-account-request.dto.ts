@@ -1,7 +1,7 @@
 import {model, property} from '@loopback/repository';
 
 @model()
-export class LoginDto {
+export class CreateAccountRequestDto {
   @property({
     type: 'string',
     required: true,
@@ -9,7 +9,16 @@ export class LoginDto {
       minLength: 3,
     },
   })
-  username: string;
+  readonly username: string;
+
+  @property({
+    type: 'string',
+    required: true,
+    jsonSchema: {
+      format: 'email',
+    },
+  })
+  readonly email: string;
 
   @property({
     type: 'string',
@@ -19,5 +28,5 @@ export class LoginDto {
       minLength: 8,
     },
   })
-  password: string;
+  readonly password: string;
 }

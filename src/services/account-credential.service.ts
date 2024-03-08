@@ -1,6 +1,7 @@
 import {BindingScope, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {compare, genSalt, hash} from 'bcryptjs';
+import {NewAccountCredentialsDto} from '../dtos';
 import {AccountCredentials} from '../models';
 import {AccountCredentialsRepository} from '../repositories';
 
@@ -23,9 +24,9 @@ export class AccountCredentialsService {
   }
 
   async create(
-    newCrendentials: Partial<AccountCredentials>,
+    newCredentials: NewAccountCredentialsDto,
   ): Promise<AccountCredentials> {
-    return this.accountCredentialsRepository.create(newCrendentials);
+    return this.accountCredentialsRepository.create(newCredentials);
   }
 
   async findById(credentialsId: string): Promise<AccountCredentials | null> {
