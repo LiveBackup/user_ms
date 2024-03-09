@@ -71,13 +71,13 @@ export class UserMsApplication extends BootMixin(
     this.bind(TokenServiceBindings.TOKEN_SECRET).to(
       process.env.USER_MS_ACCESS_TOKEN_SECRET ?? 'access_secret',
     );
-    this.bind(TokenServiceBindings.TOKEN_REGULAR_EXPIRES_IN).to(
+    this.bind(TokenServiceBindings.TOKEN_REGULAR_EXPIRATION_TIME).to(
       +(process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? 3600000),
     );
-    this.bind(TokenServiceBindings.TOKEN_VERIFICATE_EMAIL_EXPIRES_IN).to(
+    this.bind(TokenServiceBindings.VERIFICATION_EMAIL_TOKEN_EXPIRATION_TIME).to(
       +(process.env.USER_MS_VERIFICATE_EMAIL_TOKEN_EXPIRATION_TIME ?? 3600000),
     );
-    this.bind(TokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN).to(
+    this.bind(TokenServiceBindings.PASSWORD_RECOVERY_TOKEN_EXPIRATION_TIME).to(
       +(process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? 3600000),
     );
   }
