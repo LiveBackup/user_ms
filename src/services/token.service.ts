@@ -22,15 +22,17 @@ export namespace TokenServiceBindings {
   export const TOKEN_SECRET = BindingKey.create<string>(
     'services.TokenService.secret',
   );
-  export const TOKEN_REGULAR_EXPIRES_IN = BindingKey.create<number>(
-    'services.TokenService.regular.expires.in.seconds',
+  export const TOKEN_REGULAR_EXPIRATION_TIME = BindingKey.create<number>(
+    'services.TokenService.regular.expiration-time',
   );
-  export const TOKEN_VERIFICATE_EMAIL_EXPIRES_IN = BindingKey.create<number>(
-    'services.TokenService.verificate-email.expires.in.seconds',
-  );
-  export const TOKEN_RECOVERY_PASSWORD_EXPIRES_IN = BindingKey.create<number>(
-    'services.TokenService.recovery-password.expires.in.seconds',
-  );
+  export const VERIFICATION_EMAIL_TOKEN_EXPIRATION_TIME =
+    BindingKey.create<number>(
+      'services.TokenService.verification-email.expiration-time',
+    );
+  export const PASSWORD_RECOVERY_TOKEN_EXPIRATION_TIME =
+    BindingKey.create<number>(
+      'services.TokenService.password-recovery.expiration-time',
+    );
   export const TOKEN_SERVICE = BindingKey.create<TokenService>(
     'services.authentication.jwt.tokenservice',
   );
@@ -43,11 +45,11 @@ export class TokenService implements DefaultTokenService {
     private tokenRepository: TokenRepository,
     @inject(TokenServiceBindings.TOKEN_SECRET)
     private secret: string,
-    @inject(TokenServiceBindings.TOKEN_REGULAR_EXPIRES_IN)
+    @inject(TokenServiceBindings.TOKEN_REGULAR_EXPIRATION_TIME)
     private regularTokenExpiration: number,
-    @inject(TokenServiceBindings.TOKEN_VERIFICATE_EMAIL_EXPIRES_IN)
+    @inject(TokenServiceBindings.VERIFICATION_EMAIL_TOKEN_EXPIRATION_TIME)
     private emailVerificationTokenExpiration: number,
-    @inject(TokenServiceBindings.TOKEN_RECOVERY_PASSWORD_EXPIRES_IN)
+    @inject(TokenServiceBindings.PASSWORD_RECOVERY_TOKEN_EXPIRATION_TIME)
     private passwordRecoveryTokenExpiration: number,
   ) {}
 
