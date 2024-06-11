@@ -1,9 +1,9 @@
 import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
-import {LoginDto, NewAccountDto} from '../../dtos';
+import {LoginRequestDto, NewAccountDto} from '../../dtos';
 import {Account, Permissions} from '../../models';
-import {AccountRepository} from '../../repositories';
+import {IAccountRepository} from '../../repositories';
 import {
   AccountService,
   TasksQueuesService,
@@ -12,10 +12,10 @@ import {
 } from '../../services';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {
-  givenAccount,
   givenEmptyDatabase,
   givenRepositories,
 } from '../helpers/database.helpers';
+import {givenAccount} from '../helpers/models';
 import {givenServices} from '../helpers/services.helpers';
 
 describe('e2e - Account Controller', () => {
@@ -25,7 +25,7 @@ describe('e2e - Account Controller', () => {
   let app: UserMsApplication;
   let client: Client;
   // Repositories
-  let accountRepository: AccountRepository;
+  let accountRepository: IAccountRepository;
   // Services
   let accountService: AccountService;
   let customTokenService: TokenService;
@@ -66,28 +66,20 @@ describe('e2e - Account Controller', () => {
         email: 'jdiegopm@livebackup.com',
         password: 'strong_password',
       };
-      let response = await client.post(signup).send(newUser);
-      const expectedAccount = response.body as Account;
+      let response = await client.post(signup).send(newUser).expect(201);
 
-      const credentials: LoginDto = {
-        username: newUser.username,
+      const credentials: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: newUser.password,
       };
-      response = await client.post(login).send(credentials);
+      response = await client.post(login).send(credentials).expect(200);
 
       const {token} = response.body;
       response = await client
         .post(reqEmailVerification)
         .set('Authorization', `Bearer: ${token}`)
-        .expect(200)
+        .expect(204)
         .send();
-
-      // Check the result
-      const responseBody = response.body as Account;
-      expect(responseBody.id).to.be.equal(expectedAccount.id);
-      expect(responseBody.username).to.be.equal(expectedAccount.username);
-      expect(responseBody.email).to.be.equal(expectedAccount.email);
-      expect(responseBody.isEmailVerified).to.be.False();
     });
 
     it('Reject when does not has request email verification permission', async () => {
@@ -100,12 +92,12 @@ describe('e2e - Account Controller', () => {
       let response = await client.post(signup).send(newUser);
       const accountId = response.body.id;
 
-      await accountRepository.updateById(accountId, {
+      await accountRepository.updateAccountById(accountId, {
         isEmailVerified: true,
       });
 
-      const credentials: LoginDto = {
-        username: newUser.username,
+      const credentials: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: newUser.password,
       };
       response = await client.post(login).send(credentials);
@@ -128,13 +120,13 @@ describe('e2e - Account Controller', () => {
       let response = await client.post(signup).send(newUser);
       const accountId = response.body.id;
 
-      const credentials: LoginDto = {
-        username: newUser.username,
+      const credentials: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: newUser.password,
       };
       response = await client.post(login).send(credentials);
 
-      await accountRepository.updateById(accountId, {
+      await accountRepository.updateAccountById(accountId, {
         isEmailVerified: true,
       });
 
@@ -159,13 +151,13 @@ describe('e2e - Account Controller', () => {
       const accountId = response.body.id;
 
       // Log in to get a valid token
-      const credentials: LoginDto = {
-        username: newUser.username,
+      const credentials: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: newUser.password,
       };
       response = await client.post(login).send(credentials);
       // Delete the account to force a 404
-      await accountRepository.deleteById(accountId);
+      await accountRepository.deleteAccountById(accountId);
 
       // Query the endpoint and compare the result
       const {token} = response.body;
@@ -188,8 +180,8 @@ describe('e2e - Account Controller', () => {
       };
       await client.post(signup).send(newUser);
 
-      const credentials: LoginDto = {
-        username: newUser.username,
+      const credentials: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: newUser.password,
       };
       const response = await client.post(login).send(credentials);
@@ -210,7 +202,7 @@ describe('e2e - Account Controller', () => {
     it('Verifies an email when a valid token is provided', async () => {
       // Creates a new Dummy account
       const partialAccount = givenAccount();
-      const account = await accountRepository.create(partialAccount);
+      const account = await accountRepository.createAccount(partialAccount);
       // Get the user profile related to the account
       const userProfile = accountService.convertToUserProfile(
         account,
@@ -247,7 +239,7 @@ describe('e2e - Account Controller', () => {
     it('Fails when the account is not found', async () => {
       // Creates a new Dummy account
       const partialAccount = givenAccount();
-      const account = await accountRepository.create(partialAccount);
+      const account = await accountRepository.createAccount(partialAccount);
       // Get the user profile related to the account
       const userProfile = accountService.convertToUserProfile(
         account,
@@ -260,7 +252,7 @@ describe('e2e - Account Controller', () => {
       );
 
       // Delete the account
-      await accountRepository.deleteById(account.id);
+      await accountRepository.deleteAccountById(account.id);
 
       // Calls the endpoint to verify the email
       const response = await client
@@ -270,14 +262,14 @@ describe('e2e - Account Controller', () => {
 
       expect(response.statusCode).to.be.equal(404);
       expect(response.body.error.message).to.be.equal(
-        'The requester account was not found',
+        'The account was not found',
       );
     });
 
     it('Rejects when token is not provided', async () => {
       // Creates a new Dummy account
       const partialAccount = givenAccount();
-      await accountRepository.create(partialAccount);
+      await accountRepository.createAccount(partialAccount);
 
       // Calls the endpoint to verify the email
       await client.patch(verifyEmail).send().expect(401);
@@ -286,7 +278,7 @@ describe('e2e - Account Controller', () => {
     it('Rejects when user does not have the right permissions', async () => {
       // Creates a new Dummy account
       const partialAccount = givenAccount();
-      const account = await accountRepository.create(partialAccount);
+      const account = await accountRepository.createAccount(partialAccount);
 
       const permissions = [
         Permissions.RECOVER_PASSWORD,

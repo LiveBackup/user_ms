@@ -2,27 +2,29 @@ import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import {inject, intercept} from '@loopback/core';
 import {
-  HttpErrors,
   Response,
   RestBindings,
-  getModelSchemaRef,
   patch,
   post,
   requestBody,
   response,
 } from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {UpdatePasswordDto} from '../dtos';
+import {SecurityBindings} from '@loopback/security';
+import {PasswordRecoveryRequestDto, UpdatePasswordDto} from '../dtos';
 import {TokenInterceptor} from '../interceptors';
-import {Account, AccountCredentials, Permissions} from '../models';
+import {ExtendedUserProfile, Permissions} from '../models';
 import {
   AccountCredentialsService,
+  AccountCredentialsServiceBindings,
   AccountService,
-  ExtendedUserProfile,
   TasksQueuesService,
   TokenService,
   TokenServiceBindings,
 } from '../services';
+import {
+  PasswordRecoveryRequestBodyOptions,
+  UpdatePasswordRequestOptions,
+} from './options';
 
 export class AccountCredentialsController {
   constructor(
@@ -30,7 +32,7 @@ export class AccountCredentialsController {
     protected httpResponse: Response,
     @inject('services.AccountService')
     protected accountService: AccountService,
-    @inject('services.AccountCredentialsService')
+    @inject(AccountCredentialsServiceBindings.SERVICE)
     protected accountCredentialsService: AccountCredentialsService,
     @inject('services.TasksQueuesService')
     protected tasksQueuesService: TasksQueuesService,
@@ -41,47 +43,22 @@ export class AccountCredentialsController {
   @post('/credentials/request-password-recovery')
   @response(204)
   async requestPasswordRecovery(
-    @requestBody({
-      description: 'Email to send the recovery token',
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Account, {
-            exclude: ['id', 'isEmailVerified', 'username', 'registeredAt'],
-          }),
-        },
-      },
-    })
-    recoveryRequest: Account,
+    @requestBody(PasswordRecoveryRequestBodyOptions)
+    recoveryRequest: PasswordRecoveryRequestDto,
   ): Promise<void> {
-    const {email} = recoveryRequest;
-    // Verify if the email is registered
-    const account = await this.accountService.findByEmail(email);
-    if (!account) {
-      throw new HttpErrors[404](
-        'There is not an account registered with the given email',
-      );
-    }
-
     // Convert the related account to UserProfile
-    const userProfile = this.accountService.convertToUserProfile(
-      account,
-      Permissions.RECOVER_PASSWORD,
+    const userProfile = await this.accountService.getPasswordRecoveryProfile(
+      recoveryRequest,
     );
 
     // Generate the recovery token
     const recoveryToken = await this.jwtService.generateToken(userProfile);
-    // Enqueue the email delivery job
-    const tasksStatus =
-      await this.tasksQueuesService.enqueuePasswordRecoveryEmail(
-        account.username,
-        email,
-        recoveryToken,
-      );
 
-    // Verify if the tasks was enqueued
-    if (!tasksStatus) {
-      throw new HttpErrors[500]('Could not add the task to the queue');
-    }
+    // Enqueue the email delivery job
+    await this.tasksQueuesService.enqueuePasswordRecoveryEmail(
+      userProfile,
+      recoveryToken,
+    );
 
     this.httpResponse.status(204);
   }
@@ -95,43 +72,10 @@ export class AccountCredentialsController {
   @response(204)
   async updatePassword(
     @inject(SecurityBindings.USER) requester: ExtendedUserProfile,
-    @requestBody({
-      description: 'New password',
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(UpdatePasswordDto),
-        },
-      },
-    })
+    @requestBody(UpdatePasswordRequestOptions)
     newPassword: UpdatePasswordDto,
   ): Promise<void> {
-    const {password} = newPassword;
-    // Search the credentials using the account id
-    const credentials = await this.accountCredentialsService.findByAccountId(
-      requester[securityId],
-    );
-    if (!credentials)
-      throw new HttpErrors[404]('The account credentials were not found');
-
-    // Check if the new password match with the current one
-    const passwordMatch = await this.accountCredentialsService.verifyPassword(
-      password,
-      credentials.password,
-    );
-    if (passwordMatch)
-      throw new HttpErrors[400](
-        'The new password can not be equal to current password',
-      );
-
-    // Update and return the new account credentials
-    const newCredentials: Partial<AccountCredentials> = {
-      password: await this.accountCredentialsService.hashPassword(password),
-    };
-    await this.accountCredentialsService.updateById(
-      credentials.id,
-      newCredentials,
-    );
-
+    await this.accountCredentialsService.updatePassword(requester, newPassword);
     this.httpResponse.status(204);
   }
 }

@@ -1,7 +1,7 @@
 import {model, property} from '@loopback/repository';
 
 @model()
-export class LoginDto {
+export class LoginRequestDto {
   @property({
     type: 'string',
     required: true,
@@ -9,7 +9,7 @@ export class LoginDto {
       minLength: 3,
     },
   })
-  username: string;
+  usernameOrEmail: string;
 
   @property({
     type: 'string',

@@ -1,20 +1,23 @@
 import {securityId} from '@loopback/security';
 import {expect} from '@loopback/testlab';
 import {Account, Permissions} from '../../../models';
-import {AccountRepository, TokenRepository} from '../../../repositories';
+import {
+  IAccountCredentialsRepository,
+  IAccountRepository,
+  ITokenRepository,
+} from '../../../repositories';
 import {AccountService, TokenService} from '../../../services';
 import {
-  givenAccount,
   givenEmptyDatabase,
   givenRepositories,
-  givenToken,
 } from '../../helpers/database.helpers';
-import {givenRequestUserProfile} from '../../helpers/services.helpers';
+import {givenAccount, givenUserProfileRequest} from '../../helpers/models';
 
 describe('Unit Testing - Token Service', () => {
   // App repositories
-  let accountRepository: AccountRepository;
-  let tokenRepository: TokenRepository;
+  let accountRepository: IAccountRepository;
+  let accountCredentialsRepository: IAccountCredentialsRepository;
+  let tokenRepository: ITokenRepository;
   // App services
   let tokenService: TokenService;
   let accountService: AccountService;
@@ -24,13 +27,17 @@ describe('Unit Testing - Token Service', () => {
   const expiredTokenMessage = 'Error verifying the token: Token has expired';
 
   before(() => {
-    ({accountRepository, tokenRepository} = givenRepositories());
-    accountService = new AccountService(accountRepository);
+    ({accountRepository, accountCredentialsRepository, tokenRepository} =
+      givenRepositories());
+    accountService = new AccountService(
+      accountRepository,
+      accountCredentialsRepository,
+    );
   });
 
   beforeEach(async () => {
     await givenEmptyDatabase();
-    await accountRepository.create(account);
+    await accountRepository.createAccount(account);
 
     tokenService = new TokenService(
       tokenRepository,
@@ -89,7 +96,10 @@ describe('Unit Testing - Token Service', () => {
 
   describe('Token generation and validations', () => {
     it('Fails to generate a token when no permission is given', async () => {
-      const userProfile = givenRequestUserProfile({permission: undefined});
+      const userProfile = accountService.convertToUserProfile(
+        givenAccount(),
+        undefined as unknown as Permissions,
+      );
 
       let expectedError;
       try {
@@ -105,7 +115,10 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Generates a token with a single permission', async () => {
-      const userProfile = givenRequestUserProfile();
+      const userProfile = accountService.convertToUserProfile(
+        givenAccount(),
+        Permissions.REGULAR,
+      );
       const token = await tokenService.generateToken(userProfile);
       expect(token).not.to.be.null();
       expect(token.length).to.be.greaterThan(0);
@@ -127,7 +140,7 @@ describe('Unit Testing - Token Service', () => {
         requestUserProfile[securityId],
       );
       expect(extendedUserProfile.permissions).to.containDeep([
-        requestUserProfile.permission,
+        requestUserProfile.requestedPermission,
       ]);
     });
 
@@ -161,13 +174,11 @@ describe('Unit Testing - Token Service', () => {
 
     it('Throws a 401 error when token is not found', async () => {
       // Create a valid token in db
-      const tokenObject = givenToken({id: '1-2-3-4-56'});
-      await tokenRepository.create(tokenObject);
-
+      const token = tokenService.generateToken(givenUserProfileRequest());
       // Call the function with a invalid id token
       let expectedError;
       try {
-        await tokenService.verifyToken('1-2-3-4-55-6-7-8-9-0');
+        await tokenService.verifyToken(`other_token${token}`);
       } catch (error) {
         expectedError = error;
       }
@@ -181,13 +192,12 @@ describe('Unit Testing - Token Service', () => {
 
     it('Throws a 401 error when token secret does not match', async () => {
       // Create a valid token in db
-      const tokenObject = givenToken();
-      await tokenRepository.create(tokenObject);
+      const token = tokenService.generateToken(givenUserProfileRequest());
 
       // Call the function with a invalid id token
       let expectedError;
       try {
-        await tokenService.verifyToken('1-2-3-4-5-6-7-8-9-00');
+        await tokenService.verifyToken(`${token}with_invalid_secret`);
       } catch (error) {
         expectedError = error;
       }
@@ -200,13 +210,17 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Throws a 401 error when token has expired', async () => {
-      let expectedError;
       tokenService = new TokenService(tokenRepository, 'secret', -1, -1, -1);
-      const userProfile = givenRequestUserProfile();
+
+      const userProfile = accountService.convertToUserProfile(
+        givenAccount(),
+        Permissions.REGULAR,
+      );
       const token = await tokenService.generateToken(userProfile);
       expect(token).not.to.be.Null();
       expect(token.length).to.be.greaterThan(0);
 
+      let expectedError;
       try {
         await tokenService.verifyToken(token);
       } catch (error) {

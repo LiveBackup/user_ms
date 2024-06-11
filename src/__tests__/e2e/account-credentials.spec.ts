@@ -1,10 +1,14 @@
 import {Client, expect} from '@loopback/testlab';
+import {compare, genSalt, hash} from 'bcryptjs';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
 import {UpdatePasswordDto} from '../../dtos';
-import {Account, AccountCredentials, Permissions} from '../../models';
+import {Account, Credentials, Permissions} from '../../models';
 import {
-  AccountCredentialsService,
+  IAccountCredentialsRepository,
+  IAccountRepository,
+} from '../../repositories';
+import {
   AccountService,
   TasksQueuesService,
   TokenService,
@@ -12,10 +16,10 @@ import {
 } from '../../services';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {
-  givenAccount,
-  givenAccountCredentials,
   givenEmptyDatabase,
+  givenRepositories,
 } from '../helpers/database.helpers';
+import {givenAccount, givenAccountCredentials} from '../helpers/models';
 import {givenServices} from '../helpers/services.helpers';
 
 describe('e2e - Account Credentials Controller', () => {
@@ -24,14 +28,16 @@ describe('e2e - Account Credentials Controller', () => {
   // And and client utilities for testing
   let app: UserMsApplication;
   let client: Client;
+  // Repositories
+  let accountRepository: IAccountRepository;
+  let accountCredentialsRepository: IAccountCredentialsRepository;
   // Services
   let accountService: AccountService;
-  let accountCredentialsService: AccountCredentialsService;
   let tokenService: TokenService;
   let tasksQueuesService: TasksQueuesService;
   // Account and credentials
   let defaultAccount: Account;
-  let defaultCredentials: AccountCredentials;
+  let defaultCredentials: Credentials;
   // Paths
   const reqPassRecovery = '/credentials/request-password-recovery';
   const updatePassword = '/credentials/update-password';
@@ -39,7 +45,8 @@ describe('e2e - Account Credentials Controller', () => {
   before(async () => {
     app = await givenRunningApp();
     client = await givenClient(app);
-    ({accountService, accountCredentialsService} = await givenServices());
+    ({accountRepository, accountCredentialsRepository} = givenRepositories());
+    ({accountService} = await givenServices());
     tokenService = await app.get(TokenServiceBindings.TOKEN_SERVICE);
     tasksQueuesService = await app.get('services.TasksQueuesService');
   });
@@ -49,15 +56,16 @@ describe('e2e - Account Credentials Controller', () => {
 
     // Create the testing account in db
     const mockAccount = givenAccount({isEmailVerified: true});
-    defaultAccount = await accountService.create(mockAccount);
+    defaultAccount = await accountRepository.createAccount(mockAccount);
     // Create the testing credentials in db
     const mockCredentials = givenAccountCredentials({
       accountId: defaultAccount.id,
     });
-    mockCredentials.password = await accountCredentialsService.hashPassword(
+    mockCredentials.password = await hash(
       mockCredentials.password,
+      await genSalt(),
     );
-    defaultCredentials = await accountCredentialsService.create(
+    defaultCredentials = await accountCredentialsRepository.saveCredentials(
       mockCredentials,
     );
   });
@@ -71,7 +79,7 @@ describe('e2e - Account Credentials Controller', () => {
   });
 
   describe(`Request password recovery - ${reqPassRecovery} Endpoint`, () => {
-    it('Cretes the task to send the password recovery email', async () => {
+    it('Creates the task to send the password recovery email', async () => {
       const recoveryRequest = {
         email: defaultAccount.email,
       };
@@ -79,7 +87,7 @@ describe('e2e - Account Credentials Controller', () => {
       await client.post(reqPassRecovery).expect(204).send(recoveryRequest);
     });
 
-    it('Does not found the email', async () => {
+    it('Does not find the email', async () => {
       const recoveryRequest = {
         email: `other${defaultAccount.email}`,
       };
@@ -87,7 +95,7 @@ describe('e2e - Account Credentials Controller', () => {
       const response = await client.post(reqPassRecovery).send(recoveryRequest);
       expect(response.statusCode).to.be.equal(404);
       expect(response.body.error.message).to.be.equal(
-        'There is not an account registered with the given email',
+        `There is not an account with the email ${recoveryRequest.email}`,
       );
     });
 
@@ -126,19 +134,20 @@ describe('e2e - Account Credentials Controller', () => {
         .expect(204);
 
       // Check the result
-      const updatedCredentials = await accountCredentialsService.findById(
-        defaultCredentials.id,
-      );
+      const updatedCredentials =
+        await accountCredentialsRepository.findOneByAccountId(
+          defaultCredentials.accountId,
+        );
       if (!updatedCredentials) {
         expect.fail(null, null, 'Updated credentials should not be null', '');
         return;
       }
 
-      const matchOldPassword = await accountCredentialsService.verifyPassword(
+      const matchOldPassword = await compare(
         newPassword.password,
         defaultCredentials.password,
       );
-      const matchNewPassword = await accountCredentialsService.verifyPassword(
+      const matchNewPassword = await compare(
         newPassword.password,
         updatedCredentials.password,
       );
@@ -172,19 +181,20 @@ describe('e2e - Account Credentials Controller', () => {
         .expect(204);
 
       // Check the result
-      const updatedCredentials = await accountCredentialsService.findById(
-        defaultCredentials.id,
-      );
+      const updatedCredentials =
+        await accountCredentialsRepository.findOneByAccountId(
+          defaultCredentials.accountId,
+        );
       if (!updatedCredentials) {
         expect.fail(null, null, 'Updated credentials should not be null', '');
         return;
       }
 
-      const matchOldPassword = await accountCredentialsService.verifyPassword(
+      const matchOldPassword = await compare(
         newPassword.password,
         defaultCredentials.password,
       );
-      const matchNewPassword = await accountCredentialsService.verifyPassword(
+      const matchNewPassword = await compare(
         newPassword.password,
         updatedCredentials.password,
       );
@@ -231,7 +241,7 @@ describe('e2e - Account Credentials Controller', () => {
       };
       // Create a dummy account to generate a valid token
       const anotherMockAccount = givenAccount({id: 'some_id'});
-      await accountService.create(anotherMockAccount);
+      await accountRepository.createAccount(anotherMockAccount);
       const userProfile = accountService.convertToUserProfile(
         anotherMockAccount,
         Permissions.REGULAR,
@@ -267,7 +277,7 @@ describe('e2e - Account Credentials Controller', () => {
         .expect(400);
 
       expect(response.body.error.message).to.be.equal(
-        'The new password can not be equal to current password',
+        'The new password can not be equal to old password',
       );
     });
   });

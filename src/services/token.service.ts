@@ -2,21 +2,16 @@ import {TokenService as DefaultTokenService} from '@loopback/authentication';
 import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
-import {Principal, securityId} from '@loopback/security';
+import {securityId} from '@loopback/security';
 import {AES, enc} from 'crypto-js';
 import {v4 as uuidv4} from 'uuid';
-import {Permissions, Token} from '../models';
-import {TokenRepository} from '../repositories';
-
-export type RequestUserProfile = Principal & {
-  permission: Permissions;
-};
-
-export type ExtendedUserProfile = Principal & {
-  token: string;
-  isOneUsageProfile: boolean;
-  permissions: Permissions[];
-};
+import {
+  ExtendedUserProfile,
+  NewToken,
+  Permissions,
+  UserProfileRequest,
+} from '../models';
+import {ITokenRepository, TokenLb4Repository} from '../repositories';
 
 export namespace TokenServiceBindings {
   export const TOKEN_SECRET = BindingKey.create<string>(
@@ -41,8 +36,8 @@ export namespace TokenServiceBindings {
 @injectable({scope: BindingScope.SINGLETON})
 export class TokenService implements DefaultTokenService {
   constructor(
-    @repository(TokenRepository)
-    private tokenRepository: TokenRepository,
+    @repository(TokenLb4Repository)
+    private tokenRepository: ITokenRepository,
     @inject(TokenServiceBindings.TOKEN_SECRET)
     private secret: string,
     @inject(TokenServiceBindings.TOKEN_REGULAR_EXPIRATION_TIME)
@@ -53,7 +48,7 @@ export class TokenService implements DefaultTokenService {
     private passwordRecoveryTokenExpiration: number,
   ) {}
 
-  private getTokenData(permission: Permissions): Partial<Token> {
+  private getTokenData(permission: Permissions): Partial<NewToken> {
     let isOneUsageToken: boolean;
     let allowedActions: Permissions[];
     let lifeTime: number;
@@ -108,16 +103,18 @@ export class TokenService implements DefaultTokenService {
     return [tokenId, tokenSecret];
   }
 
-  async generateToken(userProfile: RequestUserProfile): Promise<string> {
-    if (!userProfile.permission)
+  async generateToken(userProfile: UserProfileRequest): Promise<string> {
+    if (!userProfile.requestedPermission)
       throw new Error('User permission must be provided');
 
     const tokenSecret: string = uuidv4();
 
-    const token: Partial<Token> = this.getTokenData(userProfile.permission);
-    token.tokenSecret = AES.encrypt(tokenSecret, this.secret).toString();
-    token.accountId = userProfile[securityId];
-    const dbToken = await this.tokenRepository.create(new Token(token));
+    const token: NewToken = {
+      ...(this.getTokenData(userProfile.requestedPermission) as NewToken),
+      tokenSecret: AES.encrypt(tokenSecret, this.secret).toString(),
+      accountId: userProfile[securityId],
+    };
+    const dbToken = await this.tokenRepository.createToken(token);
 
     return `${dbToken.id}-${tokenSecret}`;
   }
@@ -135,7 +132,7 @@ export class TokenService implements DefaultTokenService {
     const [tokenId, tokenSecret] = this.getTokenParts(token);
 
     // Get the token from DB
-    const dbToken = await this.findById(tokenId);
+    const dbToken = await this.tokenRepository.findTokenById(tokenId);
     // Verify if the token exists and the expiration date is valid
     if (!dbToken) throw invalidTokenError;
     else if (dbToken.expirationDate.valueOf() < new Date().valueOf())
@@ -166,7 +163,7 @@ export class TokenService implements DefaultTokenService {
     const [tokenId, tokenSecret] = this.getTokenParts(token);
 
     // Get the token from db
-    const dbToken = await this.findById(tokenId);
+    const dbToken = await this.tokenRepository.findTokenById(tokenId);
     // Verify if the token exists and the expiration date is valid
     if (!dbToken) return false;
 
@@ -180,16 +177,8 @@ export class TokenService implements DefaultTokenService {
     if (tokenSecret !== decryptedStoredToken) return false;
 
     // Remove the token from db
-    await this.tokenRepository.deleteById(tokenId);
+    await this.tokenRepository.deleteTokenById(tokenId);
 
     return true;
-  }
-
-  async findById(id: string): Promise<Token | null> {
-    try {
-      return await this.tokenRepository.findById(id);
-    } catch (error) {
-      return null;
-    }
   }
 }

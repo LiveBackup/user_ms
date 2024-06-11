@@ -1,40 +1,38 @@
-import {securityId} from '@loopback/security';
-import {Permissions} from '../../models';
 import {
   AccountCredentialsService,
   AccountService,
-  RequestUserProfile,
   TasksQueuesService,
+  TokenService,
 } from '../../services';
-import {tasksQueuesTestdb} from '../fixtures/datasources';
+import {tasksQueuesTestDB} from '../fixtures/datasources';
 import {givenRepositories} from './database.helpers';
 
 export const givenServices = async function () {
-  const {accountRepository, accountCredentialsRepository} = givenRepositories();
-  const tasksQueueDB = await tasksQueuesTestdb;
+  const {accountRepository, accountCredentialsRepository, tokenRepository} =
+    givenRepositories();
+  const tasksQueueDB = await tasksQueuesTestDB;
 
-  const accountService = new AccountService(accountRepository);
+  const accountService = new AccountService(
+    accountRepository,
+    accountCredentialsRepository,
+  );
   const accountCredentialsService = new AccountCredentialsService(
     accountCredentialsRepository,
   );
   const tasksQueuesService = new TasksQueuesService(tasksQueueDB);
 
+  const tokenService = new TokenService(
+    tokenRepository,
+    'secret_123',
+    3600000,
+    3600000,
+    3600000,
+  );
+
   return {
     accountService,
     accountCredentialsService,
     tasksQueuesService,
+    tokenService,
   };
-};
-
-export const givenRequestUserProfile = function (
-  data?: Partial<RequestUserProfile>,
-) {
-  return Object.assign(
-    {
-      [securityId]: '1',
-      username: 'user',
-      permission: Permissions.REGULAR,
-    },
-    data,
-  );
 };

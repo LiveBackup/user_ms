@@ -5,4 +5,4 @@ const config = {
   connector: 'memory',
 };
 
-export const userTestdb: juggler.DataSource = new juggler.DataSource(config);
+export const userTestDB: juggler.DataSource = new juggler.DataSource(config);

@@ -11,7 +11,7 @@ const config = {
   port: -1,
 };
 
-export const tasksQueuesTestdb: ValueOrPromise<juggler.DataSource> =
+export const tasksQueuesTestDB: ValueOrPromise<juggler.DataSource> =
   new Promise(res => {
     Promise.all([testRedisDB.getHost(), testRedisDB.getPort()])
       .then(([host, port]) => {

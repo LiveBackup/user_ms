@@ -1,21 +1,24 @@
-import {securityId} from '@loopback/security';
 import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
-import {LoginDto, NewAccountDto} from '../../dtos';
+import {LoginRequestDto, NewAccountDto} from '../../dtos';
 import {Account, Permissions} from '../../models';
 import {
-  AccountCredentialsRepository,
-  AccountRepository,
+  IAccountCredentialsRepository,
+  IAccountRepository,
 } from '../../repositories';
-import {TokenService, TokenServiceBindings} from '../../services';
+import {
+  AccountService,
+  TokenService,
+  TokenServiceBindings,
+} from '../../services';
 import {givenClient, givenRunningApp} from '../helpers/app.helpers';
 import {
-  givenAccount,
   givenEmptyDatabase,
   givenRepositories,
 } from '../helpers/database.helpers';
-import {givenRequestUserProfile} from '../helpers/services.helpers';
+import {givenAccount} from '../helpers/models';
+import {givenServices} from '../helpers/services.helpers';
 
 describe('e2e - Auth Controller', () => {
   // Sandbox
@@ -24,9 +27,10 @@ describe('e2e - Auth Controller', () => {
   let app: UserMsApplication;
   let client: Client;
   // Repositories
-  let accountRepository: AccountRepository;
-  let accountCredentialsRepository: AccountCredentialsRepository;
+  let accountRepository: IAccountRepository;
+  let accountCredentialsRepository: IAccountCredentialsRepository;
   // Services
+  let accountService: AccountService;
   let tokenService: TokenService;
   // Endpoints to test
   const signup = '/auth/sign-up';
@@ -34,8 +38,9 @@ describe('e2e - Auth Controller', () => {
   const whoAmI = '/auth/who-am-i';
 
   before(async () => {
-    ({accountRepository, accountCredentialsRepository} = givenRepositories());
     app = await givenRunningApp();
+    ({accountRepository, accountCredentialsRepository} = givenRepositories());
+    ({accountService} = await givenServices());
     tokenService = await app.get(TokenServiceBindings.TOKEN_SERVICE);
     client = await givenClient(app);
   });
@@ -85,15 +90,16 @@ describe('e2e - Auth Controller', () => {
         new Date().valueOf(),
       );
 
-      const createdCredentials = await accountCredentialsRepository.findOne({
-        where: {accountId: createdAccount.id},
-      });
+      const createdCredentials =
+        await accountCredentialsRepository.findOneByAccountId(
+          createdAccount.id,
+        );
       expect(createdCredentials).not.to.be.null();
     });
 
     it('Reject when a user already exists with a given email', async () => {
       const user = givenAccount({email: 'jdiegopm12@livebackup.com'});
-      await accountRepository.create(user);
+      await accountRepository.createAccount(user);
 
       const newUser: NewAccountDto = {
         username: 'jdiegopm12',
@@ -110,7 +116,7 @@ describe('e2e - Auth Controller', () => {
 
     it('Reject when a user already exists with a given username', async () => {
       const user = givenAccount({username: 'jdiegopm12'});
-      await accountRepository.create(user);
+      await accountRepository.createAccount(user);
 
       const newUser: NewAccountDto = {
         username: 'jdiegopm12',
@@ -134,12 +140,12 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
       const registerResponse = await client.post(signup).send(newUser);
-      await accountRepository.updateById(registerResponse.body.id, {
+      await accountRepository.updateAccountById(registerResponse.body.id, {
         isEmailVerified: true,
       });
 
-      const loginRequest: LoginDto = {
-        username: newUser.username,
+      const loginRequest: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: newUser.password,
       };
 
@@ -161,27 +167,23 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
       const registerResponse = await client.post(signup).send(newUser);
-      await accountRepository.updateById(registerResponse.body.id, {
+      await accountRepository.updateAccountById(registerResponse.body.id, {
         isEmailVerified: true,
       });
 
-      const createdAccount = await accountRepository.findOne({
-        where: {
-          username: newUser.username,
-        },
-      });
+      const createdAccount = await accountRepository.findOneByEmailOrUsername(
+        newUser.username,
+      );
       const accountCredentialsCreated =
-        await accountCredentialsRepository.findOne({
-          where: {
-            accountId: createdAccount?.id,
-          },
-        });
-      await accountCredentialsRepository.deleteById(
-        accountCredentialsCreated?.id ?? '',
+        await accountCredentialsRepository.findOneByAccountId(
+          createdAccount?.id ?? '',
+        );
+      await accountCredentialsRepository.deleteCredentialsByAccountId(
+        accountCredentialsCreated?.accountId ?? '',
       );
 
-      const loginRequest: LoginDto = {
-        username: newUser.username,
+      const loginRequest: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: newUser.password,
       };
 
@@ -196,8 +198,8 @@ describe('e2e - Auth Controller', () => {
       };
       await client.post(signup).send(newUser);
 
-      const loginRequest: LoginDto = {
-        username: 'newUser.username',
+      const loginRequest: LoginRequestDto = {
+        usernameOrEmail: 'newUser.username',
         password: 'newUser.password',
       };
 
@@ -215,12 +217,12 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
       const registerResponse = await client.post(signup).send(newUser);
-      await accountRepository.updateById(registerResponse.body.id, {
+      await accountRepository.updateAccountById(registerResponse.body.id, {
         isEmailVerified: true,
       });
 
-      const loginRequest: LoginDto = {
-        username: newUser.username,
+      const loginRequest: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: 'weak_password',
       };
 
@@ -239,8 +241,8 @@ describe('e2e - Auth Controller', () => {
       };
       await client.post(signup).send(newUser);
 
-      const loginRequest: LoginDto = {
-        username: newUser.username,
+      const loginRequest: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: newUser.password,
       };
 
@@ -260,12 +262,12 @@ describe('e2e - Auth Controller', () => {
 
       let response = await client.post(signup).send(newUser);
 
-      await accountRepository.updateById(response.body.id, {
+      await accountRepository.updateAccountById(response.body.id, {
         isEmailVerified: true,
       });
 
-      const credentials: LoginDto = {
-        username: newUser.username,
+      const credentials: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: newUser.password,
       };
       response = await client.post(login).send(credentials);
@@ -296,14 +298,16 @@ describe('e2e - Auth Controller', () => {
       let response = await client.post(signup).send(newUser);
       const accountId = response.body.id;
 
-      await accountRepository.updateById(accountId, {isEmailVerified: true});
+      await accountRepository.updateAccountById(accountId, {
+        isEmailVerified: true,
+      });
 
-      const credentials: LoginDto = {
-        username: newUser.username,
+      const credentials: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
         password: newUser.password,
       };
       response = await client.post(login).send(credentials);
-      await accountRepository.deleteById(accountId);
+      await accountRepository.deleteAccountById(accountId);
 
       const {token} = response.body;
       response = await client
@@ -341,10 +345,11 @@ describe('e2e - Auth Controller', () => {
         password: 'strong_password',
       };
       const response = await client.post(signup).send(newUser);
-      const userProfile = givenRequestUserProfile(response.body);
-      userProfile[securityId] = response.body.id;
+      let userProfile = accountService.convertToUserProfile(
+        response.body as Account,
+        Permissions.RECOVER_PASSWORD,
+      );
 
-      userProfile.permission = Permissions.RECOVER_PASSWORD;
       token = await tokenService.generateToken(userProfile);
       await client
         .get(whoAmI)
@@ -352,7 +357,10 @@ describe('e2e - Auth Controller', () => {
         .expect(403)
         .send();
 
-      userProfile.permission = Permissions.VERIFY_EMAIL;
+      userProfile = accountService.convertToUserProfile(
+        response.body as Account,
+        Permissions.VERIFY_EMAIL,
+      );
       token = await tokenService.generateToken(userProfile);
       await client
         .get(whoAmI)

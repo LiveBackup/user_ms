@@ -1,12 +1,6 @@
 import {Entity, belongsTo, model, property} from '@loopback/repository';
-import {Account, AccountWithRelations} from './account.model';
-
-export enum Permissions {
-  REGULAR = 'REGULAR',
-  RECOVER_PASSWORD = 'RECOVER_PASSWORD',
-  REQUEST_EMAIL_VERIFICATION = 'REQUEST_EMAIL_VERIFICATION',
-  VERIFY_EMAIL = 'VERIFY_EMAIL',
-}
+import {Permissions} from '../../../models';
+import {AccountEntity, AccountWithRelations} from './account.entity';
 
 @model({
   settings: {
@@ -16,14 +10,14 @@ export enum Permissions {
       // eslint-disable-next-line
       account_id_fkey: {
         name: 'account_id_fkey',
-        entity: 'Account',
+        entity: 'AccountEntity',
         entityKey: 'id',
         foreignKey: 'account_id',
       },
     },
   },
 })
-export class Token extends Entity {
+export class TokenEntity extends Entity {
   @property({
     type: 'string',
     id: true,
@@ -51,10 +45,10 @@ export class Token extends Entity {
   isOneUsageToken: boolean;
 
   @belongsTo(
-    () => Account,
+    () => AccountEntity,
     {
       name: 'account',
-      keyFrom: 'account_id',
+      keyFrom: 'accountId',
       keyTo: 'id',
     },
     {
@@ -89,4 +83,4 @@ export interface TokenRelations {
   account?: AccountWithRelations;
 }
 
-export type TokenWithRelations = Token & TokenRelations;
+export type TokenWithRelations = TokenEntity & TokenRelations;
