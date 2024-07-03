@@ -16,6 +16,7 @@ import {AccountService, TokenService, TokenServiceBindings} from '../services';
 import {
   Login200ResponseOptions,
   LoginRequestBodyOptions,
+  Logout204ResponseOptions,
   SignUp201ResponseOptions,
   SignUpRequestBodyOptions,
   WhoAmI200ResponseOptions,
@@ -68,5 +69,15 @@ export class AuthController {
     @inject(SecurityBindings.USER) currentUser: ExtendedUserProfile,
   ): Promise<AccountDto> {
     return this.accountService.findWithUserProfile(currentUser);
+  }
+
+  @authenticate('jwt')
+  @authorize({allowedRoles: [Permissions.REGULAR]})
+  @post('/auth/logout')
+  @response(204, Logout204ResponseOptions)
+  async logout(
+    @inject(SecurityBindings.USER) currentUser: ExtendedUserProfile,
+  ): Promise<void> {
+    await this.jwtService.revokeToken(currentUser.token);
   }
 }

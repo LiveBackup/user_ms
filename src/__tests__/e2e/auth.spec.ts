@@ -36,6 +36,7 @@ describe('e2e - Auth Controller', () => {
   const signup = '/auth/sign-up';
   const login = '/auth/login';
   const whoAmI = '/auth/who-am-i';
+  const logout = '/auth/logout';
 
   before(async () => {
     app = await givenRunningApp();
@@ -367,6 +368,37 @@ describe('e2e - Auth Controller', () => {
         .set('Authorization', `Bearer: ${token}`)
         .expect(403)
         .send();
+    });
+  });
+
+  describe(`User logout - ${logout} Endpoint`, () => {
+    it('Revokes a token', async () => {
+      const newUser: NewAccountDto = {
+        username: 'jdiegopm',
+        email: 'jdiegopm@livebackup.com',
+        password: 'strong_password',
+      };
+      let response = await client.post(signup).send(newUser).expect(201);
+
+      const credentials: LoginRequestDto = {
+        usernameOrEmail: newUser.username,
+        password: newUser.password,
+      };
+      response = await client.post(login).send(credentials).expect(200);
+
+      const {token} = response.body;
+      await client
+        .post(logout)
+        .set('Authorization', `Bearer: ${token}`)
+        .expect(204);
+    });
+
+    it('Fails with 401 when is not using a valid token', async () => {
+      const token = 'invalidToken123';
+      await client
+        .post(logout)
+        .set('Authorization', `Bearer: ${token}`)
+        .expect(401);
     });
   });
 });
