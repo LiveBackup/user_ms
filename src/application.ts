@@ -15,6 +15,7 @@ import {
 import {ServiceMixin} from '@loopback/service-proxy';
 import dotenv from 'dotenv';
 import path from 'path';
+import {BcryptjsAdapter, CryptoAdapterBindings} from './adapters';
 import {AuthorizationProvider} from './providers';
 import {MySequence} from './sequence';
 import {TokenService, TokenServiceBindings} from './services';
@@ -36,9 +37,7 @@ export class UserMsApplication extends BootMixin(
     this.static('/', path.join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
-    this.configure(RestExplorerBindings.COMPONENT).to({
-      path: '/explorer',
-    });
+    this.configure(RestExplorerBindings.COMPONENT).to({path: '/explorer'});
     this.component(RestExplorerComponent);
 
     this.projectRoot = __dirname;
@@ -52,6 +51,17 @@ export class UserMsApplication extends BootMixin(
       },
     };
 
+    this.setupAdapters();
+    this.setupAuth();
+    this.setupTokenService();
+  }
+
+  private setupAdapters() {
+    // Setup crypto adapters
+    this.bind(CryptoAdapterBindings.BCRYPTJS).toInjectable(BcryptjsAdapter);
+  }
+
+  private setupAuth() {
     // Mount authentication system
     this.component(AuthenticationComponent);
 
@@ -63,8 +73,10 @@ export class UserMsApplication extends BootMixin(
     this.bind('authorizationProviders.authorization-provider')
       .toProvider(AuthorizationProvider)
       .tag(AuthorizationTags.AUTHORIZER);
+  }
 
-    // Bind the cusatom token service
+  private setupTokenService() {
+    // Bind the custom token service
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(TokenService);
 
     // Bind variables for jwt access token
@@ -75,7 +87,7 @@ export class UserMsApplication extends BootMixin(
       +(process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? 3600000),
     );
     this.bind(TokenServiceBindings.VERIFICATION_EMAIL_TOKEN_EXPIRATION_TIME).to(
-      +(process.env.USER_MS_VERIFICATE_EMAIL_TOKEN_EXPIRATION_TIME ?? 3600000),
+      +(process.env.USER_MS_VERIFY_EMAIL_TOKEN_EXPIRATION_TIME ?? 3600000),
     );
     this.bind(TokenServiceBindings.PASSWORD_RECOVERY_TOKEN_EXPIRATION_TIME).to(
       +(process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? 3600000),

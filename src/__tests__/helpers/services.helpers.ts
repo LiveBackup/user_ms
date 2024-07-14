@@ -1,3 +1,4 @@
+import {BcryptjsAdapter} from '../../adapters';
 import {
   AccountCredentialsService,
   AccountService,
@@ -18,6 +19,7 @@ export const givenServices = async function () {
   );
   const accountCredentialsService = new AccountCredentialsService(
     accountCredentialsRepository,
+    new BcryptjsAdapter(),
   );
   const tasksQueuesService = new TasksQueuesService(tasksQueueDB);
 

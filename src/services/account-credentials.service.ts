@@ -1,8 +1,8 @@
-import {BindingKey, BindingScope, injectable} from '@loopback/core';
+import {BindingKey, BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {securityId} from '@loopback/security';
-import {compare, genSalt, hash} from 'bcryptjs';
+import {CryptoAdapterBindings, ICryptoAdapter} from '../adapters';
 import {ExtendedUserProfile, UpdatePassword} from '../models';
 import {
   AccountCredentialsLb4Repository,
@@ -23,6 +23,8 @@ export class AccountCredentialsService {
   constructor(
     @repository(AccountCredentialsLb4Repository)
     protected readonly credentialsRepository: IAccountCredentialsRepository,
+    @inject(CryptoAdapterBindings.BCRYPTJS)
+    protected readonly cryptoAdapter: ICryptoAdapter,
   ) {}
 
   async updatePassword(
@@ -39,7 +41,11 @@ export class AccountCredentialsService {
 
     // Check if the new password match with the old one
     const {password} = newPassword;
-    const oldPasswordMatch = await compare(password, credentials.password);
+    const oldPasswordMatch = await this.cryptoAdapter.comparePassword(
+      password,
+      credentials.password,
+    );
+
     if (oldPasswordMatch) {
       const message = 'The new password can not be equal to old password';
       throw new HttpErrors[400](message);
@@ -47,7 +53,7 @@ export class AccountCredentialsService {
 
     // Update the credentials
     await this.credentialsRepository.updateCredentialsById(credentials.id, {
-      password: await hash(password, await genSalt()),
+      password: await this.cryptoAdapter.hashPassword(password),
     });
   }
 }
