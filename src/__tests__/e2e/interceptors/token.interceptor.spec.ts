@@ -4,13 +4,18 @@ import sinon from 'sinon';
 import {UserMsApplication} from '../../../application';
 import {AccountController, AuthController} from '../../../controllers';
 import {Account, Permissions} from '../../../models';
+import {IAccountRepository} from '../../../repositories';
 import {
   AccountService,
   TokenService,
   TokenServiceBindings,
 } from '../../../services';
 import {givenClient, givenRunningApp} from '../../helpers/app.helpers';
-import {givenAccount, givenEmptyDatabase} from '../../helpers/database.helpers';
+import {
+  givenEmptyDatabase,
+  givenRepositories,
+} from '../../helpers/database.helpers';
+import {givenAccount} from '../../helpers/models';
 import {givenServices} from '../../helpers/services.helpers';
 
 describe('e2e - Token interceptor', () => {
@@ -19,6 +24,8 @@ describe('e2e - Token interceptor', () => {
   // And and client utilities for testing
   let app: UserMsApplication;
   let client: Client;
+  // Repositories
+  let accountRepository: IAccountRepository;
   // Services
   let accountService: AccountService;
   let tokenService: TokenService;
@@ -28,6 +35,7 @@ describe('e2e - Token interceptor', () => {
   before(async () => {
     app = await givenRunningApp();
     client = await givenClient(app);
+    ({accountRepository} = givenRepositories());
     ({accountService} = await givenServices());
     tokenService = await app.get(TokenServiceBindings.TOKEN_SERVICE);
   });
@@ -37,7 +45,7 @@ describe('e2e - Token interceptor', () => {
 
     // Create the testing account in db
     const mockAccount = givenAccount({isEmailVerified: true});
-    defaultAccount = await accountService.create(mockAccount);
+    defaultAccount = await accountRepository.createAccount(mockAccount);
   });
 
   after(async () => {

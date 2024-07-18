@@ -1,3 +1,3 @@
-export * from './account-credentials.model';
-export * from './account.model';
-export * from './token.model';
+export * from './account';
+export * from './account-credentials';
+export * from './token';

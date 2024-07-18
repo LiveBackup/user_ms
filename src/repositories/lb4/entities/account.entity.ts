@@ -1,6 +1,9 @@
 import {Entity, hasMany, hasOne, model, property} from '@loopback/repository';
-import {AccountCredentials} from './account-credentials.model';
-import {Token} from './token.model';
+import {
+  AccountCredentialsEntity,
+  AccountCredentialsWithRelations,
+} from './account-credentials.entity';
+import {TokenEntity, TokenWithRelations} from './token.entity';
 
 @model({
   settings: {
@@ -8,7 +11,7 @@ import {Token} from './token.model';
     postgresql: {schema: 'public', table: 'account'},
   },
 })
-export class Account extends Entity {
+export class AccountEntity extends Entity {
   @property({
     type: 'string',
     id: true,
@@ -52,15 +55,16 @@ export class Account extends Entity {
   })
   registeredAt: Date;
 
-  @hasOne(() => AccountCredentials, {keyTo: 'account_id', keyFrom: 'id'})
-  accountCredentials: AccountCredentials;
+  @hasOne(() => AccountCredentialsEntity, {keyTo: 'accountId', keyFrom: 'id'})
+  accountCredentials: AccountCredentialsEntity;
 
-  @hasMany(() => Token, {keyTo: 'account_id', keyFrom: 'id'})
-  tokens: Token[];
+  @hasMany(() => TokenEntity, {keyTo: 'accountId', keyFrom: 'id'})
+  tokens: TokenEntity[];
 }
 
 export interface AccountRelations {
-  password: string;
+  accountCredentials: AccountCredentialsWithRelations;
+  tokens: TokenWithRelations[];
 }
 
-export type AccountWithRelations = Account & AccountRelations;
+export type AccountWithRelations = AccountEntity & AccountRelations;

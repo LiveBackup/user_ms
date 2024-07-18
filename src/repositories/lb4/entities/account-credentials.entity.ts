@@ -1,5 +1,5 @@
 import {belongsTo, Entity, model, property} from '@loopback/repository';
-import {Account} from './account.model';
+import {AccountEntity, AccountWithRelations} from './account.entity';
 
 @model({
   settings: {
@@ -9,14 +9,14 @@ import {Account} from './account.model';
       // eslint-disable-next-line
       account_id_fkey: {
         name: 'account_id_fkey',
-        entity: 'Account',
+        entity: 'AccountEntity',
         entityKey: 'id',
         foreignKey: 'account_id',
       },
     },
   },
 })
-export class AccountCredentials extends Entity {
+export class AccountCredentialsEntity extends Entity {
   @property({
     type: 'string',
     id: true,
@@ -35,10 +35,10 @@ export class AccountCredentials extends Entity {
   password: string;
 
   @belongsTo(
-    () => Account,
+    () => AccountEntity,
     {
       name: 'account',
-      keyFrom: 'account_id',
+      keyFrom: 'accountId',
       keyTo: 'id',
     },
     {
@@ -53,9 +53,8 @@ export class AccountCredentials extends Entity {
 }
 
 export interface AccountCredentialsRelations {
-  username: string;
-  email: string;
+  account: AccountWithRelations;
 }
 
-export type AccountCredentialsWithRelations = AccountCredentials &
+export type AccountCredentialsWithRelations = AccountCredentialsEntity &
   AccountCredentialsRelations;

@@ -2,8 +2,6 @@ import {model, property} from '@loopback/repository';
 
 @model()
 export class TokenDto {
-  @property({
-    type: 'string',
-  })
+  @property({type: 'string'})
   token: string;
 }

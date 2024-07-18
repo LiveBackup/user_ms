@@ -10,7 +10,8 @@ import {
   ValueOrPromise,
 } from '@loopback/core';
 import {SecurityBindings} from '@loopback/security';
-import {ExtendedUserProfile, TokenService} from '../services';
+import {ExtendedUserProfile} from '../models';
+import {TokenService} from '../services';
 
 /**
  * This class will be bound to the application as an `Interceptor` during
@@ -21,7 +22,6 @@ import {ExtendedUserProfile, TokenService} from '../services';
   scope: BindingScope.TRANSIENT,
 })
 export class TokenInterceptor implements Provider<Interceptor> {
-  // static readonly name = 'token';
   static readonly BINDING_KEY = `interceptors.${TokenInterceptor.name}`;
 
   constructor(

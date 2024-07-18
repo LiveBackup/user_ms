@@ -1,0 +1,32 @@
+import {
+  ExtendedUserProfile,
+  Permissions,
+  UserProfileRequest,
+} from '../../../models';
+
+export const givenExtendedUserProfile = function (
+  data?: Partial<ExtendedUserProfile>,
+): ExtendedUserProfile {
+  return Object.assign(
+    {
+      token:
+        'c414d13e-74af-4fa6-85d8-a935edda4b37-7b74d046-5951-4211-a413-192d0303cf4d',
+      isOneUsageProfile: false,
+      permissions: [Permissions.REGULAR],
+    },
+    data,
+  ) as ExtendedUserProfile;
+};
+
+export const givenUserProfileRequest = function (
+  data?: Partial<UserProfileRequest>,
+): UserProfileRequest {
+  return Object.assign(
+    {
+      username: 'mock_user_123',
+      email: 'mockuser123@mock.com',
+      requestedPermission: Permissions.REGULAR,
+    },
+    data,
+  ) as UserProfileRequest;
+};

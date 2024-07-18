@@ -2,25 +2,25 @@ import {authenticate} from '@loopback/authentication';
 import {authorize} from '@loopback/authorization';
 import {inject} from '@loopback/core';
 import {
-  HttpErrors,
   Response,
   RestBindings,
   get,
-  getModelSchemaRef,
   post,
   requestBody,
   response,
 } from '@loopback/rest';
-import {SecurityBindings, securityId} from '@loopback/security';
-import {LoginDto, NewAccountDto, TokenDto} from '../dtos';
-import {Account, Permissions} from '../models';
+import {SecurityBindings} from '@loopback/security';
+import {AccountDto, LoginRequestDto, NewAccountDto, TokenDto} from '../dtos';
+import {ExtendedUserProfile, Permissions} from '../models';
+import {AccountService, TokenService, TokenServiceBindings} from '../services';
 import {
-  AccountCredentialsService,
-  AccountService,
-  ExtendedUserProfile,
-  TokenService,
-  TokenServiceBindings,
-} from '../services';
+  Login200ResponseOptions,
+  LoginRequestBodyOptions,
+  Logout204ResponseOptions,
+  SignUp201ResponseOptions,
+  SignUpRequestBodyOptions,
+  WhoAmI200ResponseOptions,
+} from './options';
 
 export class AuthController {
   constructor(
@@ -28,126 +28,31 @@ export class AuthController {
     protected httpResponse: Response,
     @inject('services.AccountService')
     protected accountService: AccountService,
-    @inject('services.AccountCredentialsService')
-    protected accountCredentialsService: AccountCredentialsService,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected jwtService: TokenService,
   ) {}
 
   @post('/auth/sign-up')
-  @response(201, {
-    description: 'Register a new user',
-    content: {
-      'application/json': {
-        schema: getModelSchemaRef(Account),
-      },
-    },
-  })
+  @response(201, SignUp201ResponseOptions)
   async signup(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(NewAccountDto),
-        },
-      },
-    })
+    @requestBody(SignUpRequestBodyOptions)
     newAccountRequest: NewAccountDto,
-  ): Promise<Account> {
-    const {email, username, password} = newAccountRequest;
-
-    // Verify if the given email and username are available
-    const existAccountByEmailOrUsername =
-      await this.accountService.existByEmailOrUsername(
-        newAccountRequest.email,
-        newAccountRequest.username,
-      );
-
-    if (existAccountByEmailOrUsername) {
-      const accountByEmail = await this.accountService.findByEmail(email);
-
-      const errorMessage =
-        accountByEmail !== null
-          ? 'There already exists an Account with the given email'
-          : 'There already exists an Account with the given username';
-      throw new HttpErrors[400](errorMessage);
-    }
-
-    // Creates the account into the database
-    const newAccount = await this.accountService.create({
-      email,
-      username,
-      registeredAt: new Date(),
-    });
-
-    // Creates the user credentials into the database
-    await this.accountCredentialsService.create({
-      accountId: newAccount.id,
-      password: await this.accountCredentialsService.hashPassword(password),
-    });
+  ): Promise<AccountDto> {
+    const account = await this.accountService.createUserAccount(
+      newAccountRequest,
+    );
 
     this.httpResponse.status(201);
-    return newAccount;
+    return account;
   }
 
   @post('/auth/login')
-  @response(200, {
-    description: 'Request a JWT by giving the account credentials',
-    content: {
-      'application/json': {
-        schema: getModelSchemaRef(TokenDto),
-      },
-    },
-  })
+  @response(200, Login200ResponseOptions)
   async login(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(LoginDto),
-        },
-      },
-    })
-    credentials: LoginDto,
+    @requestBody(LoginRequestBodyOptions)
+    loginRequest: LoginRequestDto,
   ): Promise<TokenDto> {
-    // Create the error when email or password do not match
-    const wrongCredentialsError = new HttpErrors[400](
-      'Incorrect username or password',
-    );
-
-    // Find the account using the given username
-    const {username, password} = credentials;
-    const account = await this.accountService.findByUsername(username);
-
-    // Throw the error if no account was found
-    if (account === null) {
-      throw wrongCredentialsError;
-    }
-
-    // Search the related account credentials and throw and error if not found
-    const accountCredentials =
-      await this.accountCredentialsService.findByAccountId(account.id);
-    if (accountCredentials === null) {
-      throw new HttpErrors[404]('User credentials not found');
-    }
-
-    // Compare the stored password against the given password
-    const isValidPassword = await this.accountCredentialsService.verifyPassword(
-      password,
-      accountCredentials.password,
-    );
-    // Throw the error if the passwords do not match
-    if (!isValidPassword) {
-      throw wrongCredentialsError;
-    }
-
-    // Generate the user permissions
-    const permission: Permissions = account.isEmailVerified
-      ? Permissions.REGULAR
-      : Permissions.REQUEST_EMAIL_VERIFICATION;
-    // Generate the user profile
-    const userProfile = this.accountService.convertToUserProfile(
-      account,
-      permission,
-    );
+    const userProfile = await this.accountService.loginUser(loginRequest);
 
     // Generate the token
     const token = await this.jwtService.generateToken(userProfile);
@@ -159,22 +64,20 @@ export class AuthController {
     deniedRoles: [Permissions.RECOVER_PASSWORD, Permissions.VERIFY_EMAIL],
   })
   @get('/auth/who-am-i')
-  @response(200, {
-    description: 'Return the account information',
-    content: {
-      'application/json': {
-        schema: getModelSchemaRef(Account),
-      },
-    },
-  })
+  @response(200, WhoAmI200ResponseOptions)
   async whoAmI(
     @inject(SecurityBindings.USER) currentUser: ExtendedUserProfile,
-  ): Promise<Account> {
-    const account = await this.accountService.findById(currentUser[securityId]);
-    if (account === null) {
-      throw new HttpErrors[404]('No account was found');
-    }
+  ): Promise<AccountDto> {
+    return this.accountService.findWithUserProfile(currentUser);
+  }
 
-    return account;
+  @authenticate('jwt')
+  @authorize({allowedRoles: [Permissions.REGULAR]})
+  @post('/auth/logout')
+  @response(204, Logout204ResponseOptions)
+  async logout(
+    @inject(SecurityBindings.USER) currentUser: ExtendedUserProfile,
+  ): Promise<void> {
+    await this.jwtService.revokeToken(currentUser.token);
   }
 }
