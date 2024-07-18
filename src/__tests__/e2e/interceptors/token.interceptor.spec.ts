@@ -3,7 +3,7 @@ import {Client} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../../application';
 import {AccountController, AuthController} from '../../../controllers';
-import {Account, Permissions} from '../../../models';
+import {Account, Permission} from '../../../models';
 import {IAccountRepository} from '../../../repositories';
 import {
   AccountService,
@@ -62,7 +62,7 @@ describe('e2e - Token interceptor', () => {
     // Generate a user profile with regular permission
     const userProfile = accountService.convertToUserProfile(
       defaultAccount,
-      Permissions.REGULAR,
+      Permission.REGULAR,
     );
     // Generates the token
     const token = await tokenService.generateToken(userProfile);
@@ -94,7 +94,7 @@ describe('e2e - Token interceptor', () => {
     // Generate a user profile with regular permission
     const userProfile = accountService.convertToUserProfile(
       defaultAccount,
-      Permissions.VERIFY_EMAIL,
+      Permission.VERIFY_EMAIL,
     );
     // Generates the token
     const token = await tokenService.generateToken(userProfile);
@@ -126,7 +126,7 @@ describe('e2e - Token interceptor', () => {
     // Generate a user profile with regular permission
     const userProfile = accountService.convertToUserProfile(
       defaultAccount,
-      Permissions.VERIFY_EMAIL,
+      Permission.VERIFY_EMAIL,
     );
     // Generates the token
     const token = await tokenService.generateToken(userProfile);

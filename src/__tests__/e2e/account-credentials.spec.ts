@@ -3,7 +3,7 @@ import {compare, genSalt, hash} from 'bcryptjs';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
 import {UpdatePasswordDto} from '../../dtos';
-import {Account, Credentials, Permissions} from '../../models';
+import {Account, Credentials, Permission} from '../../models';
 import {
   IAccountCredentialsRepository,
   IAccountRepository,
@@ -122,7 +122,7 @@ describe('e2e - Account Credentials Controller', () => {
       // Generate the token
       const userProfile = accountService.convertToUserProfile(
         defaultAccount,
-        Permissions.REGULAR,
+        Permission.REGULAR,
       );
       const token = await tokenService.generateToken(userProfile);
 
@@ -169,7 +169,7 @@ describe('e2e - Account Credentials Controller', () => {
       // Generate the token
       const userProfile = accountService.convertToUserProfile(
         defaultAccount,
-        Permissions.RECOVER_PASSWORD,
+        Permission.RECOVER_PASSWORD,
       );
       const token = await tokenService.generateToken(userProfile);
 
@@ -218,7 +218,7 @@ describe('e2e - Account Credentials Controller', () => {
     });
 
     it('Rejects the query if was not called with right permissions', async () => {
-      const permission = Permissions.VERIFY_EMAIL;
+      const permission = Permission.VERIFY_EMAIL;
 
       const newPassword: UpdatePasswordDto = {password: 'dummy_password'};
       // Generates the token
@@ -244,7 +244,7 @@ describe('e2e - Account Credentials Controller', () => {
       await accountRepository.createAccount(anotherMockAccount);
       const userProfile = accountService.convertToUserProfile(
         anotherMockAccount,
-        Permissions.REGULAR,
+        Permission.REGULAR,
       );
       const token = await tokenService.generateToken(userProfile);
 
@@ -266,7 +266,7 @@ describe('e2e - Account Credentials Controller', () => {
       // Generate the token
       const userProfile = accountService.convertToUserProfile(
         defaultAccount,
-        Permissions.REGULAR,
+        Permission.REGULAR,
       );
       const token = await tokenService.generateToken(userProfile);
 

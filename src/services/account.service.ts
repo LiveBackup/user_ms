@@ -1,15 +1,15 @@
-import {BindingScope, injectable} from '@loopback/core';
+import {BindingScope, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {securityId} from '@loopback/security';
-import {compare, genSalt, hash} from 'bcryptjs';
+import {CryptoAdapterBindings, ICryptoAdapter} from '../adapters';
 import {
   Account,
   ExtendedUserProfile,
   LoginRequest,
   NewAccountRequest,
   PasswordRecoveryRequest,
-  Permissions,
+  Permission,
   UserProfileRequest,
 } from '../models';
 import {
@@ -26,11 +26,13 @@ export class AccountService {
     protected readonly accountRepository: IAccountRepository,
     @repository(AccountCredentialsLb4Repository)
     protected readonly credentialsRepository: IAccountCredentialsRepository,
+    @inject(CryptoAdapterBindings.BCRYPTJS)
+    protected readonly cryptoAdapter: ICryptoAdapter,
   ) {}
 
   convertToUserProfile(
     account: Account,
-    permission: Permissions,
+    permission: Permission,
   ): UserProfileRequest {
     return {
       [securityId]: account.id,
@@ -48,6 +50,7 @@ export class AccountService {
     // Verify if the given email and username are available
     const existingAccounts =
       await this.accountRepository.findManyByEmailAndUsername(email, username);
+
     if (existingAccounts.length > 0) {
       const errorMessage =
         existingAccounts[0].email === email
@@ -68,7 +71,7 @@ export class AccountService {
     // Saves the user credentials into the database
     await this.credentialsRepository.saveCredentials({
       accountId: createdAccount.id,
-      password: await hash(password, await genSalt()),
+      password: await this.cryptoAdapter.hashPassword(password),
     });
 
     return createdAccount;
@@ -91,20 +94,23 @@ export class AccountService {
 
     // Search the related account credentials and throw and error if not found
     if (account.accountCredentials === undefined) {
-      throw new HttpErrors[404]('User credentials not found');
+      throw new HttpErrors[500]('User credentials not found');
     }
 
     // Compare the stored password against the given password
     const hashedPassword = account.accountCredentials.password;
-    const isValidPassword = await compare(password, hashedPassword);
+    const isValidPassword = await this.cryptoAdapter.comparePassword(
+      password,
+      hashedPassword,
+    );
     if (!isValidPassword) {
       throw wrongCredentialsError;
     }
 
     // Generate the user permissions
-    const permission: Permissions = account.isEmailVerified
-      ? Permissions.REGULAR
-      : Permissions.REQUEST_EMAIL_VERIFICATION;
+    const permission: Permission = account.isEmailVerified
+      ? Permission.REGULAR
+      : Permission.REQUEST_EMAIL_VERIFICATION;
     // Generate the user profile
     const userProfileRequest = this.convertToUserProfile(account, permission);
 
@@ -132,7 +138,7 @@ export class AccountService {
       throw new HttpErrors[400]('Email has already been verified');
     }
 
-    return this.convertToUserProfile(account, Permissions.VERIFY_EMAIL);
+    return this.convertToUserProfile(account, Permission.VERIFY_EMAIL);
   }
 
   async verifyAccountEmailAddress(
@@ -159,6 +165,6 @@ export class AccountService {
       throw new HttpErrors[404](message);
     }
 
-    return this.convertToUserProfile(account, Permissions.RECOVER_PASSWORD);
+    return this.convertToUserProfile(account, Permission.RECOVER_PASSWORD);
   }
 }

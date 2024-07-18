@@ -1,4 +1,4 @@
-export enum Permissions {
+export enum Permission {
   REGULAR = 'REGULAR',
   RECOVER_PASSWORD = 'RECOVER_PASSWORD',
   REQUEST_EMAIL_VERIFICATION = 'REQUEST_EMAIL_VERIFICATION',
@@ -10,6 +10,6 @@ export interface Token {
   tokenSecret: string;
   isOneUsageToken: boolean;
   accountId: string;
-  allowedActions: Permissions[];
+  allowedActions: Permission[];
   expirationDate: Date;
 }

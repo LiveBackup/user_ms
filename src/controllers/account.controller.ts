@@ -4,7 +4,7 @@ import {inject, intercept} from '@loopback/core';
 import {patch, post, response} from '@loopback/rest';
 import {SecurityBindings} from '@loopback/security';
 import {TokenInterceptor} from '../interceptors';
-import {Account, ExtendedUserProfile, Permissions} from '../models';
+import {Account, ExtendedUserProfile, Permission} from '../models';
 import {
   AccountService,
   TasksQueuesService,
@@ -24,7 +24,7 @@ export class AccountController {
     protected jwtService: TokenService,
   ) {}
 
-  @authorize({allowedRoles: [Permissions.REQUEST_EMAIL_VERIFICATION]})
+  @authorize({allowedRoles: [Permission.REQUEST_EMAIL_VERIFICATION]})
   @post('/account/request-email-verification')
   @response(204)
   async requestEmailVerification(
@@ -47,7 +47,7 @@ export class AccountController {
     );
   }
 
-  @authorize({allowedRoles: [Permissions.VERIFY_EMAIL]})
+  @authorize({allowedRoles: [Permission.VERIFY_EMAIL]})
   @intercept(TokenInterceptor.BINDING_KEY)
   @patch('/account/verify-email')
   @response(200, VerifyEmail200ResponseOptions)

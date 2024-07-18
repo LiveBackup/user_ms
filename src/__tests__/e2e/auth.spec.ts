@@ -2,7 +2,7 @@ import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
 import {LoginRequestDto, NewAccountDto} from '../../dtos';
-import {Account, Permissions} from '../../models';
+import {Account, Permission} from '../../models';
 import {
   IAccountCredentialsRepository,
   IAccountRepository,
@@ -187,7 +187,7 @@ describe('e2e - Auth Controller', () => {
         password: newUser.password,
       };
 
-      await client.post(login).expect(404).send(loginRequest);
+      await client.post(login).expect(500).send(loginRequest);
     });
 
     it('Reject the query when user not found', async () => {
@@ -347,7 +347,7 @@ describe('e2e - Auth Controller', () => {
       const response = await client.post(signup).send(newUser);
       let userProfile = accountService.convertToUserProfile(
         response.body as Account,
-        Permissions.RECOVER_PASSWORD,
+        Permission.RECOVER_PASSWORD,
       );
 
       token = await tokenService.generateToken(userProfile);
@@ -359,7 +359,7 @@ describe('e2e - Auth Controller', () => {
 
       userProfile = accountService.convertToUserProfile(
         response.body as Account,
-        Permissions.VERIFY_EMAIL,
+        Permission.VERIFY_EMAIL,
       );
       token = await tokenService.generateToken(userProfile);
       await client

@@ -11,16 +11,20 @@ import {givenRepositories} from './database.helpers';
 export const givenServices = async function () {
   const {accountRepository, accountCredentialsRepository, tokenRepository} =
     givenRepositories();
+
   const tasksQueueDB = await tasksQueuesTestDB;
 
   const accountService = new AccountService(
     accountRepository,
     accountCredentialsRepository,
+    new BcryptjsAdapter(),
   );
+
   const accountCredentialsService = new AccountCredentialsService(
     accountCredentialsRepository,
     new BcryptjsAdapter(),
   );
+
   const tasksQueuesService = new TasksQueuesService(tasksQueueDB);
 
   const tokenService = new TokenService(

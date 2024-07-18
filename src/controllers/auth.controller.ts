@@ -11,7 +11,7 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings} from '@loopback/security';
 import {AccountDto, LoginRequestDto, NewAccountDto, TokenDto} from '../dtos';
-import {ExtendedUserProfile, Permissions} from '../models';
+import {ExtendedUserProfile, Permission} from '../models';
 import {AccountService, TokenService, TokenServiceBindings} from '../services';
 import {
   Login200ResponseOptions,
@@ -60,7 +60,7 @@ export class AuthController {
 
   @authenticate('jwt')
   @authorize({
-    deniedRoles: [Permissions.RECOVER_PASSWORD, Permissions.VERIFY_EMAIL],
+    deniedRoles: [Permission.RECOVER_PASSWORD, Permission.VERIFY_EMAIL],
   })
   @get('/auth/who-am-i')
   @response(200, WhoAmI200ResponseOptions)

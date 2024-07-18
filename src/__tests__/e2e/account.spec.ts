@@ -2,7 +2,7 @@ import {Client, expect} from '@loopback/testlab';
 import sinon from 'sinon';
 import {UserMsApplication} from '../../application';
 import {LoginRequestDto, NewAccountDto} from '../../dtos';
-import {Account, Permissions} from '../../models';
+import {Account, Permission} from '../../models';
 import {IAccountRepository} from '../../repositories';
 import {
   AccountService,
@@ -206,7 +206,7 @@ describe('e2e - Account Controller', () => {
       // Get the user profile related to the account
       const userProfile = accountService.convertToUserProfile(
         account,
-        Permissions.VERIFY_EMAIL,
+        Permission.VERIFY_EMAIL,
       );
 
       // Generate the verification token
@@ -243,7 +243,7 @@ describe('e2e - Account Controller', () => {
       // Get the user profile related to the account
       const userProfile = accountService.convertToUserProfile(
         account,
-        Permissions.VERIFY_EMAIL,
+        Permission.VERIFY_EMAIL,
       );
 
       // Generate the verification token
@@ -281,9 +281,9 @@ describe('e2e - Account Controller', () => {
       const account = await accountRepository.createAccount(partialAccount);
 
       const permissions = [
-        Permissions.RECOVER_PASSWORD,
-        Permissions.REGULAR,
-        Permissions.REQUEST_EMAIL_VERIFICATION,
+        Permission.RECOVER_PASSWORD,
+        Permission.REGULAR,
+        Permission.REQUEST_EMAIL_VERIFICATION,
       ];
 
       for (const permission of permissions) {

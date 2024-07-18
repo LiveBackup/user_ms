@@ -1,6 +1,6 @@
 import {
   ExtendedUserProfile,
-  Permissions,
+  Permission,
   UserProfileRequest,
 } from '../../../models';
 
@@ -12,7 +12,7 @@ export const givenExtendedUserProfile = function (
       token:
         'c414d13e-74af-4fa6-85d8-a935edda4b37-7b74d046-5951-4211-a413-192d0303cf4d',
       isOneUsageProfile: false,
-      permissions: [Permissions.REGULAR],
+      permissions: [Permission.REGULAR],
     },
     data,
   ) as ExtendedUserProfile;
@@ -25,7 +25,7 @@ export const givenUserProfileRequest = function (
     {
       username: 'mock_user_123',
       email: 'mockuser123@mock.com',
-      requestedPermission: Permissions.REGULAR,
+      requestedPermission: Permission.REGULAR,
     },
     data,
   ) as UserProfileRequest;

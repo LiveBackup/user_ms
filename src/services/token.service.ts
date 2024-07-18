@@ -8,7 +8,7 @@ import {v4 as uuidv4} from 'uuid';
 import {
   ExtendedUserProfile,
   NewToken,
-  Permissions,
+  Permission,
   UserProfileRequest,
 } from '../models';
 import {ITokenRepository, TokenLb4Repository} from '../repositories';
@@ -48,34 +48,34 @@ export class TokenService implements DefaultTokenService {
     private passwordRecoveryTokenExpiration: number,
   ) {}
 
-  private getTokenData(permission: Permissions): Partial<NewToken> {
+  private getTokenData(permission: Permission): Partial<NewToken> {
     let isOneUsageToken: boolean;
-    let allowedActions: Permissions[];
+    let allowedActions: Permission[];
     let lifeTime: number;
 
     // Fill the values
     switch (permission) {
-      case Permissions.REGULAR:
+      case Permission.REGULAR:
         isOneUsageToken = false;
-        allowedActions = [Permissions.REGULAR];
+        allowedActions = [Permission.REGULAR];
         lifeTime = this.regularTokenExpiration;
         break;
-      case Permissions.RECOVER_PASSWORD:
+      case Permission.RECOVER_PASSWORD:
         isOneUsageToken = true;
-        allowedActions = [Permissions.RECOVER_PASSWORD];
+        allowedActions = [Permission.RECOVER_PASSWORD];
         lifeTime = this.passwordRecoveryTokenExpiration;
         break;
-      case Permissions.REQUEST_EMAIL_VERIFICATION:
+      case Permission.REQUEST_EMAIL_VERIFICATION:
         isOneUsageToken = false;
         allowedActions = [
-          Permissions.REGULAR,
-          Permissions.REQUEST_EMAIL_VERIFICATION,
+          Permission.REGULAR,
+          Permission.REQUEST_EMAIL_VERIFICATION,
         ];
         lifeTime = this.regularTokenExpiration;
         break;
       default: // VERIFY_EMAIL
         isOneUsageToken = true;
-        allowedActions = [Permissions.VERIFY_EMAIL];
+        allowedActions = [Permission.VERIFY_EMAIL];
         lifeTime = this.emailVerificationTokenExpiration;
         break;
     }

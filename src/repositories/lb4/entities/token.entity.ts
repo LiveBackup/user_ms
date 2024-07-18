@@ -1,5 +1,5 @@
 import {Entity, belongsTo, model, property} from '@loopback/repository';
-import {Permissions} from '../../../models';
+import {Permission} from '../../../models';
 import {AccountEntity, AccountWithRelations} from './account.entity';
 
 @model({
@@ -66,7 +66,7 @@ export class TokenEntity extends Entity {
       columnName: 'allowed_actions',
     },
   })
-  allowedActions: Permissions[];
+  allowedActions: Permission[];
 
   @property({
     type: 'date',

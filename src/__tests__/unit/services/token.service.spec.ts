@@ -1,6 +1,7 @@
 import {securityId} from '@loopback/security';
 import {expect} from '@loopback/testlab';
-import {Account, Permissions} from '../../../models';
+import {BcryptjsAdapter} from '../../../adapters';
+import {Account, Permission} from '../../../models';
 import {
   IAccountCredentialsRepository,
   IAccountRepository,
@@ -29,9 +30,11 @@ describe('Unit Testing - Token Service', () => {
   before(() => {
     ({accountRepository, accountCredentialsRepository, tokenRepository} =
       givenRepositories());
+
     accountService = new AccountService(
       accountRepository,
       accountCredentialsRepository,
+      new BcryptjsAdapter(),
     );
   });
 
@@ -98,7 +101,7 @@ describe('Unit Testing - Token Service', () => {
     it('Fails to generate a token when no permission is given', async () => {
       const userProfile = accountService.convertToUserProfile(
         givenAccount(),
-        undefined as unknown as Permissions,
+        undefined as unknown as Permission,
       );
 
       let expectedError;
@@ -117,7 +120,7 @@ describe('Unit Testing - Token Service', () => {
     it('Generates a token with a single permission', async () => {
       const userProfile = accountService.convertToUserProfile(
         givenAccount(),
-        Permissions.REGULAR,
+        Permission.REGULAR,
       );
       const token = await tokenService.generateToken(userProfile);
       expect(token).not.to.be.null();
@@ -129,7 +132,7 @@ describe('Unit Testing - Token Service', () => {
     it('Verify a token', async () => {
       const requestUserProfile = accountService.convertToUserProfile(
         account,
-        Permissions.REGULAR,
+        Permission.REGULAR,
       );
 
       const token = await tokenService.generateToken(requestUserProfile);
@@ -214,7 +217,7 @@ describe('Unit Testing - Token Service', () => {
 
       const userProfile = accountService.convertToUserProfile(
         givenAccount(),
-        Permissions.REGULAR,
+        Permission.REGULAR,
       );
       const token = await tokenService.generateToken(userProfile);
       expect(token).not.to.be.Null();
@@ -233,7 +236,7 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Validates a regular token', async () => {
-      const permission = Permissions.REGULAR;
+      const permission = Permission.REGULAR;
       const userProfile = accountService.convertToUserProfile(
         account,
         permission,
@@ -262,7 +265,7 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Validates a request email verification token', async () => {
-      const permission = Permissions.REQUEST_EMAIL_VERIFICATION;
+      const permission = Permission.REQUEST_EMAIL_VERIFICATION;
       const userProfile = accountService.convertToUserProfile(
         account,
         permission,
@@ -279,7 +282,7 @@ describe('Unit Testing - Token Service', () => {
       expect(resultProfile).not.to.be.Undefined();
       expect(resultProfile.permissions).to.be.Array();
       expect(resultProfile.permissions).to.be.deepEqual([
-        Permissions.REGULAR,
+        Permission.REGULAR,
         permission,
       ]);
 
@@ -294,7 +297,7 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Validates a verify email token', async () => {
-      const permission = Permissions.VERIFY_EMAIL;
+      const permission = Permission.VERIFY_EMAIL;
       const userProfile = accountService.convertToUserProfile(
         account,
         permission,
@@ -314,7 +317,7 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Validates a recover password token', async () => {
-      const permission = Permissions.RECOVER_PASSWORD;
+      const permission = Permission.RECOVER_PASSWORD;
       const userProfile = accountService.convertToUserProfile(
         account,
         permission,
@@ -339,7 +342,7 @@ describe('Unit Testing - Token Service', () => {
       // Generates an request UserProfile
       const requestUserProfile = accountService.convertToUserProfile(
         account,
-        Permissions.REGULAR,
+        Permission.REGULAR,
       );
 
       // Generates a valid token
@@ -397,7 +400,7 @@ describe('Unit Testing - Token Service', () => {
       // Generates an request UserProfile
       const requestUserProfile = accountService.convertToUserProfile(
         account,
-        Permissions.REGULAR,
+        Permission.REGULAR,
       );
 
       // Generates a valid token

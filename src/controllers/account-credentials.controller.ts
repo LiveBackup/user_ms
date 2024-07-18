@@ -12,7 +12,7 @@ import {
 import {SecurityBindings} from '@loopback/security';
 import {PasswordRecoveryRequestDto, UpdatePasswordDto} from '../dtos';
 import {TokenInterceptor} from '../interceptors';
-import {ExtendedUserProfile, Permissions} from '../models';
+import {ExtendedUserProfile, Permission} from '../models';
 import {
   AccountCredentialsService,
   AccountCredentialsServiceBindings,
@@ -65,7 +65,7 @@ export class AccountCredentialsController {
 
   @authenticate('jwt')
   @authorize({
-    allowedRoles: [Permissions.REGULAR, Permissions.RECOVER_PASSWORD],
+    allowedRoles: [Permission.REGULAR, Permission.RECOVER_PASSWORD],
   })
   @intercept(TokenInterceptor.BINDING_KEY)
   @patch('/credentials/update-password')
