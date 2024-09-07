@@ -4,7 +4,7 @@ import {IAccountCredentialsRepository} from '../../../repositories';
 import {AccountCredentialsService} from '../../../services';
 import {
   givenAccountCredentials,
-  givenExtendedUserProfile,
+  givenUserProfile,
 } from '../../helpers/models';
 
 describe('Unit testing - Token service', () => {
@@ -50,7 +50,7 @@ describe('Unit testing - Token service', () => {
         updateCredentialsByIdStub;
 
       // Method execution
-      const profile = givenExtendedUserProfile();
+      const profile = givenUserProfile();
       await accountCredentialsService.updatePassword(profile, {
         password: 'pwd',
       });
@@ -75,7 +75,7 @@ describe('Unit testing - Token service', () => {
       // Method execution
       let error: Error | undefined = undefined;
       try {
-        const profile = givenExtendedUserProfile();
+        const profile = givenUserProfile();
         await accountCredentialsService.updatePassword(profile, {
           password: 'pwd',
         });
@@ -99,7 +99,7 @@ describe('Unit testing - Token service', () => {
       // Method execution
       let error: Error | undefined = undefined;
       try {
-        const profile = givenExtendedUserProfile();
+        const profile = givenUserProfile();
         await accountCredentialsService.updatePassword(profile, {
           password: 'pwd',
         });

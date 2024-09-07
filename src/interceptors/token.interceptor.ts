@@ -10,7 +10,7 @@ import {
   ValueOrPromise,
 } from '@loopback/core';
 import {SecurityBindings} from '@loopback/security';
-import {ExtendedUserProfile} from '../models';
+import {UserProfile} from '../models';
 import {TokenService} from '../services';
 
 /**
@@ -28,8 +28,8 @@ export class TokenInterceptor implements Provider<Interceptor> {
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected tokenService: TokenService,
     @inject(SecurityBindings.USER)
-    protected requester: ExtendedUserProfile,
-  ) {}
+    protected requester: UserProfile,
+  ) { }
 
   /**
    * This method is used by LoopBack context to produce an interceptor function

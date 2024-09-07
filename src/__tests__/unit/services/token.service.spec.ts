@@ -42,13 +42,12 @@ describe('Unit Testing - Token Service', () => {
     await givenEmptyDatabase();
     await accountRepository.createAccount(account);
 
-    tokenService = new TokenService(
-      tokenRepository,
-      'secret',
-      3600000,
-      1800000,
-      300000,
-    );
+    tokenService = new TokenService(tokenRepository, {
+      secret: 'secret',
+      regularTokenExpirationTime: 3600000,
+      emailVerificationTokenExpirationTime: 1800000,
+      passwordRecoveryTokenExpirationTime: 300000,
+    });
   });
 
   describe('Get token parts', () => {
@@ -58,7 +57,7 @@ describe('Unit Testing - Token Service', () => {
       const expectedSecret = '6-7-8-9-0';
       const token = `${expectedId}-${expectedSecret}`;
 
-      // Split the dummt token into its parts
+      // Split the dummy token into its parts
       const [id, secret] = tokenService.getTokenParts(token);
 
       // Check the results
@@ -136,13 +135,13 @@ describe('Unit Testing - Token Service', () => {
       );
 
       const token = await tokenService.generateToken(requestUserProfile);
-      const extendedUserProfile = await tokenService.verifyToken(token);
+      const userProfile = await tokenService.verifyToken(token);
 
-      expect(extendedUserProfile).not.to.be.null();
-      expect(extendedUserProfile[securityId]).to.be.equal(
+      expect(userProfile).not.to.be.null();
+      expect(userProfile[securityId]).to.be.equal(
         requestUserProfile[securityId],
       );
-      expect(extendedUserProfile.permissions).to.containDeep([
+      expect(userProfile.permissions).to.containDeep([
         requestUserProfile.requestedPermission,
       ]);
     });
@@ -213,7 +212,12 @@ describe('Unit Testing - Token Service', () => {
     });
 
     it('Throws a 401 error when token has expired', async () => {
-      tokenService = new TokenService(tokenRepository, 'secret', -1, -1, -1);
+      tokenService = new TokenService(tokenRepository, {
+        secret: 'secret',
+        regularTokenExpirationTime: -1,
+        emailVerificationTokenExpirationTime: -1,
+        passwordRecoveryTokenExpirationTime: -1,
+      });
 
       const userProfile = accountService.convertToUserProfile(
         givenAccount(),

@@ -4,7 +4,7 @@ import {inject, intercept} from '@loopback/core';
 import {patch, post, response} from '@loopback/rest';
 import {SecurityBindings} from '@loopback/security';
 import {TokenInterceptor} from '../interceptors';
-import {Account, ExtendedUserProfile, Permission} from '../models';
+import {Account, Permission, UserProfile} from '../models';
 import {
   AccountService,
   TasksQueuesService,
@@ -22,13 +22,13 @@ export class AccountController {
     protected tasksQueuesService: TasksQueuesService,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected jwtService: TokenService,
-  ) {}
+  ) { }
 
   @authorize({allowedRoles: [Permission.REQUEST_EMAIL_VERIFICATION]})
   @post('/account/request-email-verification')
   @response(204)
   async requestEmailVerification(
-    @inject(SecurityBindings.USER) currentUser: ExtendedUserProfile,
+    @inject(SecurityBindings.USER) currentUser: UserProfile,
   ): Promise<void> {
     // Generate the user profile to request the email verification
     const userProfile = await this.accountService.getEmailVerificationProfile(
@@ -52,7 +52,7 @@ export class AccountController {
   @patch('/account/verify-email')
   @response(200, VerifyEmail200ResponseOptions)
   async verifyEmail(
-    @inject(SecurityBindings.USER) requester: ExtendedUserProfile,
+    @inject(SecurityBindings.USER) requester: UserProfile,
   ): Promise<Account> {
     return this.accountService.verifyAccountEmailAddress(requester);
   }

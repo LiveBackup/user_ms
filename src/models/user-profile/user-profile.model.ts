@@ -1,7 +1,7 @@
 import {Principal} from '@loopback/security';
-import {Permission} from './token.model';
+import {Permission} from '../token';
 
-export type ExtendedUserProfile = Principal & {
+export type UserProfile = Principal & {
   token: string;
   isOneUsageProfile: boolean;
   permissions: Permission[];

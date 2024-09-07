@@ -3,7 +3,7 @@ import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {securityId} from '@loopback/security';
 import {CryptoAdapterBindings, ICryptoAdapter} from '../adapters';
-import {ExtendedUserProfile, UpdatePassword} from '../models';
+import {UpdatePassword, UserProfile} from '../models';
 import {
   AccountCredentialsLb4Repository,
   IAccountCredentialsRepository,
@@ -25,10 +25,10 @@ export class AccountCredentialsService {
     protected readonly credentialsRepository: IAccountCredentialsRepository,
     @inject(CryptoAdapterBindings.BCRYPTJS)
     protected readonly cryptoAdapter: ICryptoAdapter,
-  ) {}
+  ) { }
 
   async updatePassword(
-    profile: ExtendedUserProfile,
+    profile: UserProfile,
     newPassword: UpdatePassword,
   ): Promise<void> {
     // Search the credentials using the account id

@@ -5,15 +5,15 @@ import {
 } from '@loopback/authorization';
 import {InvocationContext} from '@loopback/core';
 import {expect} from '@loopback/testlab';
-import {ExtendedUserProfile, Permission} from '../../../models';
+import {Permission, UserProfile} from '../../../models';
 import {AuthorizationProvider} from '../../../providers';
-import {givenExtendedUserProfile} from '../../helpers/models';
+import {givenUserProfile} from '../../helpers/models';
 
 describe('Unit Testing - Authorization provider', () => {
   const authorizationProvider = new AuthorizationProvider();
   let authorizationContext: AuthorizationContext;
   let metadata: AuthorizationMetadata;
-  let principal: ExtendedUserProfile;
+  let principal: UserProfile;
 
   beforeEach(async () => {
     authorizationContext = {
@@ -35,7 +35,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when no allowed or denied roles are provided', async () => {
-    principal = givenExtendedUserProfile({permissions: [Permission.REGULAR]});
+    principal = givenUserProfile({permissions: [Permission.REGULAR]});
     authorizationContext.principals = [principal];
 
     const authorizationDecision = await authorizationProvider.authorize(
@@ -46,7 +46,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when its role are included in allowed roles', async () => {
-    principal = givenExtendedUserProfile({permissions: [Permission.REGULAR]});
+    principal = givenUserProfile({permissions: [Permission.REGULAR]});
     authorizationContext.principals = [principal];
 
     metadata = {
@@ -61,7 +61,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when its role are not included in denied roles', async () => {
-    principal = givenExtendedUserProfile({
+    principal = givenUserProfile({
       permissions: [Permission.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];
@@ -78,7 +78,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role are not included in allowed roles', async () => {
-    principal = givenExtendedUserProfile({
+    principal = givenUserProfile({
       permissions: [Permission.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];
@@ -95,7 +95,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role are included in denied roles', async () => {
-    principal = givenExtendedUserProfile({permissions: [Permission.REGULAR]});
+    principal = givenUserProfile({permissions: [Permission.REGULAR]});
     authorizationContext.principals = [principal];
 
     metadata = {
@@ -110,7 +110,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Allow user when its role are included in allowed roles but not in denied roles', async () => {
-    principal = givenExtendedUserProfile({permissions: [Permission.REGULAR]});
+    principal = givenUserProfile({permissions: [Permission.REGULAR]});
     authorizationContext.principals = [principal];
 
     metadata = {
@@ -129,7 +129,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role are included in denied roles but not in allowed roles', async () => {
-    principal = givenExtendedUserProfile({
+    principal = givenUserProfile({
       permissions: [Permission.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];
@@ -150,7 +150,7 @@ describe('Unit Testing - Authorization provider', () => {
   });
 
   it('Deny user when its role is not included in neither allowed nor denied roles', async () => {
-    principal = givenExtendedUserProfile({
+    principal = givenUserProfile({
       permissions: [Permission.RECOVER_PASSWORD],
     });
     authorizationContext.principals = [principal];

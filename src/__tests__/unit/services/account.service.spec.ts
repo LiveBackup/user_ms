@@ -10,7 +10,7 @@ import {AccountService} from '../../../services';
 import {
   givenAccount,
   givenAccountCredentials,
-  givenExtendedUserProfile,
+  givenUserProfile,
 } from '../../helpers/models';
 
 describe('Unit testing - Account service', () => {
@@ -302,7 +302,7 @@ describe('Unit testing - Account service', () => {
 
       // Execute the method
       const account = await accountService.findWithUserProfile(
-        givenExtendedUserProfile(),
+        givenUserProfile(),
       );
 
       // Verify the result
@@ -318,7 +318,7 @@ describe('Unit testing - Account service', () => {
       // Execute the method
       let error: Error | undefined = undefined;
       try {
-        await accountService.findWithUserProfile(givenExtendedUserProfile());
+        await accountService.findWithUserProfile(givenUserProfile());
       } catch (err) {
         error = err;
       }
@@ -338,7 +338,7 @@ describe('Unit testing - Account service', () => {
 
       // Execute the method
       const userProfile = await accountService.getEmailVerificationProfile(
-        givenExtendedUserProfile(),
+        givenUserProfile(),
       );
 
       // Verify the execution
@@ -357,7 +357,7 @@ describe('Unit testing - Account service', () => {
       let error: Error | undefined = undefined;
       try {
         await accountService.getEmailVerificationProfile(
-          givenExtendedUserProfile(),
+          givenUserProfile(),
         );
       } catch (err) {
         error = err;
@@ -378,7 +378,7 @@ describe('Unit testing - Account service', () => {
 
       // Execute hte method
       const updatedAccount = await accountService.verifyAccountEmailAddress(
-        givenExtendedUserProfile(),
+        givenUserProfile(),
       );
 
       // Verify the result
@@ -395,7 +395,7 @@ describe('Unit testing - Account service', () => {
       let error: Error | undefined = undefined;
       try {
         await accountService.verifyAccountEmailAddress(
-          givenExtendedUserProfile(),
+          givenUserProfile(),
         );
       } catch (err) {
         error = err;

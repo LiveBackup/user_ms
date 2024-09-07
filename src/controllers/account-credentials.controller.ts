@@ -12,7 +12,7 @@ import {
 import {SecurityBindings} from '@loopback/security';
 import {PasswordRecoveryRequestDto, UpdatePasswordDto} from '../dtos';
 import {TokenInterceptor} from '../interceptors';
-import {ExtendedUserProfile, Permission} from '../models';
+import {Permission, UserProfile} from '../models';
 import {
   AccountCredentialsService,
   AccountCredentialsServiceBindings,
@@ -38,7 +38,7 @@ export class AccountCredentialsController {
     protected tasksQueuesService: TasksQueuesService,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected jwtService: TokenService,
-  ) {}
+  ) { }
 
   @post('/credentials/request-password-recovery')
   @response(204)
@@ -71,7 +71,7 @@ export class AccountCredentialsController {
   @patch('/credentials/update-password')
   @response(204)
   async updatePassword(
-    @inject(SecurityBindings.USER) requester: ExtendedUserProfile,
+    @inject(SecurityBindings.USER) requester: UserProfile,
     @requestBody(UpdatePasswordRequestOptions)
     newPassword: UpdatePasswordDto,
   ): Promise<void> {

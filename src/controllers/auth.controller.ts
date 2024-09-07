@@ -11,7 +11,7 @@ import {
 } from '@loopback/rest';
 import {SecurityBindings} from '@loopback/security';
 import {AccountDto, LoginRequestDto, NewAccountDto, TokenDto} from '../dtos';
-import {ExtendedUserProfile, Permission} from '../models';
+import {Permission, UserProfile} from '../models';
 import {AccountService, TokenService, TokenServiceBindings} from '../services';
 import {
   Login200ResponseOptions,
@@ -29,7 +29,7 @@ export class AuthController {
     protected accountService: AccountService,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     protected jwtService: TokenService,
-  ) {}
+  ) { }
 
   @post('/auth/sign-up')
   @response(201, SignUp201ResponseOptions)
@@ -65,7 +65,7 @@ export class AuthController {
   @get('/auth/who-am-i')
   @response(200, WhoAmI200ResponseOptions)
   async whoAmI(
-    @inject(SecurityBindings.USER) currentUser: ExtendedUserProfile,
+    @inject(SecurityBindings.USER) currentUser: UserProfile,
   ): Promise<AccountDto> {
     return this.accountService.findWithUserProfile(currentUser);
   }

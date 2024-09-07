@@ -6,28 +6,18 @@ import {securityId} from '@loopback/security';
 import {AES, enc} from 'crypto-js';
 import {v4 as uuidv4} from 'uuid';
 import {
-  ExtendedUserProfile,
   NewToken,
   Permission,
+  TokenServiceConfig,
+  UserProfile,
   UserProfileRequest,
 } from '../models';
 import {ITokenRepository, TokenLb4Repository} from '../repositories';
 
 export namespace TokenServiceBindings {
-  export const TOKEN_SECRET = BindingKey.create<string>(
-    'services.TokenService.secret',
+  export const TOKEN_SERVICE_CONFIG = BindingKey.create<TokenServiceConfig>(
+    'services.TokenService.config',
   );
-  export const TOKEN_REGULAR_EXPIRATION_TIME = BindingKey.create<number>(
-    'services.TokenService.regular.expiration-time',
-  );
-  export const VERIFICATION_EMAIL_TOKEN_EXPIRATION_TIME =
-    BindingKey.create<number>(
-      'services.TokenService.verification-email.expiration-time',
-    );
-  export const PASSWORD_RECOVERY_TOKEN_EXPIRATION_TIME =
-    BindingKey.create<number>(
-      'services.TokenService.password-recovery.expiration-time',
-    );
   export const TOKEN_SERVICE = BindingKey.create<TokenService>(
     'services.authentication.jwt.tokenservice',
   );
@@ -38,15 +28,9 @@ export class TokenService implements DefaultTokenService {
   constructor(
     @repository(TokenLb4Repository)
     private tokenRepository: ITokenRepository,
-    @inject(TokenServiceBindings.TOKEN_SECRET)
-    private secret: string,
-    @inject(TokenServiceBindings.TOKEN_REGULAR_EXPIRATION_TIME)
-    private regularTokenExpiration: number,
-    @inject(TokenServiceBindings.VERIFICATION_EMAIL_TOKEN_EXPIRATION_TIME)
-    private emailVerificationTokenExpiration: number,
-    @inject(TokenServiceBindings.PASSWORD_RECOVERY_TOKEN_EXPIRATION_TIME)
-    private passwordRecoveryTokenExpiration: number,
-  ) {}
+    @inject(TokenServiceBindings.TOKEN_SERVICE_CONFIG)
+    private config: TokenServiceConfig,
+  ) { }
 
   private getTokenData(permission: Permission): Partial<NewToken> {
     let isOneUsageToken: boolean;
@@ -58,12 +42,12 @@ export class TokenService implements DefaultTokenService {
       case Permission.REGULAR:
         isOneUsageToken = false;
         allowedActions = [Permission.REGULAR];
-        lifeTime = this.regularTokenExpiration;
+        lifeTime = this.config.regularTokenExpirationTime;
         break;
       case Permission.RECOVER_PASSWORD:
         isOneUsageToken = true;
         allowedActions = [Permission.RECOVER_PASSWORD];
-        lifeTime = this.passwordRecoveryTokenExpiration;
+        lifeTime = this.config.passwordRecoveryTokenExpirationTime;
         break;
       case Permission.REQUEST_EMAIL_VERIFICATION:
         isOneUsageToken = false;
@@ -71,12 +55,12 @@ export class TokenService implements DefaultTokenService {
           Permission.REGULAR,
           Permission.REQUEST_EMAIL_VERIFICATION,
         ];
-        lifeTime = this.regularTokenExpiration;
+        lifeTime = this.config.regularTokenExpirationTime;
         break;
       default: // VERIFY_EMAIL
         isOneUsageToken = true;
         allowedActions = [Permission.VERIFY_EMAIL];
-        lifeTime = this.emailVerificationTokenExpiration;
+        lifeTime = this.config.emailVerificationTokenExpirationTime;
         break;
     }
 
@@ -111,7 +95,7 @@ export class TokenService implements DefaultTokenService {
 
     const token: NewToken = {
       ...(this.getTokenData(userProfile.requestedPermission) as NewToken),
-      tokenSecret: AES.encrypt(tokenSecret, this.secret).toString(),
+      tokenSecret: AES.encrypt(tokenSecret, this.config.secret).toString(),
       accountId: userProfile[securityId],
     };
     const dbToken = await this.tokenRepository.createToken(token);
@@ -119,7 +103,7 @@ export class TokenService implements DefaultTokenService {
     return `${dbToken.id}-${tokenSecret}`;
   }
 
-  async verifyToken(token: string): Promise<ExtendedUserProfile> {
+  async verifyToken(token: string): Promise<UserProfile> {
     const invalidTokenError = new HttpErrors[401](
       'Error verifying the token: Invalid Token',
     );
@@ -141,14 +125,14 @@ export class TokenService implements DefaultTokenService {
     // Decrypt the stored token secret
     const decryptedStoredToken = AES.decrypt(
       dbToken.tokenSecret,
-      this.secret,
+      this.config.secret,
     ).toString(enc.Utf8);
 
     // Compare the given and stored token secrets
     if (tokenSecret !== decryptedStoredToken) throw invalidTokenError;
 
     // Create the user profile
-    const userProfile: ExtendedUserProfile = {
+    const userProfile: UserProfile = {
       [securityId]: dbToken.accountId,
       permissions: dbToken.allowedActions,
       token,
@@ -170,7 +154,7 @@ export class TokenService implements DefaultTokenService {
     // Decrypt the stored token secret
     const decryptedStoredToken = AES.decrypt(
       dbToken.tokenSecret,
-      this.secret,
+      this.config.secret,
     ).toString(enc.Utf8);
 
     // Compare the given and stored token secrets

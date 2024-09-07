@@ -80,17 +80,17 @@ export class UserMsApplication extends BootMixin(
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(TokenService);
 
     // Bind variables for jwt access token
-    this.bind(TokenServiceBindings.TOKEN_SECRET).to(
-      process.env.USER_MS_ACCESS_TOKEN_SECRET ?? 'access_secret',
-    );
-    this.bind(TokenServiceBindings.TOKEN_REGULAR_EXPIRATION_TIME).to(
-      +(process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? 3600000),
-    );
-    this.bind(TokenServiceBindings.VERIFICATION_EMAIL_TOKEN_EXPIRATION_TIME).to(
-      +(process.env.USER_MS_VERIFY_EMAIL_TOKEN_EXPIRATION_TIME ?? 3600000),
-    );
-    this.bind(TokenServiceBindings.PASSWORD_RECOVERY_TOKEN_EXPIRATION_TIME).to(
-      +(process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? 3600000),
-    );
+    this.bind(TokenServiceBindings.TOKEN_SERVICE_CONFIG).to({
+      secret: process.env.USER_MS_ACCESS_TOKEN_SECRET ?? 'access_secret',
+      regularTokenExpirationTime: +(
+        process.env.USER_MS_ACCESS_TOKEN_EXPIRATION_TIME ?? 3600000
+      ),
+      emailVerificationTokenExpirationTime: +(
+        process.env.USER_MS_VERIFY_EMAIL_TOKEN_EXPIRATION_TIME ?? 3600000
+      ),
+      passwordRecoveryTokenExpirationTime: +(
+        process.env.USER_MS_UPDATE_PASSWORD_TOKEN_EXPIRATION_TIME ?? 3600000
+      ),
+    });
   }
 }

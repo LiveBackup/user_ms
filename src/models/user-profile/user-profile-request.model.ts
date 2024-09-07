@@ -1,5 +1,5 @@
 import {Principal} from '@loopback/security';
-import {Permission} from './token.model';
+import {Permission} from '../token';
 
 export type UserProfileRequest = Principal & {
   username: string;

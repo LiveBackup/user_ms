@@ -27,13 +27,12 @@ export const givenServices = async function () {
 
   const tasksQueuesService = new TasksQueuesService(tasksQueueDB);
 
-  const tokenService = new TokenService(
-    tokenRepository,
-    'secret_123',
-    3600000,
-    3600000,
-    3600000,
-  );
+  const tokenService = new TokenService(tokenRepository, {
+    secret: 'secret_123',
+    regularTokenExpirationTime: 3600000,
+    emailVerificationTokenExpirationTime: 3600000,
+    passwordRecoveryTokenExpirationTime: 3600000,
+  });
 
   return {
     accountService,

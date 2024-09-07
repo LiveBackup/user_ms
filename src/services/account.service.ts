@@ -5,11 +5,11 @@ import {securityId} from '@loopback/security';
 import {CryptoAdapterBindings, ICryptoAdapter} from '../adapters';
 import {
   Account,
-  ExtendedUserProfile,
   LoginRequest,
   NewAccountRequest,
   PasswordRecoveryRequest,
   Permission,
+  UserProfile,
   UserProfileRequest,
 } from '../models';
 import {
@@ -28,7 +28,7 @@ export class AccountService {
     protected readonly credentialsRepository: IAccountCredentialsRepository,
     @inject(CryptoAdapterBindings.BCRYPTJS)
     protected readonly cryptoAdapter: ICryptoAdapter,
-  ) {}
+  ) { }
 
   convertToUserProfile(
     account: Account,
@@ -118,7 +118,7 @@ export class AccountService {
   }
 
   async findWithUserProfile(
-    userProfile: ExtendedUserProfile,
+    userProfile: UserProfile,
   ): Promise<Account> {
     const account = await this.accountRepository.findAccountById(
       userProfile[securityId],
@@ -131,7 +131,7 @@ export class AccountService {
   }
 
   async getEmailVerificationProfile(
-    activeProfile: ExtendedUserProfile,
+    activeProfile: UserProfile,
   ): Promise<UserProfileRequest> {
     const account = await this.findWithUserProfile(activeProfile);
     if (account.isEmailVerified) {
@@ -142,7 +142,7 @@ export class AccountService {
   }
 
   async verifyAccountEmailAddress(
-    profile: ExtendedUserProfile,
+    profile: UserProfile,
   ): Promise<Account> {
     const updatedAccount = await this.accountRepository.updateAccountById(
       profile[securityId],

@@ -1,12 +1,12 @@
 import {
-  ExtendedUserProfile,
   Permission,
+  UserProfile,
   UserProfileRequest,
 } from '../../../models';
 
-export const givenExtendedUserProfile = function (
-  data?: Partial<ExtendedUserProfile>,
-): ExtendedUserProfile {
+export const givenUserProfile = function (
+  data?: Partial<UserProfile>,
+): UserProfile {
   return Object.assign(
     {
       token:
@@ -15,7 +15,7 @@ export const givenExtendedUserProfile = function (
       permissions: [Permission.REGULAR],
     },
     data,
-  ) as ExtendedUserProfile;
+  ) as UserProfile;
 };
 
 export const givenUserProfileRequest = function (
