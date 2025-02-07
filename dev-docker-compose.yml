@@ -1,0 +1,36 @@
+version: '3.4'
+
+services:
+  livebackup_tasks_queue:
+    image: redis:6.2.11-alpine3.17
+    container_name: livebackup_tasks_queue
+    environment:
+      - REDIS_PASSWORD=${TASKS_QUEUE_PASSWORD}
+    networks:
+      - livebackup
+    ports:
+      - '${TASKS_QUEUE_PORT}:6379'
+
+  livebackup_user_db:
+    image: postgres:14.1
+    container_name: livebackup_user_db
+    environment:
+      - POSTGRES_PASSWORD=${USER_DB_PASSWORD}
+      - POSTGRES_USER=${USER_DB_USER}
+      - POSTGRES_DB=${USER_DB_DATABASE}
+    networks:
+      - livebackup
+    ports:
+      - '${USER_DB_PORT}:5432'
+    volumes:
+      - ./user_db/data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  livebackup:
+    name: livebackup
+    driver: bridge

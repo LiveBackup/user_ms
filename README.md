@@ -3,69 +3,76 @@
 This application is generated using [LoopBack 4 CLI](https://loopback.io/doc/en/lb4/Command-line-interface.html) with the
 [initial project layout](https://loopback.io/doc/en/lb4/Loopback-application-layout.html).
 
-## Install dependencies
+## Running the application for Development
 
-By default, dependencies were installed when this application was generated.
-Whenever dependencies in `package.json` are changed, run the following command:
+### Requirements
 
-```sh
-npm install
-```
+* Node.js V16 (Latest LTS: Gallium).
+* [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/).
 
-To only install resolved dependencies in `package-lock.json`:
+### Install dependencies
+
+Install the project resolved dependencies in `package-lock.json` file using npm:
 
 ```sh
 npm ci
 ```
 
-## Run the application
+In case the `package-lock.json` file is not present run instead:
+
+```sh
+npm i
+```
+
+### Define the .env file
+
+A `.env.example` file is provided with the EVM variables required for this component to run. Copy this example file to a `.evn` file by running:
+
+
+```sh
+cp .example.env .env
+```
+**Warning**: The `.example.env` file contains dummy values for some secrets and passwords. Make sure to modify them and add strong ones when deploying to a production environment.
+
+### Start dependencies container
+
+This component depend on an Postgres database to store the account data and a Redis DB to publish async task to underlying components. To start both containers using docker compose run:
+
+```sh
+docker-compose -f ./dev-docker-compose.yml up
+```
+**Note:** You can add a `-d` flag at the end of the `docker-compose` command to detach the process of your active SHELL session.
+
+### Migrate the DB schema
+
+There are two options to migrate the schema. You cna run the following command to migrate the new changes to a DB schema:
+
+```sh
+npm run migrate
+```
+
+Or, in case you are introducing and breaking change you cna run:
+
+```sh
+npm run migrate -- --rebuild
+```
+**Warning**: Executing this command will delete the existing schemas in DB among the existing information. Be careful when running it.
+
+### Run the application
+
+Now, you can simply start the application by running:
 
 ```sh
 npm start
 ```
 
-You can also run `node .` to skip the build step.
-
-Open http://127.0.0.1:3000 in your browser.
-
-## Rebuild the project
-
-To incrementally build the project:
+Or start a watch session to restart the server every time you save a code change by running:
 
 ```sh
-npm run build
+npm run start:dev
 ```
 
-To force a full build by cleaning up cached artifacts:
-
-```sh
-npm run rebuild
-```
-
-## Fix code style and formatting issues
-
-```sh
-npm run lint
-```
-
-To automatically fix such issues:
-
-```sh
-npm run lint:fix
-```
-
-## Other useful commands
-
-- `npm run migrate`: Migrate database schemas for models
-- `npm run openapi-spec`: Generate OpenAPI spec into a file
-- `npm run docker:build`: Build a Docker image for this application
-- `npm run docker:run`: Run this application inside a Docker container
-
-## Tests
-
-```sh
-npm test
-```
+Open http://127.0.0.1:3000 in your browser to watch the Swagger docs.
 
 ## What's next
 
